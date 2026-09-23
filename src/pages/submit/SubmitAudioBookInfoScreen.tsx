@@ -350,7 +350,7 @@ export default function SubmitAudioBookInfoScreen() {
                 </div>
               ))}
             </div>
-            {titleLang !== "en" && !titleEn.trim() && titleMn.trim() && (
+            {titleLang !== "en" && !titleEn.trim() && titleMn.trim().length >= 3 && (
               <div className="wiz-title-warn">
                 <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
                 English / Latin хувилбар нь дэлхийн платформуудад шаардлагатай. Дээр оруулна уу.

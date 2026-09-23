@@ -9,6 +9,7 @@ import {
   Pencil, GripVertical, Image, ImageOff, ZapIcon, CalendarDays,
   CalendarClock, RadioTower, ListMusic, ClipboardCheck, CircleCheckBig,
   Clock3, CircleX, UserRound, PlusCircle, CheckCircle2, Headphones, Video, AlertCircle,
+  Star,
 } from "lucide-react";
 import "@/styles/wizard.css";
 import { RELEASES } from "@/data/releases";
@@ -247,6 +248,8 @@ export default function MusicWizard() {
   const [createContribModal, setCreateContribModal] = useState<{ open: boolean; trackIdx: number; role: string; isOther: boolean } | null>(null);
   const [newContribName, setNewContribName] = useState("");
   const [newContribAffil, setNewContribAffil] = useState("");
+  const [createName, setCreateName] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
   const [showAddSong, setShowAddSong] = useState(false);
   const [showReleasedPicker, setShowReleasedPicker] = useState(false);
   const [addSongSel, setAddSongSel] = useState(new Set<string>());
@@ -335,7 +338,7 @@ export default function MusicWizard() {
       if (kind === "primary") setPrimary([...arr, ...toAdd]);
       else setFeatured([...arr, ...toAdd]);
     }
-    setArtistModal(null);
+    setArtistModal(null); setShowCreate(false); setCreateName("");
   }
   function createArtist(name: string) {
     const a: Artist = { id: "ART-" + String(500 + artists.length).padStart(6, "0"), name };
@@ -349,7 +352,7 @@ export default function MusicWizard() {
       if (kind === "primary") setPrimary(p => [...p, a]);
       else setFeatured(f => [...f, a]);
     }
-    setArtistModal(null);
+    setArtistModal(null); setShowCreate(false); setCreateName("");
   }
 
   // ─── genre helpers
@@ -558,7 +561,7 @@ export default function MusicWizard() {
             </div>
           ))}
         </div>
-        {titleLang !== "en" && !titlesEn.trim() && titlesMn.trim() && (
+        {titleLang !== "en" && !titlesEn.trim() && titlesMn.trim().length >= 3 && (
           <div className="wiz-title-warn">
             <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
             English / Latin хувилбар нь дэлхийн платформуудад шаардлагатай. Дээр оруулна уу.
@@ -692,7 +695,7 @@ export default function MusicWizard() {
             </div>
           ))}
         </div>
-        {active !== "en" && !t.titles.en?.trim() && t.titles[active]?.trim() && (
+        {active !== "en" && !t.titles.en?.trim() && (t.titles[active]?.trim()?.length ?? 0) >= 3 && (
           <div className="wiz-title-warn">
             <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
             English / Latin хувилбар шаардлагатай.
@@ -828,7 +831,7 @@ export default function MusicWizard() {
       <div className="wiz-contrib-split">
         <div className="wiz-contrib-subsection">
           <div className="wiz-contrib-sub-head">
-            <div><h4>Үндсэн оролцогчид</h4><p>Дууны зохиогчийн credit болон эрхийн байгууллагын мэдээлэл.</p></div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Star size={13} style={{ color: "var(--w-accent)", flexShrink: 0 }} /><h4 style={{ margin: 0 }}>Үндсэн оролцогчид</h4></div>
           </div>
           <div className="wiz-credit-role-list">
             {/* Composer */}
@@ -871,7 +874,7 @@ export default function MusicWizard() {
         </div>
         <div className="wiz-contrib-subsection">
           <div className="wiz-contrib-sub-head">
-            <div><h4>Бусад оролцогч</h4></div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}><Users size={13} style={{ color: "var(--w-muted)", flexShrink: 0 }} /><h4 style={{ margin: 0 }}>Бусад оролцогч</h4></div>
             <button className="wiz-btn" style={{ fontSize: 11, minHeight: 36 }} onClick={() => openContribModal(idx, "other")}><Plus size={12} />Нэмэх</button>
           </div>
           {c.other.length > 0 ? (
@@ -918,7 +921,7 @@ export default function MusicWizard() {
             <div className="wiz-track-panel-title"><AudioWaveform size={16} /><b>Аудио файл</b></div>
             <span>Source файл ба техникийн мэдээлэл</span>
           </div>
-          <AudioSourceCard t={t} idx={idx} />
+          {AudioSourceCard({ t, idx })}
         </div>
 
         {/* Album only: title + artist + genre */}
@@ -929,14 +932,14 @@ export default function MusicWizard() {
               <span>Track тус бүрийн нэр, артист, жанр</span>
             </div>
             <div className="wiz-track-album-meta">
-              <TrackTitleEditor t={t} idx={idx} />
+              {TrackTitleEditor({ t, idx })}
               <div className="wiz-track-artist-rows">
-                <TrackArtistRole idx={idx} kind="primary" />
-                <TrackArtistRole idx={idx} kind="featured" />
+                {TrackArtistRole({ idx, kind: "primary" })}
+                {TrackArtistRole({ idx, kind: "featured" })}
               </div>
               <div className="wiz-track-meta-row">
-                <TrackGenrePicker idx={idx} field="genre" label="Үндсэн жанр" required />
-                <TrackGenrePicker idx={idx} field="secondaryGenre" label="Secondary genre" />
+                {TrackGenrePicker({ idx, field: "genre", label: "Үндсэн жанр", required: true })}
+                {TrackGenrePicker({ idx, field: "secondaryGenre", label: "Secondary genre" })}
               </div>
             </div>
           </div>
@@ -1036,7 +1039,7 @@ export default function MusicWizard() {
             <div className="wiz-track-panel-title"><Users size={16} /><b>Оролцогчид</b></div>
             <span>Songwriting болон production credits</span>
           </div>
-          <TrackContributors t={t} idx={idx} />
+          {TrackContributors({ t, idx })}
         </div>
       </div>
     );
@@ -1054,18 +1057,23 @@ export default function MusicWizard() {
         </div>
         <h2>Үндсэн мэдээлэл</h2>
         <div className="wiz-section" style={{ paddingTop: 0, borderTop: "none", marginTop: 0 }}>
-          <TitleField />
+          {TitleField()}
           <div className="wiz-artist-section">
             <div className="wiz-artist-section-head">
-              <h3>Артистууд</h3>
-              <span>Хайж сонгох эсвэл шинэ артист үүсгэх</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <Users size={15} style={{ color: "var(--w-accent)", flexShrink: 0 }} />
+                <div>
+                  <h3 style={{ margin: 0 }}>Артистууд</h3>
+                  <span style={{ fontSize: 12, color: "var(--w-muted)" }}>Хайж сонгох эсвэл шинэ артист үүсгэх</span>
+                </div>
+              </div>
             </div>
-            <ArtistRoleBox kind="primary" />
-            <ArtistRoleBox kind="featured" />
+            {ArtistRoleBox({ kind: "primary" })}
+            {ArtistRoleBox({ kind: "featured" })}
           </div>
           <div className="wiz-grid2" style={{ marginTop: 14 }}>
-            <GenrePicker kind="primary" label="Үндсэн жанр" required />
-            <GenrePicker kind="secondary" label="Secondary genre" />
+            {GenrePicker({ kind: "primary", label: "Үндсэн жанр", required: true })}
+            {GenrePicker({ kind: "secondary", label: "Secondary genre" })}
           </div>
           <div className="wiz-field">
             <label className="wiz-label">Label<InfoTip text="Хэвлэл болон хуваарилалтын компани. Байхгүй бол хоосон орхино — артистын нэр ашиглагдана." /></label>
@@ -1169,7 +1177,7 @@ export default function MusicWizard() {
             const featNames = isSingle ? featured.map(a => a.name).join(", ") : t.featuredArtists?.map(a => a.name).join(", ") || "";
             const artistText = [primaryNames || "Артист сонгоогүй", featNames ? `(feat. ${featNames})` : ""].filter(Boolean).join(" ");
             return (
-              <div key={t.assetId} className={`wiz-track ${dragOver === i ? "drag-over" : ""}`}
+              <div key={t.assetId} className={`wiz-track ${dragOver === i ? "drag-over" : ""} ${openTrack === i ? "open" : ""}`}
                 onDragOver={e => { e.preventDefault(); setDragOver(i); }}
                 onDragLeave={() => setDragOver(null)}
                 onDrop={() => handleDrop(i)}>
@@ -1198,7 +1206,7 @@ export default function MusicWizard() {
                   </div>
                   {opened ? <ChevronUp size={16} style={{ color: "#999", flexShrink: 0 }} /> : <ChevronDown size={16} style={{ color: "#999", flexShrink: 0 }} />}
                 </div>
-                {opened && <TrackBody t={t} idx={i} />}
+                {opened && TrackBody({ t, idx: i })}
               </div>
             );
           })}
@@ -1658,8 +1666,6 @@ export default function MusicWizard() {
         ? (kind === "primary" ? tracks[trackIdx].primaryArtists : tracks[trackIdx].featuredArtists).map(a => a.id)
         : (kind === "primary" ? primary : featured).map(a => a.id)
     );
-    const [createName, setCreateName] = useState("");
-    const [showCreate, setShowCreate] = useState(false);
     const filtered = artists.filter(a => !artistSearch || a.name.toLowerCase().includes(artistSearch.toLowerCase()) || a.id.toLowerCase().includes(artistSearch.toLowerCase()));
     return (
       <div className="wiz-modal-back">
@@ -1669,7 +1675,7 @@ export default function MusicWizard() {
               <h3>{kind === "primary" ? "Үндсэн артист" : "Хамтарсан артист"} сонгох</h3>
               <div className="wiz-hint">Нэр эсвэл Artist ID-аар хайгаад артист сонгоно.</div>
             </div>
-            <button className="wiz-btn icon-btn" onClick={() => setArtistModal(null)}><X size={16} /></button>
+            <button className="wiz-btn icon-btn" onClick={() => { setArtistModal(null); setShowCreate(false); setCreateName(""); }}><X size={16} /></button>
           </div>
           {!showCreate ? (
             <>
@@ -1912,12 +1918,12 @@ export default function MusicWizard() {
   }
 
   // ══════════════════ main render ══════════════════════════════════════════════
-  const stageContent = stage === 1 ? <Stage1 /> : stage === 2 ? <Stage2 /> : stage === 3 ? <Stage3 /> : stage === 4 ? <Stage4 /> : <Stage5 />;
+  const stageContent = stage === 1 ? Stage1() : stage === 2 ? Stage2() : stage === 3 ? Stage3() : stage === 4 ? Stage4() : Stage5();
   const shellTitle = titlesMn.trim() || (editRelease
     ? (isSingle ? "Дуу засах" : "Цомог засах")
     : mode ? (isSingle ? "Дуу үүсгэх" : "Цомог үүсгэх") : "Контент нэмэх");
   const shellSubtitle = primary.length > 0
-    ? primary.map(a => a.name).join(", ")
+    ? primary.map(a => a.name).join(", ") + (featured.length > 0 ? ` feat. ${featured.map(a => a.name).join(", ")}` : "")
     : "Дуу, цомгийн мэдээлэл";
 
   return (
@@ -2027,15 +2033,15 @@ export default function MusicWizard() {
                 </div>
               </div>
             </div>
-            <GuidePanel />
+            {GuidePanel()}
           </div>
         </div>
       )}
 
-      <ArtistSearchModal />
-      <ContribModal />
-      <CreateContribModal />
-      <AddSongModal />
+      {ArtistSearchModal()}
+      {ContribModal()}
+      {CreateContribModal()}
+      {AddSongModal()}
     </Shell>
   );
 }

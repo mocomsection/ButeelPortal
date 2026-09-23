@@ -801,25 +801,36 @@
 }
 .wiz-track-add-row svg { width: 15px; }
 .wiz-track {
-  border: 1px solid var(--w-line);
-  border-radius: 11px;
+  border: 1.5px solid var(--w-line);
+  border-radius: 12px;
   overflow: hidden;
-  margin-top: 10px;
+  margin-top: 8px;
   background: #fff;
-  transition: border-color .14s;
+  transition: border-color .18s, box-shadow .18s;
 }
-.wiz-track.drag-over { border-color: #8f84ff; box-shadow: 0 0 0 2px rgba(109,94,252,.1); }
+.wiz-track:hover { border-color: #ccc8ec; }
+.wiz-track.open { border-color: #b8b0f0; box-shadow: 0 2px 12px rgba(109,94,252,.08); }
+.wiz-track.drag-over { border-color: #8f84ff; box-shadow: 0 0 0 2px rgba(109,94,252,.14); }
 .wiz-track-head {
   display: grid;
   grid-template-columns: 24px 36px minmax(0,1fr) 20px;
   gap: 12px;
   align-items: center;
-  padding: 13px 15px;
+  padding: 13px 16px;
   cursor: pointer;
-  transition: background .1s;
+  transition: background .12s;
+  user-select: none;
 }
-.wiz-track-head:hover { background: #fcfbff; }
+.wiz-track-head:hover { background: #faf9ff; }
+.wiz-track.open .wiz-track-head { background: #f7f5ff; }
 .wiz-track-head.single { grid-template-columns: 36px minmax(0,1fr) 20px; }
+
+/* Track body entrance animation */
+@keyframes wiz-body-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wiz-track-body { animation: wiz-body-in .18s ease; }
 .wiz-drag-handle {
   width: 24px; height: 32px;
   display: grid; place-items: center;
@@ -1069,10 +1080,10 @@
 }
 .wiz-cover-drop:hover, .wiz-cover-drop.drag { border-color: var(--w-accent); background: var(--w-soft); }
 .wiz-cover-drop img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.wiz-cover-content { position: relative; z-index: 1; }
-.wiz-cover-content svg { width: 34px; color: var(--w-accent); margin-bottom: 10px; }
-.wiz-cover-content b { display: block; font-size: 14px; }
-.wiz-cover-content span { display: block; font-size: 12px; color: var(--w-muted); margin: 5px 0 12px; }
+.wiz-cover-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.wiz-cover-content svg { color: var(--w-accent); margin-bottom: 6px; }
+.wiz-cover-content b { display: block; font-size: 14px; text-align: center; }
+.wiz-cover-content span { display: block; font-size: 12px; color: var(--w-muted); text-align: center; }
 .wiz-cover-overlay {
   position: absolute;
   inset: auto 10px 10px 10px;
