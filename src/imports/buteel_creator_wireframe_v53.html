@@ -1,0 +1,2752 @@
+<!doctype html>
+<html lang="mn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buteel Creator Portal Wireframe</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --bg:#f7f7f9;--panel:#fff;--line:#ddddE5;--text:#262633;--muted:#7c7f8d;
+  --accent:#6b50f6;--accent-soft:#f2efff;--danger:#cf4b5e;--ok:#2d8a63
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:"Nunito Sans",sans-serif;color:var(--text);font-size:14px}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.app{min-height:100vh;display:block}
+main{padding:28px 34px 60px}
+.wrap{max-width:980px;margin:auto}
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.header h1{margin:0;font-size:25px}
+.header p{margin:4px 0;color:var(--muted)}
+.saved{font-size:12px;color:var(--ok);display:flex;align-items:center;gap:6px;margin-top:6px}
+.saved svg{width:15px}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;border:1px solid var(--line);background:#fff;padding:6px;border-radius:10px;margin:22px 0}
+.step{padding:9px 10px;border-radius:7px;color:#858897;font-size:12px;font-weight:700;display:flex;gap:7px;align-items:center}
+.step span{width:21px;height:21px;border-radius:50%;background:#f0f0f4;display:grid;place-items:center;font-size:11px}
+.step.active{background:var(--accent-soft);color:var(--accent)}
+.step.active span{background:var(--accent);color:#fff}
+.form{max-width:760px;margin:auto;background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px}
+.form h2{font-size:20px;margin:0 0 22px}
+.section{padding-top:22px;margin-top:22px;border-top:1px solid var(--line)}
+.section:first-of-type{padding-top:0;margin-top:0;border-top:0}
+.sectionTitle{font-weight:800;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{margin-bottom:14px}
+.field label{display:flex;align-items:center;gap:5px;font-weight:700;margin-bottom:6px;position:relative}
+.infoBtn{width:18px;height:18px;border:0;background:transparent;padding:0;display:inline-grid;place-items:center;color:#9a9dac;border-radius:50%}
+.infoBtn:hover{color:var(--accent);background:var(--accent-soft)}
+.infoBtn svg{width:14px;height:14px}
+.infoPopover{position:absolute;z-index:60;top:25px;left:0;width:min(290px,80vw);background:#242433;color:#fff;border-radius:8px;padding:9px 10px;font-size:11px;line-height:1.45;font-weight:500;box-shadow:0 10px 24px #0003}
+.infoPopover:before{content:"";position:absolute;top:-5px;left:18px;width:10px;height:10px;background:#242433;transform:rotate(45deg)}
+.req{color:var(--danger)}
+input,select{width:100%;height:42px;border:1px solid #d8d9e1;border-radius:8px;padding:0 11px;background:#fff;color:var(--text);outline:none}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px #6b50f610}
+.hint{font-size:11px;color:var(--muted);margin-top:5px}
+.check{display:flex;align-items:flex-start;gap:9px;margin:10px 0}
+.check input{width:17px;height:17px;margin:2px 0}
+.conditional{margin:8px 0 12px 26px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fafafd}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 12px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.btn svg{width:16px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.ghost{border:0;color:var(--accent);padding:6px 0;background:none}
+.btn.icon{border:0;background:none;padding:6px;color:#888b99}
+.artistPicker{position:relative}
+.search{position:relative}
+.search>svg{position:absolute;left:11px;top:12px;width:16px;color:#999}
+.search input{padding-left:36px}
+.dropdown{position:absolute;z-index:20;top:46px;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px;box-shadow:0 12px 28px #0002}
+.artistRow{display:grid;grid-template-columns:36px 1fr auto;gap:9px;align-items:center;padding:8px;border-radius:7px}
+.artistRow:hover{background:#f7f6ff}
+.avatar{width:36px;height:36px;border-radius:50%;background:#ececf2;display:grid;place-items:center;font-size:11px;font-weight:800;color:#707383}
+.artistName{display:block;font-weight:700}
+.artistId{font-size:10px;color:#999cac}
+.artistRow>svg{width:17px;color:var(--accent)}
+.newArtist{border-top:1px solid var(--line);margin-top:4px;padding:9px 8px;color:var(--accent);font-weight:700;display:flex;gap:7px;align-items:center}
+.newArtist svg{width:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--line);border-radius:20px;padding:5px 8px;background:#fafafd;font-size:11px;display:flex;gap:5px;align-items:center}
+.labelRow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.selectPicker{position:relative}.selectValue{min-height:42px;border:1px solid #d8d9e1;border-radius:8px;padding:0 11px;display:flex;align-items:center;justify-content:space-between;background:#fff;cursor:pointer}.selectValue svg{width:16px;color:#9093a1}.selectMenu{position:absolute;z-index:25;left:0;right:0;top:46px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px;box-shadow:0 12px 28px #0002}.selectSearch{position:relative;margin-bottom:4px}.selectSearch svg{position:absolute;left:10px;top:10px;width:15px;color:#999}.selectSearch input{height:36px;padding-left:33px}.option{padding:9px 10px;border-radius:6px;cursor:pointer}.option:hover{background:#f7f6ff}.option.selected{color:var(--accent);font-weight:700;background:var(--accent-soft)}
+.localizedTitle{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+.titleLangTabs{display:flex;gap:4px;align-items:center;padding:7px;border-bottom:1px solid var(--line);background:#fafafd;overflow:auto}
+.langTab{border:0;background:transparent;border-radius:7px;padding:7px 10px;font-weight:700;font-size:12px;color:#777a89;white-space:nowrap}
+.langTab.active{background:#fff;color:var(--accent);box-shadow:0 0 0 1px var(--line)}
+.langAdd{margin-left:auto;border:0;background:transparent;color:var(--accent);font-weight:700;padding:7px 9px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.langAdd svg{width:14px}
+.titleEditor{padding:12px}
+.titleEditor .field{margin:0}
+.titlePreview{border-top:1px solid var(--line);padding:10px 12px;background:#fcfcfe}
+.previewLabel{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#9a9dac;font-weight:800;margin-bottom:7px}
+.previewList{display:grid;gap:6px}
+.previewRow{display:grid;grid-template-columns:72px 1fr;gap:10px;font-size:12px}
+.previewRow span:first-child{color:#858897}
+.previewValue{font-weight:700;color:#343442}
+.localeBox{border:1px solid var(--line);border-radius:9px;overflow:hidden}.localeHead{display:flex;align-items:center;justify-content:space-between;padding:11px 12px;background:#fafafd;border-bottom:1px solid var(--line)}.localeHead b{font-size:12px}.localeRow{padding:12px}.localeRow+.localeRow{border-top:1px solid var(--line)}.localeLang{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:12px;font-weight:700}.translationEmpty{display:flex;align-items:center;justify-content:space-between;padding:10px 0}.translationEmpty span{font-size:12px;color:var(--muted)}
+.inlineMeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}.metaTag{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;background:#f5f5f8;border-radius:20px;font-size:11px;color:#6f7281}.metaTag svg{width:13px}
+
+.upload{border:1.5px dashed #d4d1e5;border-radius:10px;padding:22px;text-align:center;background:#fbfaff}
+.addSongBar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.addSongBar .hint{margin:0}
+.songChoiceGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.songChoice{border:1px solid var(--line);border-radius:10px;background:#fff;padding:18px;text-align:left}
+.songChoice:hover{border-color:var(--accent);background:var(--accent-soft)}
+.songChoice svg{width:23px;color:var(--accent)}
+.songChoice h4{margin:8px 0 2px;font-size:14px}
+.songChoice p{margin:0;color:var(--muted);font-size:11px}
+.librarySearch{position:relative;margin-bottom:10px}
+.librarySearch svg{position:absolute;left:11px;top:12px;width:16px;color:#999}
+.librarySearch input{padding-left:36px}
+.assetList{display:grid;gap:7px;max-height:320px;overflow:auto}
+.assetRow{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:9px;cursor:pointer}
+.assetRow:hover{border-color:#cfc9ff;background:#faf9ff}
+.assetThumb{width:42px;height:42px;border-radius:7px;background:#efeff4;display:grid;place-items:center;color:#7b7e8d}
+.assetThumb svg{width:18px}
+.assetTitle{font-weight:800;display:block}
+.assetMeta{font-size:10px;color:#9699a9}
+.assetCode{font-size:10px;color:#7b7e8d;background:#f4f4f7;border-radius:20px;padding:4px 7px}
+.assetSelected{border-color:var(--accent);background:var(--accent-soft)}
+.assetSource{font-size:10px;color:var(--accent);font-weight:700;margin-top:2px}
+
+.upload svg{width:24px;color:var(--accent)}
+.upload b{display:block;margin:5px 0}
+.track{border:1px solid var(--line);border-radius:11px;overflow:hidden;margin-top:12px;background:#fff}
+.trackHead{display:grid;grid-template-columns:38px minmax(0,1fr) 20px;gap:12px;align-items:center;padding:14px 15px;cursor:pointer}
+.trackHead:hover{background:#fcfbff}
+.trackHead>svg{width:18px;color:#9497a4}
+.trackNo{width:32px;height:32px;border-radius:9px;background:#f3f1ff;color:var(--accent);display:grid;place-items:center;font-weight:850;font-size:12px}
+.trackMain{min-width:0;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.trackMainInfo{min-width:0;flex:1}
+.trackTitle{font-weight:850;font-size:14px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trackMeta{font-size:11px;color:#999cab;display:block;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trackSummary{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.trackStatusPill{font-size:9px;padding:4px 7px;border-radius:999px;border:1px solid var(--line);background:#fafafd;color:var(--muted);white-space:nowrap}
+.trackBody{border-top:1px solid var(--line);padding:16px;background:#fbfbfd}
+@media(max-width:680px){
+ .trackMain{align-items:flex-start;flex-direction:column;gap:8px}
+ .trackSummary{justify-content:flex-start}
+}
+.badge{font-size:10px;background:#fff5df;color:#996811;border-radius:20px;padding:4px 7px;font-weight:700}
+.trackBody{border-top:1px solid var(--line);padding:18px;background:#fefeff}
+.contribGroup{margin-top:15px}
+.contribHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.contribHeader b{font-size:13px}
+.person{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:7px}
+.person .avatar{width:34px;height:34px}
+.personName{font-weight:700;display:block}
+.affil{font-size:11px;color:#777a89}
+.personActions{display:flex}
+.footer{max-width:760px;margin:18px auto 0;display:flex;justify-content:space-between}
+.modePill{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:5px 8px;border-radius:20px;background:var(--accent-soft);color:var(--accent);font-weight:700;margin-bottom:14px}
+.modalBack{position:fixed;z-index:100;inset:0;background:#1c1c2788;display:grid;place-items:center;padding:20px}
+.modal{width:min(480px,100%);background:#fff;border-radius:12px;border:1px solid var(--line);padding:22px;box-shadow:0 24px 70px #0005}
+.modalHead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.modalHead h3{margin:0;font-size:19px}
+.modalFooter{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.choiceGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice{border:1px solid var(--line);background:#fff;border-radius:10px;padding:20px;text-align:left}
+.choice:hover{border-color:var(--accent);background:var(--accent-soft)}
+.choice svg{width:24px;color:var(--accent)}
+.choice h3{font-size:16px;margin:8px 0 2px}
+.choice p{font-size:12px;color:var(--muted);margin:0}
+.placeholder{border:1.5px dashed var(--line);border-radius:10px;padding:38px;text-align:center;color:var(--muted)}
+.placeholder svg{width:28px;color:var(--accent)}
+@media(max-width:820px){
+ .app{grid-template-columns:1fr}.sidebar{display:none}main{padding:20px}.grid2{grid-template-columns:1fr}
+ .steps{grid-template-columns:repeat(5,160px);overflow:auto}
+}
+
+.addTrackModal{width:min(620px,100%);padding:0;overflow:hidden}
+.addTrackHeader{padding:22px 22px 14px;display:flex;align-items:flex-start;justify-content:space-between}
+.addTrackHeader h3{margin:0;font-size:20px}
+.addTrackBody{padding:0 22px 20px}
+.dropzone{border:1.5px dashed #cfcfda;border-radius:10px;background:#fafafe;min-height:142px;display:grid;place-items:center;text-align:center;padding:22px;cursor:pointer}
+.dropzone:hover{border-color:var(--accent);background:var(--accent-soft)}
+.dropzone svg{width:27px;color:var(--accent)}
+.dropzone b{display:block;margin:7px 0 2px;font-size:14px}
+.dropzone span{font-size:11px;color:var(--muted)}
+.orDivider{display:flex;align-items:center;gap:10px;margin:18px 0 14px;color:#9a9dac;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.orDivider:before,.orDivider:after{content:"";height:1px;background:var(--line);flex:1}
+.songLibraryTitle{font-size:13px;font-weight:800;margin-bottom:9px}
+.librarySearch{position:relative;margin-bottom:8px}
+.librarySearch svg{position:absolute;left:11px;top:12px;width:16px;color:#999}
+.librarySearch input{padding-left:36px}
+.songList{display:grid;gap:2px;max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:9px;padding:4px}
+.songItem{display:grid;grid-template-columns:22px 38px 1fr auto;gap:9px;align-items:center;padding:8px;border-radius:7px;cursor:pointer}
+.songItem:hover{background:#f7f6ff}
+.songItem.selected{background:var(--accent-soft)}
+.songCheck{width:17px;height:17px}
+.songIcon{width:38px;height:38px;border-radius:7px;background:#eeeeF3;display:grid;place-items:center;color:#7b7e8d}
+.songIcon svg{width:17px}
+.songInfo b{display:block;font-size:12px}
+.songInfo span{display:block;font-size:10px;color:#9598a8;margin-top:1px}
+.songRight{font-size:10px;color:#7d8090;text-align:right}
+.addTrackFooter{border-top:1px solid var(--line);padding:14px 22px;display:flex;justify-content:flex-end;gap:8px;background:#fff}
+.uploadedQueue{display:grid;gap:7px;margin-top:10px}
+.uploadedItem{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff}
+.uploadedItem svg{width:17px;color:var(--accent)}
+.uploadedItem b{font-size:11px}
+.uploadedItem span{font-size:10px;color:var(--muted);display:block}
+
+
+.usageNotice{border:1px solid #e4d7a6;background:#fffaf0;border-radius:9px;padding:12px;margin-bottom:16px}
+.usageNoticeTop{display:flex;gap:9px;align-items:flex-start}
+.usageNoticeTop>svg{width:17px;color:#9a6a18;margin-top:1px;flex:none}
+.usageNotice b{display:block;font-size:12px;margin-bottom:2px}
+.usageNotice p{margin:0;color:#76663f;font-size:11px;line-height:1.45}
+.usageList{margin-top:10px;border-top:1px solid #eadfb8;padding-top:8px;display:grid;gap:6px}
+.usageItem{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:#fff;border:1px solid #ebe2c7;border-radius:7px;padding:8px 9px}
+.usageAlbum{font-size:11px;font-weight:800}
+.usageMeta{font-size:10px;color:#89816d;margin-top:2px}
+.usageUPC{font-size:10px;color:#6e6654;text-align:right}
+.trackEditNote{display:flex;align-items:center;gap:6px;font-size:10px;color:#7b7e8d;margin:-3px 0 14px}
+.trackEditNote svg{width:13px}
+.trackArtistPicker{position:relative}
+.trackGenrePicker{position:relative}
+
+
+.choiceRow{display:flex;gap:8px;flex-wrap:wrap}
+.identifierAuto{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);background:#fafafd;border-radius:8px;padding:11px 12px;font-size:12px}
+.identifierAuto svg{width:17px;color:var(--accent);flex:none;margin-top:1px}
+.identifierAuto b{display:block}
+.identifierAuto span{display:block;color:var(--muted);font-size:10px;margin-top:2px;line-height:1.4}
+.identifierWarn{display:flex;gap:7px;align-items:flex-start;margin-top:8px;color:#78643a;font-size:10px;line-height:1.4}
+.identifierWarn svg{width:13px;flex:none;margin-top:1px}
+.radioCard{flex:1;min-width:150px;border:1px solid var(--line);border-radius:8px;padding:10px 11px;display:flex;align-items:center;gap:8px;background:#fff;cursor:pointer}
+.radioCard:hover{border-color:#cfc9ff}
+.radioCard.active{border-color:var(--accent);background:var(--accent-soft)}
+.radioCard input{width:16px;height:16px;margin:0}
+.radioCard b{font-size:12px}
+.lyricsBox textarea{width:100%;min-height:180px;resize:vertical;border:1px solid #d8d9e1;border-radius:8px;padding:11px;font:inherit;outline:none;line-height:1.55}
+.lyricsBox textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #6b50f610}
+.charCount{font-size:10px;color:#999cab;text-align:right;margin-top:4px}
+
+
+.inheritedField{min-height:42px;border:1px solid #e1e1e8;border-radius:8px;background:#fafafd;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.inheritedMain{display:flex;align-items:center;gap:8px;min-width:0}
+.inheritedMain .avatar{width:28px;height:28px;font-size:9px;flex:none}
+.inheritedName{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inheritedSource{display:flex;align-items:center;gap:4px;color:#9598a7;font-size:10px;white-space:nowrap}
+.inheritedSource svg{width:12px}
+.emptyInherited{font-size:11px;color:#9a9dac}
+.releaseOnlyLabel{display:flex;align-items:center;gap:5px}
+.releaseOnlyLabel .infoBtn{position:relative}
+.singleUploadOnly{padding-top:4px}
+
+
+.audioSource{border:1px solid var(--line);border-radius:10px;background:#fafafd;padding:12px;margin-bottom:14px}
+.audioSourceTop{display:flex;align-items:center;gap:10px}
+.audioPlay{width:34px;height:34px;border-radius:50%;border:0;background:#ececf3;display:grid;place-items:center;flex:none;cursor:pointer}
+.audioPlay svg{width:15px}
+.audioFile{min-width:0;flex:1}
+.audioFile b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.audioFile span{font-size:10px;color:var(--muted)}
+.audioDuration{font-size:11px;font-weight:800;white-space:nowrap}
+.waveform{height:30px;display:flex;align-items:center;gap:2px;flex:1;min-width:100px;overflow:hidden}
+.waveform i{display:block;width:2px;background:#a8a9b3;border-radius:2px;opacity:.8}
+.audioActions{display:flex;gap:3px;flex:none}
+.audioMeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+.audioMeta span{font-size:10px;color:#686b78;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 7px}
+.audioMeta .sourceName{margin-right:auto;background:transparent;border:0;padding-left:0;color:var(--muted)}
+@media(max-width:760px){.waveform{display:none}}
+
+
+.uploadProgress{margin-top:10px}
+.uploadProgressTop{display:flex;justify-content:space-between;gap:12px;font-size:10px;color:var(--muted);margin-bottom:5px}
+.uploadProgressTop b{color:var(--text);font-size:10px}
+.uploadProgressBar{height:6px;border-radius:99px;background:#e8e8ef;overflow:hidden}
+.uploadProgressBar i{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .18s ease}
+
+
+/* v28 interaction/demo additions */
+.translationToggle{width:100%;border:0;border-top:1px solid var(--line);background:#fafafd;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;font-weight:800;color:#626574}
+.translationToggle span{display:flex;align-items:center;gap:7px}.translationToggle svg{width:15px}
+.translationPanel{border-top:1px solid var(--line);background:#fcfcfe;padding:12px}
+.translationRow{display:grid;grid-template-columns:92px 1fr;gap:10px;align-items:center;margin-bottom:9px}
+.translationRow:last-child{margin-bottom:0}.translationRow b{font-size:11px;color:#777a89}.translationActions{display:flex;justify-content:flex-end;margin-top:8px}
+.audioEmpty{border:1.5px dashed #d8d7e3;border-radius:9px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff}
+.audioEmpty b{display:block}.audioEmpty span{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.audioActionText{white-space:nowrap}.audioActionText svg{width:14px}
+.coverGrid{display:grid;grid-template-columns:220px 1fr;gap:22px;align-items:start}.coverPreview{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:#f6f6f9;overflow:hidden;display:grid;place-items:center;color:#979aa8}.coverPreview img{width:100%;height:100%;object-fit:cover}.coverPreview svg{width:34px}.coverMeta{display:grid;gap:8px;margin-top:10px}.coverMeta div{font-size:11px;color:var(--muted)}
+.serviceGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.serviceCard{border:1px solid var(--line);border-radius:9px;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fff}.serviceCard.active{border-color:var(--accent);background:var(--accent-soft)}.serviceCard input{width:17px;height:17px;margin:0}.serviceCard b{display:block;font-size:12px}.serviceCard span{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.reviewGrid{display:grid;gap:12px}.reviewCard{border:1px solid var(--line);border-radius:10px;padding:14px}.reviewHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.reviewHead b{font-size:13px}.reviewRows{display:grid;gap:7px}.reviewRow{display:grid;grid-template-columns:145px 1fr;gap:12px;font-size:11px}.reviewRow span:first-child{color:var(--muted)}.reviewRow span:last-child{font-weight:700}.trackReview{padding:8px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;font-size:11px}.trackReview:first-child{border-top:0}.successCard{text-align:center;padding:34px 18px}.successCard svg{width:42px;color:var(--ok)}.successCard h2{margin:10px 0 5px}.successCard p{color:var(--muted);margin:0}
+.typeAuto{display:inline-flex;align-items:center;gap:5px;background:var(--accent-soft);color:var(--accent);border-radius:20px;padding:5px 8px;font-size:10px;font-weight:800}.typeAuto svg{width:13px}
+@media(max-width:760px){.coverGrid,.serviceGrid{grid-template-columns:1fr}.coverPreview{max-width:220px}.reviewRow{grid-template-columns:1fr}}
+
+
+.artistSelectedList{display:grid;gap:8px;margin-top:8px}
+.artistSelectedCard{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px 11px;min-height:62px}
+.artistSelectedCard .avatar{width:44px;height:44px;font-size:13px;flex:none}
+.artistSelectedInfo{min-width:0;flex:1}
+.artistSelectedInfo b{display:block;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artistSelectedInfo span{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.artistAddBtn{margin-top:8px;width:100%;justify-content:center;border-style:dashed;background:#fcfcfe}
+.artistSearchModal .modal{max-width:560px}
+.artistModalSearch{position:relative;margin-bottom:10px}
+.artistModalSearch svg{position:absolute;left:11px;top:12px;width:16px;color:#999}
+.artistModalSearch input{padding-left:36px}
+.artistSearchList{border:1px solid var(--line);border-radius:9px;overflow:hidden;max-height:320px;overflow-y:auto}
+.artistSearchResult{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:10px 11px;border-bottom:1px solid var(--line);cursor:pointer;background:#fff}
+.artistSearchResult:last-child{border-bottom:0}
+.artistSearchResult:hover{background:#f8f7ff}
+.artistSearchResult.selected{background:var(--accent-soft)}
+.artistSearchResult .avatar{width:42px;height:42px;font-size:12px}
+.artistResultName{display:block;font-weight:800;font-size:13px}
+.artistResultId{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.artistSearchResult svg{width:18px;color:var(--accent)}
+.artistModalActions{display:flex;justify-content:space-between;gap:8px;margin-top:10px;align-items:center}
+.artistModalActions .hint{margin:0}
+
+
+.artistSection{margin-top:18px}
+.artistSectionHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px}
+.artistSectionHeader h3{margin:0;font-size:14px}
+.artistSectionHeader span{font-size:10px;color:var(--muted)}
+.artistRoleBox{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff;margin-top:10px}
+.artistRoleHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.artistRoleHead label{margin:0;font-size:12px;font-weight:800}
+.artistRoleHint{font-size:10px;color:var(--muted)}
+.artistSelectedList{display:grid;gap:8px}
+.artistSelectedCard{display:flex;align-items:center;gap:13px;border:1px solid #dedee8;border-radius:11px;background:#fafafd;padding:12px;min-height:72px}
+.artistSelectedCard .avatar{width:52px;height:52px;font-size:15px;flex:none;background:linear-gradient(145deg,#eeeafd,#e7e7ee);color:#5f55a8}
+.artistSelectedInfo{min-width:0;flex:1}
+.artistSelectedInfo b{display:block;font-size:16px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.artistSelectedInfo span{display:block;font-size:10px;color:var(--muted);margin-top:4px}
+.artistAddBtn{margin-top:9px;width:100%;min-height:48px;justify-content:center;border-style:dashed;background:#fcfcff;font-size:12px}
+.artistAddBtn:hover{border-color:var(--accent);background:var(--accent-soft)}
+.artistEmpty{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;padding:4px 1px}
+.artistEmpty svg{width:18px}
+.artistSearchModal .modal{max-width:620px}
+.artistModalSearch{position:relative;margin-bottom:12px}
+.artistModalSearch svg{position:absolute;left:13px;top:14px;width:17px;color:#999}
+.artistModalSearch input{padding-left:40px;height:46px}
+.artistSearchList{border:1px solid var(--line);border-radius:10px;overflow:hidden;max-height:360px;overflow-y:auto}
+.artistSearchResult{display:grid;grid-template-columns:54px 1fr auto;gap:12px;align-items:center;padding:12px 13px;border-bottom:1px solid var(--line);cursor:pointer;background:#fff}
+.artistSearchResult:last-child{border-bottom:0}
+.artistSearchResult:hover{background:#faf9ff}
+.artistSearchResult.selected{background:var(--accent-soft)}
+.artistSearchResult .avatar{width:54px;height:54px;font-size:14px;background:linear-gradient(145deg,#eeeafd,#e7e7ee);color:#5f55a8}
+.artistResultName{display:block;font-weight:850;font-size:15px}
+.artistResultId{display:block;font-size:10px;color:var(--muted);margin-top:4px}
+.artistSearchResult svg{width:20px;color:var(--accent)}
+.artistModalActions{display:flex;justify-content:space-between;gap:8px;margin-top:12px;align-items:center}
+.artistModalActions .hint{margin:0}
+
+
+.lockedValue{min-height:46px;border:1px solid var(--line);background:#fafafd;border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lockedValueMain{display:flex;align-items:center;gap:9px;min-width:0}
+.lockedValueMain svg{width:16px;color:var(--accent)}
+.lockedValueMain b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lockedValue>span{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:10px;white-space:nowrap}
+.lockedValue>span svg{width:12px}
+.trackSummary{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.trackEditorSections{display:grid;gap:12px}
+.trackSectionCard{border:1px solid var(--line);border-radius:11px;background:#fff;padding:13px}
+.trackSectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px}
+.trackSectionHead h4{margin:0;font-size:12px}
+.trackSectionHead span{font-size:10px;color:var(--muted)}
+.trackSectionHead svg{width:15px;color:var(--accent)}
+.trackSectionTitle{display:flex;align-items:center;gap:7px}
+.trackSectionTitle b{font-size:12px}
+.trackCompactGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trackCompactGrid.three{grid-template-columns:1fr 1fr 1fr}
+.trackInlineChoice{display:flex;gap:7px;flex-wrap:wrap}
+.trackInlineChoice .radioCard{min-height:38px;padding:8px 10px}
+.trackEditor .field{margin-bottom:10px}
+.trackEditor .field:last-child{margin-bottom:0}
+.audioSource{margin-bottom:0}
+.trackWarning{margin-top:0}
+@media(max-width:760px){
+ .trackCompactGrid,.trackCompactGrid.three{grid-template-columns:1fr}
+ .lockedValue{align-items:flex-start;flex-direction:column}
+}
+
+
+.titleFieldShell{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+.titleInputRow{display:grid;grid-template-columns:minmax(0,1fr) 150px;align-items:stretch}
+.titleInputRow input{border:0;border-radius:0;min-height:48px;font-size:14px;font-weight:750;padding:12px 13px}
+.titleInputRow input:focus{box-shadow:inset 0 0 0 2px rgba(105,75,255,.14)}
+.titleLanguageSelect{border:0;border-left:1px solid var(--line);border-radius:0;background:#fafafd;padding:0 34px 0 11px;font-size:11px;font-weight:800;color:#595d6b}
+.titleLanguageMeta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 10px;border-top:1px solid var(--line);background:#fcfcfe}
+.langStatus{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;background:#fff;padding:4px 7px;font-size:9px;color:var(--muted);cursor:pointer}
+.langStatus.complete{color:#27754a;border-color:#cfe8d8;background:#f6fcf8}.langStatus.required{color:#a26912;border-color:#f0ddb9;background:#fffbf2}
+.langStatus svg{width:11px}.titleAddLang{margin-left:auto;border:0;background:transparent;color:var(--accent);font-weight:800;font-size:10px;display:flex;align-items:center;gap:4px;cursor:pointer}.titleAddLang svg{width:12px}
+.titleRequirement{font-size:10px;color:var(--muted);margin-top:6px}.titleRequirement strong{color:#7e651f}
+
+.coverUploadLayout{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:22px;align-items:start}
+.coverDrop{border:1.5px dashed #cfcddc;border-radius:14px;min-height:270px;background:#fbfbfe;display:grid;place-items:center;text-align:center;padding:22px;cursor:pointer;transition:.16s ease;position:relative;overflow:hidden}
+.coverDrop:hover,.coverDrop.drag{border-color:var(--accent);background:var(--accent-soft)}
+.coverDrop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.coverDropContent{position:relative;z-index:1}.coverDropContent svg{width:34px;color:var(--accent);margin-bottom:10px}.coverDropContent b{display:block;font-size:14px}.coverDropContent span{display:block;font-size:10px;color:var(--muted);margin:5px 0 12px}
+.coverOverlay{position:absolute;inset:auto 10px 10px 10px;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(255,255,255,.94);border:1px solid rgba(220,220,230,.95);border-radius:9px;padding:8px 9px}
+.coverOverlay b{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.coverOverlay span{font-size:9px;color:var(--muted);white-space:nowrap}
+.coverRequirementBox{border:1px solid var(--line);border-radius:12px;background:#fff;padding:14px}.coverRequirementBox h3{font-size:13px;margin:0 0 5px}.coverRequirementBox>p{font-size:10px;color:var(--muted);margin:0 0 12px}
+.requirementList{display:grid;gap:8px}.requirementItem{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-top:1px solid #f0f0f4}.requirementItem:first-child{border-top:0}.requirementItem svg{width:16px;color:var(--accent);flex:none}.requirementItem b{display:block;font-size:11px}.requirementItem span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.coverActions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+.scheduleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.scheduleCard{border:1px solid var(--line);border-radius:12px;padding:13px;display:flex;gap:10px;cursor:pointer;background:#fff}.scheduleCard.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px rgba(105,75,255,.08)}.scheduleCard input{margin-top:2px}.scheduleCard b{display:block;font-size:12px}.scheduleCard span{display:block;color:var(--muted);font-size:10px;margin-top:3px;line-height:1.4}.scheduleDate{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafafd}
+.serviceGroup{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fff;margin-top:12px}.serviceGroupHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.serviceGroupHead h3{margin:0;font-size:13px}.serviceGroupHead span{font-size:9px;color:var(--muted)}
+.serviceGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.serviceCard{border:1px solid var(--line);border-radius:10px;padding:11px;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fff}.serviceCard.active{border-color:var(--accent);background:var(--accent-soft)}.serviceIcon{width:38px;height:38px;border-radius:10px;border:1px solid #e6e5ec;background:#fafafd;display:grid;place-items:center;font-weight:900;font-size:11px;color:#585c6a;flex:none}.serviceCardText{min-width:0;flex:1}.serviceCardText b{display:block;font-size:11px}.serviceCardText span{display:block;font-size:9px;color:var(--muted);margin-top:3px}.serviceCheck{width:18px;height:18px;margin:0;flex:none}
+.publishIntro{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}.publishIntro h2{margin:0}.publishIntro p{margin:5px 0 0;color:var(--muted);font-size:11px}
+@media(max-width:760px){.titleInputRow{grid-template-columns:1fr 125px}.coverUploadLayout,.scheduleGrid,.serviceGrid{grid-template-columns:1fr}}
+
+
+/* v39: flatter album track editor */
+.trackBody{
+  border-top:1px solid var(--line);
+  padding:0 20px 8px;
+  background:#fff;
+}
+.trackEditorSections{display:block}
+.trackPanelSection{
+  padding:20px 0;
+  border-bottom:1px solid #ececf2;
+}
+.trackPanelSection:last-child{border-bottom:0}
+.trackPanelHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+.trackPanelTitle{display:flex;align-items:center;gap:8px;min-width:0}
+.trackPanelTitle svg{width:17px;color:var(--accent);flex:none}
+.trackPanelTitle b{font-size:13px}
+.trackPanelHead>span{font-size:10px;color:var(--muted);text-align:right}
+.trackPanelSection .audioSource{border:0;background:#f8f8fb;padding:12px 13px;border-radius:10px}
+.trackPanelSection .usageNotice{margin:0}
+.trackPanelSection .section{border:0!important;padding:0!important;margin:0!important;background:transparent!important}
+.trackPanelSection .sectionTitle{display:none}
+.trackPanelSection .conditional{margin-top:10px}
+.trackAlbumMeta{display:grid;gap:16px}
+.trackAlbumMetaRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.trackArtistRole{
+  border:1px solid #e4e4ec;
+  border-radius:11px;
+  padding:12px;
+  background:#fafafd;
+}
+.trackArtistRole .artistRoleHead{margin-bottom:9px}
+.trackArtistRole .artistSelectedCard{
+  background:#fff;
+  min-height:64px;
+  padding:10px;
+}
+.trackArtistRole .artistSelectedCard .avatar{width:44px;height:44px;font-size:13px}
+.trackArtistRole .artistSelectedInfo b{font-size:14px}
+.trackArtistRole .artistAddBtn{min-height:42px;background:#fff}
+.trackArtistEmpty{
+  min-height:54px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:var(--muted);
+  font-size:11px;
+}
+.trackReuseNote{
+  display:flex;
+  gap:8px;
+  align-items:flex-start;
+  padding:10px 12px;
+  margin:12px 0 0;
+  border-radius:9px;
+  background:#f8f7ff;
+  color:#66617f;
+  font-size:10px;
+  line-height:1.45;
+}
+.trackReuseNote svg{width:14px;flex:none;margin-top:1px;color:var(--accent)}
+@media(max-width:760px){
+  .trackAlbumMetaRow{grid-template-columns:1fr}
+  .trackBody{padding-left:14px;padding-right:14px}
+  .trackPanelHead{flex-direction:column;gap:4px}
+  .trackPanelHead>span{text-align:left}
+}
+
+
+.contribSplit{display:grid;gap:18px}
+.contribSubsection{padding-top:2px}
+.contribSubsection+.contribSubsection{padding-top:18px;border-top:1px solid #ececf2}
+.contribSubHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.contribSubHead h4{margin:0;font-size:12px}
+.contribSubHead p{margin:3px 0 0;font-size:10px;color:var(--muted)}
+.creditRoleList{display:grid;gap:9px}
+.creditRoleRow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 12px;background:#fafafd;border:1px solid #e7e7ed;border-radius:10px}
+.creditRoleLabel b{display:block;font-size:11px}
+.creditRoleLabel span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.creditPeople{display:flex;gap:7px;flex-wrap:wrap;min-width:0}
+.creditPerson{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid #e1e1e8;border-radius:9px;padding:6px 8px;min-width:0}
+.creditPerson .avatar{width:28px;height:28px;font-size:9px;flex:none}
+.creditPersonInfo{min-width:0}
+.creditPersonInfo b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.creditPersonInfo span{display:block;font-size:9px;color:var(--muted);margin-top:1px}
+.creditPerson .btn.icon{width:26px;height:26px}
+.creditEmpty{font-size:10px;color:var(--muted)}
+.otherCredits{display:grid;gap:8px;margin-top:10px}
+.otherCreditRow{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid #e5e5ec;border-radius:10px;background:#fff}
+.otherCreditRole{width:150px;flex:none;font-size:10px;font-weight:800;color:#575968}
+.otherCreditPerson{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
+.otherCreditPerson .avatar{width:32px;height:32px;font-size:9px}
+.otherCreditPerson b{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.otherCreditRow .btn.icon{margin-left:auto}
+.contribAddBtn{min-height:40px}
+.contribModalRoleGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.contribRoleOption{border:1px solid var(--line);border-radius:10px;padding:10px 11px;cursor:pointer;background:#fff}
+.contribRoleOption:hover{border-color:#c9c2ff;background:#faf9ff}
+.contribRoleOption.active{border-color:var(--accent);background:var(--accent-soft)}
+.contribRoleOption b{display:block;font-size:11px}
+.contribRoleOption span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+.contribLibrary{border:1px solid var(--line);border-radius:10px;overflow:hidden;max-height:300px;overflow-y:auto}
+.contribLibraryItem{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;padding:10px 11px;border-bottom:1px solid var(--line);cursor:pointer;background:#fff}
+.contribLibraryItem:last-child{border-bottom:0}
+.contribLibraryItem:hover{background:#faf9ff}
+.contribLibraryItem .avatar{width:38px;height:38px;font-size:10px}
+.contribLibraryItem b{display:block;font-size:12px}
+.contribLibraryItem span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.contribLibraryItem>svg{width:17px;color:var(--accent)}
+.contribModalDivider{display:flex;align-items:center;gap:10px;margin:12px 0;color:var(--muted);font-size:9px}
+.contribModalDivider:before,.contribModalDivider:after{content:"";height:1px;background:var(--line);flex:1}
+@media(max-width:760px){
+ .creditRoleRow{grid-template-columns:1fr}
+ .otherCreditRole{width:auto}
+ .contribModalRoleGrid{grid-template-columns:1fr}
+}
+
+
+/* v41 artist hierarchy */
+.artistSection{
+  margin-top:18px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  overflow:hidden;
+}
+.artistSectionHeader{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px 16px 11px;
+  margin:0;
+  background:#fbfbfd;
+  border-bottom:1px solid var(--line);
+}
+.artistSectionHeader h3{margin:0;font-size:13px}
+.artistSectionHeader span{font-size:10px;color:var(--muted);margin-top:2px}
+.artistRoleBox,
+.trackArtistRole{
+  border:0!important;
+  border-radius:0!important;
+  padding:14px 16px!important;
+  margin:0!important;
+  background:#fff!important;
+}
+.artistRoleBox+.artistRoleBox,
+.trackArtistRole+.trackArtistRole{
+  border-top:1px solid #ececf2!important;
+}
+.artistRoleHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:9px!important;
+}
+.artistRoleHead label{font-size:12px;font-weight:850}
+.artistRoleHint{font-size:9px;color:var(--muted);margin-top:2px}
+.artistRoleAction{
+  min-height:34px!important;
+  padding:6px 10px!important;
+  width:auto!important;
+  margin:0!important;
+  border-style:solid!important;
+  background:#fff!important;
+  white-space:nowrap;
+}
+.artistRoleAction svg{width:14px}
+.artistSelectedList{
+  display:flex!important;
+  flex-wrap:wrap;
+  gap:8px!important;
+}
+.artistSelectedCard{
+  min-height:50px!important;
+  padding:7px 8px!important;
+  border:1px solid #e3e3eb!important;
+  border-radius:10px!important;
+  background:#fafafd!important;
+  gap:9px!important;
+  width:auto;
+  max-width:100%;
+  flex:0 1 260px;
+}
+.artistSelectedCard .avatar{
+  width:36px!important;
+  height:36px!important;
+  font-size:10px!important;
+}
+.artistSelectedInfo b{font-size:12px!important}
+.artistSelectedInfo span{font-size:9px!important;margin-top:2px!important}
+.artistSelectedCard .btn.icon{width:28px;height:28px;flex:none}
+.artistEmpty,
+.trackArtistEmpty{
+  min-height:44px!important;
+  padding:8px 10px!important;
+  border:1px dashed #dedee7;
+  border-radius:9px;
+  background:#fcfcfe;
+  font-size:10px!important;
+}
+.artistEmpty svg,.trackArtistEmpty svg{width:15px}
+.trackArtistRole{
+  padding:0!important;
+}
+.trackArtistRole+.trackArtistRole{
+  border-top:0!important;
+}
+.trackAlbumMetaRow.artistRows{
+  border:1px solid #e5e5ec;
+  border-radius:11px;
+  overflow:hidden;
+  background:#fff;
+  display:block!important;
+}
+.trackAlbumMetaRow.artistRows .trackArtistRole{
+  padding:13px!important;
+}
+.trackAlbumMetaRow.artistRows .trackArtistRole+.trackArtistRole{
+  border-top:1px solid #ececf2!important;
+}
+.artistRolePrimary{background:#fff}
+.artistRoleFeatured{background:#fcfcfe}
+.lyricistUnavailable{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:10px 12px;
+  border:1px dashed #dedee6;
+  border-radius:9px;
+  background:#fafafd;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.4;
+}
+.lyricistUnavailable svg{width:15px;flex:none;margin-top:1px}
+
+
+.reusedIsrc{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:12px 13px;
+  border:1px solid #ddd9ff;
+  background:#f8f7ff;
+  border-radius:10px;
+}
+.reusedIsrcMain{display:flex;align-items:center;gap:10px;min-width:0}
+.reusedIsrcIcon{width:34px;height:34px;border-radius:9px;background:#ebe8ff;color:var(--accent);display:grid;place-items:center;flex:none}
+.reusedIsrcIcon svg{width:16px}
+.reusedIsrcText{min-width:0}
+.reusedIsrcText span{display:block;font-size:9px;color:var(--muted);margin-bottom:2px}
+.reusedIsrcText b{display:block;font-size:13px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reusedIsrcBadge{font-size:9px;font-weight:800;padding:4px 7px;border-radius:999px;background:#fff;border:1px solid #d9d5ff;color:#675bc7;white-space:nowrap}
+.reusedIsrcNote{margin-top:8px;font-size:10px;color:var(--muted);line-height:1.45}
+
+
+/* v43 album track reordering */
+.trackDragHandle{
+  width:24px;height:32px;display:grid;place-items:center;
+  color:#a4a6b1;cursor:grab;border-radius:7px;flex:none;
+}
+.trackDragHandle:hover{background:#f3f2f8;color:#6b61c9}
+.trackDragHandle:active{cursor:grabbing}
+.track.dragging{opacity:.42}
+.track.dragOver{border-color:#8f84ff;box-shadow:0 0 0 2px rgba(109,94,252,.10)}
+.track.dragOver:before{content:"";display:block;height:3px;background:var(--accent);border-radius:99px 99px 0 0}
+.trackHead.albumReorder{grid-template-columns:24px 38px minmax(0,1fr) 20px}
+.trackOrderHint{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);margin-top:6px}
+.trackOrderHint svg{width:13px}
+
+
+/* v44 cover requirements */
+.coverRequirementBox h3{margin-bottom:6px}
+.coverRequirementGroup{margin-top:15px}
+.coverRequirementGroup:first-of-type{margin-top:10px}
+.coverRequirementGroup>h4{margin:0 0 8px;font-size:11px}
+.coverRuleList{display:grid;gap:7px}
+.coverRule{
+  display:flex;align-items:flex-start;gap:8px;
+  font-size:10px;line-height:1.45;color:#5d6070;
+}
+.coverRule svg{width:14px;flex:none;margin-top:1px;color:#7d75bd}
+.coverRule b{color:#252633}
+.coverValidationError{
+  display:flex;gap:9px;align-items:flex-start;
+  padding:11px 12px;margin-bottom:12px;
+  border:1px solid #efb8bd;background:#fff5f6;
+  color:#a83f49;border-radius:10px;font-size:11px;line-height:1.4;
+}
+.coverValidationError svg{width:16px;flex:none;margin-top:1px}
+.coverSpecBadgeRow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.coverSpecBadge{font-size:9px;font-weight:800;border:1px solid #e2e2e9;background:#fff;border-radius:999px;padding:5px 8px;color:#606270}
+
+
+/* v45 — modern Publish & Distribution */
+.publishShell{display:grid;gap:16px}
+.publishTopbar{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:#fff;
+}
+.publishTopbar h2{margin:0;font-size:20px}
+.publishTopbar p{margin:5px 0 0;color:var(--muted);font-size:11px}
+.publishSummary{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;
+}
+.publishSummaryPill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 9px;border:1px solid var(--line);border-radius:999px;
+  background:#fafafd;font-size:10px;color:#5e6170;white-space:nowrap;
+}
+.publishSummaryPill svg{width:13px;color:var(--accent)}
+
+.publishBlock{
+  border:1px solid var(--line);border-radius:14px;background:#fff;
+  overflow:hidden;
+}
+.publishBlockHead{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:16px 18px 12px;
+}
+.publishBlockHead h3{margin:0;font-size:14px}
+.publishBlockHead p{margin:4px 0 0;font-size:10px;color:var(--muted)}
+.publishBlockBody{padding:0 18px 18px}
+
+.scheduleChoiceGrid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+.scheduleChoice{
+  position:relative;display:flex;gap:11px;align-items:flex-start;
+  min-height:96px;padding:14px;
+  border:1px solid #e5e5ec;border-radius:12px;background:#fff;cursor:pointer;
+  transition:.16s ease;
+}
+.scheduleChoice:hover{border-color:#cbc6f5;background:#fcfbff}
+.scheduleChoice.active{
+  border-color:var(--accent);background:#f8f6ff;
+  box-shadow:0 0 0 1px rgba(105,75,255,.06);
+}
+.scheduleChoice input{position:absolute;opacity:0;pointer-events:none}
+.scheduleChoiceIcon{
+  width:38px;height:38px;border-radius:10px;background:#f2f0ff;color:var(--accent);
+  display:grid;place-items:center;flex:none;
+}
+.scheduleChoiceIcon svg{width:18px}
+.scheduleChoiceText{min-width:0;flex:1}
+.scheduleChoiceText b{display:block;font-size:12px;color:#282a34}
+.scheduleChoiceText span{display:block;margin-top:4px;font-size:10px;line-height:1.45;color:var(--muted)}
+.scheduleChoiceCheck{
+  width:20px;height:20px;border-radius:50%;border:1px solid #d8d8e2;
+  display:grid;place-items:center;flex:none;background:#fff;color:#fff;
+}
+.scheduleChoice.active .scheduleChoiceCheck{background:var(--accent);border-color:var(--accent)}
+.scheduleChoiceCheck svg{width:12px}
+.scheduleDateModern{
+  margin-top:12px;padding:13px 14px;border-radius:11px;
+  background:#fafafd;border:1px solid #e8e8ef;
+  display:grid;grid-template-columns:minmax(220px,320px) 1fr;gap:14px;align-items:end;
+}
+.scheduleDateNote{
+  display:flex;align-items:flex-start;gap:7px;font-size:10px;line-height:1.45;color:var(--muted);
+  padding-bottom:7px;
+}
+.scheduleDateNote svg{width:14px;flex:none;margin-top:1px;color:var(--accent)}
+
+.serviceSection{display:grid;gap:14px}
+.serviceGroupModern{
+  border-top:1px solid #ececf2;padding-top:16px;
+}
+.serviceGroupModern:first-child{border-top:0;padding-top:0}
+.serviceGroupModernHead{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px;
+}
+.serviceGroupModernHead h4{margin:0;font-size:12px}
+.serviceGroupModernHead p{margin:3px 0 0;font-size:9px;color:var(--muted)}
+.serviceGroupCount{
+  font-size:9px;font-weight:800;color:#7067c7;background:#f5f3ff;
+  padding:5px 7px;border-radius:999px;white-space:nowrap;
+}
+.serviceGridModern{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;
+}
+.serviceTile{
+  position:relative;display:flex;align-items:center;gap:10px;
+  min-height:72px;padding:11px 12px;
+  border:1px solid #e5e5ec;border-radius:12px;background:#fff;cursor:pointer;
+  transition:.16s ease;
+}
+.serviceTile:hover{border-color:#cbc6f5;background:#fcfbff}
+.serviceTile.active{border-color:var(--accent);background:#f8f6ff}
+.serviceLogo{
+  width:42px;height:42px;border-radius:11px;background:#f5f5f8;border:1px solid #e7e7ed;
+  display:grid;place-items:center;flex:none;font-size:10px;font-weight:900;color:#555969;
+}
+.serviceTile.active .serviceLogo{background:#ebe8ff;border-color:#d8d2ff;color:#6558c8}
+.serviceTileText{min-width:0;flex:1}
+.serviceTileText b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.serviceTileText span{display:block;font-size:9px;color:var(--muted);margin-top:3px;line-height:1.3}
+.serviceTileCheck{
+  width:20px;height:20px;border-radius:7px;border:1px solid #d8d8e2;background:#fff;
+  display:grid;place-items:center;flex:none;color:#fff;
+}
+.serviceTile.active .serviceTileCheck{background:var(--accent);border-color:var(--accent)}
+.serviceTileCheck svg{width:12px}
+.serviceTile input{position:absolute;opacity:0;pointer-events:none}
+
+.publishSelectionBar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 13px;border-radius:11px;background:#f8f7ff;border:1px solid #e3dfff;
+}
+.publishSelectionBar span{font-size:10px;color:#625e78}
+.publishSelectionBar b{font-size:11px;color:#3e395e}
+.publishSelectionIcons{display:flex;align-items:center;gap:5px}
+.publishSelectionDot{
+  width:26px;height:26px;border-radius:8px;background:#fff;border:1px solid #dfdcec;
+  display:grid;place-items:center;font-size:8px;font-weight:900;color:#625e78;
+}
+.publishEmptyState{
+  padding:12px 13px;border:1px dashed #dedee7;border-radius:10px;
+  color:var(--muted);font-size:10px;background:#fcfcfe;
+}
+
+@media(max-width:860px){
+  .serviceGridModern{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:680px){
+  .publishTopbar{flex-direction:column}
+  .publishSummary{justify-content:flex-start}
+  .scheduleChoiceGrid,.scheduleDateModern,.serviceGridModern{grid-template-columns:1fr}
+}
+
+
+/* v47 Review & Submit */
+.isrcCodePill{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  letter-spacing:.02em;
+  color:#5f58a9;
+  background:#f6f4ff;
+  border-color:#ddd8ff;
+}
+.reviewShell{display:grid;gap:16px}
+.reviewHero{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  padding:16px 18px;border:1px solid var(--line);border-radius:14px;background:#fff;
+}
+.reviewHero h2{margin:0;font-size:20px}
+.reviewHero p{margin:5px 0 0;font-size:11px;color:var(--muted)}
+.reviewHeroStatus{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 10px;border-radius:999px;background:#f8f7ff;
+  color:#6459ba;font-size:10px;font-weight:800;white-space:nowrap;
+}
+.reviewHeroStatus svg{width:14px}
+.reviewModernGrid{
+  display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);
+  gap:14px;align-items:start;
+}
+.reviewColumn{display:grid;gap:14px}
+.reviewPanel{
+  border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;
+}
+.reviewPanelHead{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;border-bottom:1px solid #ececf2;background:#fbfbfd;
+}
+.reviewPanelHeadTitle{display:flex;align-items:center;gap:8px}
+.reviewPanelHeadTitle svg{width:15px;color:var(--accent)}
+.reviewPanelHeadTitle b{font-size:12px}
+.reviewPanelBody{padding:14px 16px}
+.reviewDataGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.reviewDataItem{min-width:0}
+.reviewDataItem span{display:block;font-size:9px;color:var(--muted);margin-bottom:3px}
+.reviewDataItem b{display:block;font-size:11px;line-height:1.4;word-break:break-word}
+.reviewTracks{display:grid}
+.reviewTrackRow{
+  display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;
+  align-items:center;padding:11px 0;border-top:1px solid #efeff3;
+}
+.reviewTrackRow:first-child{border-top:0}
+.reviewTrackNo{
+  width:28px;height:28px;border-radius:8px;background:#f3f1ff;color:var(--accent);
+  display:grid;place-items:center;font-size:10px;font-weight:850;
+}
+.reviewTrackInfo{min-width:0}
+.reviewTrackInfo b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reviewTrackInfo span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+.reviewTrackMeta{text-align:right}
+.reviewTrackMeta b{display:block;font-size:10px}
+.reviewTrackMeta span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+.reviewCoverCard{display:grid;gap:10px}
+.reviewCoverPreview{
+  width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;
+  background:#f4f4f7;border:1px solid #e5e5eb;display:grid;place-items:center;
+}
+.reviewCoverPreview img{width:100%;height:100%;object-fit:cover}
+.reviewCoverEmpty{text-align:center;color:var(--muted);font-size:10px}
+.reviewCoverEmpty svg{width:28px;margin-bottom:6px}
+.reviewServiceWrap{display:flex;gap:6px;flex-wrap:wrap}
+.reviewServiceChip{
+  display:inline-flex;align-items:center;gap:5px;padding:5px 7px;border-radius:999px;
+  border:1px solid #e2e2e9;background:#fafafd;font-size:9px;color:#555868;
+}
+.reviewConfirmBox{
+  border:1px solid var(--line);border-radius:12px;padding:13px;background:#fafafd;
+}
+.reviewConfirmBox label{display:flex;align-items:flex-start;gap:9px;cursor:pointer}
+.reviewConfirmBox input{margin-top:2px}
+.reviewConfirmBox b{display:block;font-size:11px}
+.reviewConfirmBox span{display:block;font-size:9px;color:var(--muted);margin-top:3px;line-height:1.45}
+.reviewSubmitBar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;
+}
+.reviewSubmitBarText b{display:block;font-size:11px}
+.reviewSubmitBarText span{display:block;font-size:9px;color:var(--muted);margin-top:3px}
+@media(max-width:860px){
+  .reviewModernGrid{grid-template-columns:1fr}
+}
+@media(max-width:620px){
+  .reviewDataGrid{grid-template-columns:1fr}
+  .reviewTrackRow{grid-template-columns:28px minmax(0,1fr)}
+  .reviewTrackMeta{grid-column:2;text-align:left}
+  .reviewSubmitBar{align-items:stretch;flex-direction:column}
+}
+
+
+/* v48 review footer simplification */
+.reviewConfirmSimple{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  padding:8px 2px 2px;
+  font-size:10px;
+  color:#555866;
+}
+.reviewConfirmSimple input{margin-top:2px}
+.reviewConfirmSimple b{font-size:10px}
+.reviewConfirmSimple span{display:block;color:var(--muted);font-size:9px;margin-top:2px;line-height:1.4}
+
+
+/* v50 — lighter distribution selection */
+.serviceSection{display:grid;gap:18px}
+.serviceGroupModern{
+  padding-top:16px;
+  border-top:1px solid #ececf2;
+}
+.serviceGroupModern:first-child{padding-top:0;border-top:0}
+.serviceGroupModernHead{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:10px;
+}
+.serviceGroupModernHead h4{margin:0;font-size:12px}
+.serviceGroupModernHead p{margin:3px 0 0;font-size:9px;color:var(--muted)}
+.groupToggle{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:10px;font-weight:800;color:#4f5260;cursor:pointer;white-space:nowrap;
+}
+.groupToggle input{position:absolute;opacity:0;pointer-events:none}
+.groupToggleCheck{
+  width:20px;height:20px;border-radius:7px;border:1px solid #d8d8e2;
+  display:grid;place-items:center;background:#fff;color:#fff;
+}
+.groupToggle.active .groupToggleCheck{background:var(--accent);border-color:var(--accent)}
+.groupToggleCheck svg{width:12px}
+
+.serviceListSimple{
+  display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;
+  padding:2px 0;
+}
+.serviceItemSimple{
+  display:inline-flex;align-items:center;gap:8px;
+  min-height:38px;padding:4px 0;
+}
+.serviceItemSimple .serviceLogo{
+  width:32px;height:32px;border-radius:9px;
+  background:#f5f5f8;border:1px solid #e7e7ed;
+  font-size:9px;
+}
+.serviceItemSimpleText b{display:block;font-size:10px}
+.serviceItemSimpleText span{display:block;font-size:8px;color:var(--muted);margin-top:2px}
+.serviceItemCheck{
+  width:18px;height:18px;border-radius:6px;border:1px solid #d8d8e2;
+  display:grid;place-items:center;background:#fff;color:#fff;cursor:pointer;flex:none;
+}
+.serviceItemSimple.active .serviceItemCheck{background:var(--accent);border-color:var(--accent)}
+.serviceItemCheck svg{width:11px}
+
+.bundleServices{
+  display:flex;flex-wrap:wrap;gap:8px;
+}
+.bundleService{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 8px;border-radius:9px;background:#fafafd;
+  color:#555866;font-size:9px;
+}
+.bundleService .serviceLogo{
+  width:28px;height:28px;border-radius:8px;
+  background:#fff;border:1px solid #e6e6ed;font-size:8px;
+}
+.bundleService b{font-size:9px}
+
+
+/* v51 promotional radio note */
+.promoRadioNote{
+  margin-top:10px;
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  padding:10px 11px;
+  border-radius:9px;
+  background:#faf9ff;
+  border:1px solid #ebe8ff;
+  color:#66617a;
+  font-size:9px;
+  line-height:1.5;
+}
+.promoRadioNote svg{
+  width:14px;
+  flex:none;
+  margin-top:1px;
+  color:var(--accent);
+}
+
+
+/* v52 — service item sizing */
+.bundleServices{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.bundleService{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-height:58px;
+  padding:10px 12px;
+  border-radius:11px;
+  background:#fafafd;
+  border:1px solid #ececf2;
+  color:#434653;
+  font-size:11px;
+}
+.bundleService .serviceLogo{
+  width:40px;
+  height:40px;
+  border-radius:10px;
+  background:#fff;
+  border:1px solid #e1e1e8;
+  font-size:10px;
+  font-weight:900;
+  color:#5b5f70;
+  flex:none;
+}
+.bundleService b{
+  font-size:12px;
+  line-height:1.25;
+  font-weight:800;
+}
+.serviceListSimple{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.serviceItemSimple{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-height:58px;
+  padding:10px 12px;
+  border:1px solid #ececf2;
+  border-radius:11px;
+  background:#fafafd;
+}
+.serviceItemSimple .serviceLogo{
+  width:40px;
+  height:40px;
+  border-radius:10px;
+  background:#fff;
+  border:1px solid #e1e1e8;
+  font-size:10px;
+  flex:none;
+}
+.serviceItemSimpleText b{
+  font-size:12px;
+  line-height:1.25;
+}
+.serviceItemSimpleText span{
+  font-size:9px;
+  margin-top:3px;
+}
+.serviceItemCheck{
+  width:20px;
+  height:20px;
+  border-radius:7px;
+}
+@media(max-width:860px){
+  .bundleServices{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .bundleServices,.serviceListSimple{grid-template-columns:1fr}
+}
+
+
+/* v53 — square cover preview */
+.coverDrop{
+  aspect-ratio:1/1;
+  width:100%;
+  max-width:520px;
+  min-height:0!important;
+}
+.coverDrop img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  aspect-ratio:1/1;
+}
+.reviewCoverPreview{
+  aspect-ratio:1/1;
+}
+.reviewCoverPreview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <main>
+    <div class="wrap">
+      <div class="header">
+        <div>
+          <h1 id="pageTitle">Дуу үүсгэх</h1>
+          <p>Дуу, цомгийн мэдээлэл</p>
+        </div>
+        <div class="saved" id="saveState"><i data-lucide="cloud-check"></i><span>Хадгалсан</span></div>
+      </div>
+
+      <div class="steps" id="steps"></div>
+      <div class="form" id="form"></div>
+      <div class="footer">
+        <button class="btn" onclick="back()"><i data-lucide="arrow-left"></i>Өмнөх</button>
+        <button class="btn primary" id="nextBtn" onclick="next()">Үргэлжлүүлэх<i data-lucide="arrow-right"></i></button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+const accountLabel='MOCO Records';
+const accountContributors=[
+ {id:'CON-001',name:'Золбоо Энхтүвшин',affiliation:'ASCAP',legalName:true},
+ {id:'CON-002',name:'Temka',affiliation:'',legalName:false},
+ {id:'CON-003',name:'Munkh',affiliation:'',legalName:false},
+ {id:'CON-004',name:'Anu',affiliation:'BMI',legalName:true}
+];
+
+let mode=null,stage=1,previous=false,saveTimer,openTrack=-1;
+let titleTranslationOpen={album:false};
+let cover={name:'',dataUrl:'',width:0,height:0,size:0};
+let coverError='';
+let labelValue='',originalReleaseDate='',previousUPC='';
+let releaseDate='',scheduleMode='asap',distributionServices=new Set(['Sonsy Music','M Music','Hitone','Unimusic','SkyMelody','GTone','Egshig','Apple Music','Spotify','YouTube Music','Deezer','Sonsy FM 78.9 & 100.1']),reviewConfirmed=false,submitted=false;
+let audioPlayers={};
+let primary=[],featured=[];
+function makeNewTrack(idx=1){
+ return {
+   assetId:'NEW-'+Date.now()+'-'+idx,title:'Шинэ дуу '+idx,titles:{mn:'Шинэ дуу '+idx,en:''},activeLang:'mn',
+   duration:'—',sourceName:'',fileFormat:'',sampleRate:'',bitDepth:'',isrc:'',hasOwnISRC:false,isrcMode:'generate',
+   artist:'',featured:'',genre:'',secondaryGenre:'',
+   hasLyrics:null,explicitStatus:'not_explicit',vocalLanguage:'',lyrics:'',
+   source:'new',usages:[],translationOpen:false
+ };
+}
+function demoReleasedTrack(){
+ return {
+   assetId:'AST-000701',title:'Boroo',titles:{mn:'Бороо',en:'Rain'},activeLang:'mn',
+   duration:'03:42',sourceName:'Nene - Boroo.wav',fileFormat:'WAV',sampleRate:'44.1 kHz',bitDepth:'24-bit',isrc:'MN-ABC-26-00001',hasOwnISRC:true,isrcMode:'existing',
+   artist:'Nene',featured:'',genre:'Pop',secondaryGenre:'R&B / Soul',
+   hasLyrics:true,explicitStatus:'not_explicit',vocalLanguage:'mn',lyrics:'Бороо орж байна...\nЧамайг санаж байна...',
+   source:'existing',translationOpen:false,
+   usages:[
+     {album:'Шөнийн хот',upc:'865123456789',date:'2026-05-18'},
+     {album:'Nene — Collection',upc:'865987654321',date:'2025-11-02'}
+   ]
+ };
+}
+let albumTracks=[];
+let addSongSelection=new Set(), pendingUploads=[];
+const songLibrary=[
+ {assetId:'AST-000701',title:'Boroo',titles:{mn:'Бороо',en:'Rain'},activeLang:'mn',duration:'03:42',isrc:'MN-ABC-26-00001',hasOwnISRC:true,isrcMode:'existing',artist:'Nene',featured:'',genre:'Pop',secondaryGenre:'R&B / Soul',hasLyrics:true,explicitStatus:'not_explicit',vocalLanguage:'mn',lyrics:'Бороо орж байна...\nЧамайг санаж байна...',translationOpen:false,usages:[{album:'Шөнийн хот',upc:'865123456789',date:'2026-05-18'},{album:'Nene — Collection',upc:'865987654321',date:'2025-11-02'}]},
+ {assetId:'AST-000702',title:'Hair',titles:{mn:'Хайр',en:'Love'},activeLang:'mn',duration:'04:08',isrc:'MN-ABC-26-00002',hasOwnISRC:true,isrcMode:'existing',artist:'Nene',featured:'ThunderZ',genre:'Pop',secondaryGenre:'Hip-Hop / Rap',hasLyrics:true,explicitStatus:'explicit',vocalLanguage:'mn',lyrics:'',translationOpen:false,usages:[{album:'Дурсамж',upc:'865111222333',date:'2026-02-14'}]},
+ {assetId:'AST-000645',title:'Chamd',titles:{mn:'Чамд',en:'For You'},activeLang:'mn',duration:'03:21',isrc:'MN-ZZZ-25-00123',hasOwnISRC:true,isrcMode:'existing',artist:'The Wasabies',featured:'',genre:'Rock',secondaryGenre:'Alternative',hasLyrics:false,explicitStatus:'not_explicit',vocalLanguage:'',lyrics:'',translationOpen:false,usages:[]}
+];
+let primaryGenre='',secondaryGenre='';
+let albumTitleLang='mn',trackTitleLang='mn';
+let albumTitles={mn:'',en:''},trackTitles={mn:'Boroo',en:''};
+const genres=['Alternative','Blues','Classical','Country','Electronic','Folk','Hip-Hop / Rap','Jazz','Metal','Pop','R&B / Soul','Reggae','Rock','Singer / Songwriter','Soundtrack','World'];
+const languages=[{code:'mn',name:'Монгол'},{code:'en',name:'English / Latin'},{code:'ko',name:'한국어'},{code:'ja',name:'日本語'},{code:'zh',name:'中文'}];
+const steps=['Үндсэн мэдээлэл','Дууны мэдээлэл','Ковер зураг','Нийтлэх & Түгээх','Шалгах & илгээх'];
+const artists=[
+ {id:'ART-000184',name:'The Wasabies'},
+ {id:'ART-000267',name:'Nene'},
+ {id:'ART-000391',name:'ThunderZ'}
+];
+const labels=['MOCO Records','Independent','Ulaanbaatar Records'];
+function icons(){if(window.lucide&&typeof window.lucide.createIcons==='function')window.lucide.createIcons()}
+
+
+function initials(name){return name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase()}
+
+function info(text){
+ const safe=String(text).replace(/'/g,"&#39;").replace(/"/g,"&quot;");
+ return `<button type="button" class="infoBtn" aria-label="Тайлбар" onclick="showInfo(event,'${safe}')"><i data-lucide="info"></i></button>`;
+}
+function showInfo(e,text){
+ e.preventDefault();e.stopPropagation();
+ document.querySelectorAll('.infoPopover').forEach(x=>x.remove());
+ const label=e.currentTarget.closest('label');
+ if(!label)return;
+ const p=document.createElement('div');p.className='infoPopover';p.textContent=text;label.appendChild(p);
+}
+document.addEventListener('click',()=>document.querySelectorAll('.infoPopover').forEach(x=>x.remove()));
+
+function autosave(){
+ const s=document.getElementById('saveState'); if(!s)return;
+ s.style.color='#996811';s.innerHTML='<i data-lucide="cloud-upload"></i><span>Хадгалж байна...</span>';icons();
+ clearTimeout(saveTimer);saveTimer=setTimeout(()=>{s.style.color='var(--ok)';s.innerHTML='<i data-lucide="cloud-check"></i><span>Хадгалсан</span>';icons()},500)
+}
+document.addEventListener('input',autosave);document.addEventListener('change',autosave);
+
+function chooseMode(){
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="modeModal"><div class="modal">
+   <div class="modalHead"><div><h3>Шинээр үүсгэх</h3><div class="hint">Юу үүсгэхээ сонгоно.</div></div></div>
+   <div class="choiceGrid">
+    <button class="choice" onclick="setMode('single')"><i data-lucide="music-2"></i><h3>Дуу үүсгэх</h3><p>1 дуу</p></button>
+    <button class="choice" onclick="setMode('album')"><i data-lucide="disc-3"></i><h3>Цомог үүсгэх</h3><p>Олон дуу нэг дор оруулах</p></button>
+   </div>
+ </div></div>`);icons()
+}
+function setMode(m){
+ mode=m;stage=1;openTrack=-1;submitted=false;reviewConfirmed=false;previous=false;labelValue='';originalReleaseDate='';previousUPC='';releaseDate='';cover={name:'',dataUrl:'',width:0,height:0,size:0};distributionServices=new Set(['Sonsy Music','M Music','Hitone','Unimusic','SkyMelody','GTone','Egshig','Apple Music','Spotify','YouTube Music','Deezer','Sonsy FM 78.9 & 100.1']);scheduleMode='asap';albumTitles={mn:'',en:''};titleTranslationOpen={album:false};primary=[];featured=[];primaryGenre='';secondaryGenre='';
+ albumTracks=m==='single'?[makeNewTrack(1)]:[demoReleasedTrack()];
+ document.getElementById('modeModal')?.remove();
+ render();
+}
+
+function goStage(n){
+ stage=n;
+ if(stage===2 && albumTracks.length && openTrack<0)openTrack=0;
+ render();
+}
+function renderSteps(){
+ document.getElementById('steps').innerHTML=steps.map((x,i)=>`<div class="step ${stage===i+1?'active':''}" onclick="goStage(${i+1})"><span>${i+1}</span>${x}</div>`).join('')
+}
+function genrePicker(kind,label,required=true){
+ const value=kind==='primary'?primaryGenre:secondaryGenre;
+ return `<div class="field"><label>${label}${required?' <span class="req">*</span>':''}${info(kind==='primary'?'Дуу эсвэл цомгийн үндсэн хөгжмийн жанр.':'Хэрэв тохирох бол нэмэлт жанр сонгож болно.')}</label>
+ <div class="selectPicker"><div class="selectValue" onclick="toggleGenre('${kind}',this)"><span>${value||'Жанр хайж сонгох'}</span><i data-lucide="chevron-down"></i></div><div class="selectMenu hidden"></div></div></div>`;
+}
+function toggleGenre(kind,el){
+ const menu=el.nextElementSibling; menu.classList.toggle('hidden');
+ if(menu.classList.contains('hidden'))return;
+ menu.innerHTML=`<div class="selectSearch"><i data-lucide="search"></i><input placeholder="Жанр хайх" oninput="filterGenres('${kind}',this)"></div><div class="genreOptions">${genreOptions(kind,'')}</div>`;
+ icons();
+}
+function genreOptions(kind,q){
+ const current=kind==='primary'?primaryGenre:secondaryGenre;
+ const other=kind==='primary'?secondaryGenre:primaryGenre;
+ return genres.filter(g=>g.toLowerCase().includes(q.toLowerCase())&&g!==other).map(g=>`<div class="option ${g===current?'selected':''}" onmousedown="selectGenre('${kind}','${g.replace(/'/g,"&#39;")}')">${g}</div>`).join('');
+}
+function filterGenres(kind,input){input.parentElement.nextElementSibling.innerHTML=genreOptions(kind,input.value)}
+function selectGenre(kind,value){if(kind==='primary')primaryGenre=value;else secondaryGenre=value;render();autosave()}
+
+
+function langName(code){return (languages.find(x=>x.code===code)||{}).name||code}
+function titleState(scope){
+ return scope==='album'
+   ? {active:albumTitleLang,titles:albumTitles}
+   : {active:trackTitleLang,titles:trackTitles};
+}
+function setTitleLang(scope,code){
+ if(scope==='album')albumTitleLang=code; else trackTitleLang=code;
+ render();
+}
+function titleLanguageOptions(titles){
+ return Object.keys(titles).map(code=>`<option value="${code}">${langName(code)}</option>`).join('');
+}
+function titleStatusChip(scope,code,label,required=false){
+ const titles=scope==='album'?albumTitles:trackTitles;
+ const complete=!!(titles[code]||'').trim();
+ return `<button type="button" class="langStatus ${complete?'complete':required?'required':''}" onclick="setTitleLang('${scope}','${code}')"><i data-lucide="${complete?'check':'circle'}"></i>${label}${required&&!complete?' · заавал':''}</button>`;
+}
+function localizedTitle(scope,label){
+ const titles=scope==='album'?albumTitles:trackTitles;
+ const active=scope==='album'?albumTitleLang:trackTitleLang;
+ if(titles.mn===undefined)titles.mn=''; if(titles.en===undefined)titles.en='';
+ return `<div class="field"><label>${label} <span class="req">*</span>${info('Нэрийг хэл тус бүрээр нэг field дээр оруулна. Монгол default бөгөөд English / Latin хувилбар заавал бөглөгдөнө.')}</label>
+ <div class="titleFieldShell">
+   <div class="titleInputRow">
+     <input value="${titles[active]||''}" placeholder="${label} · ${langName(active)}" oninput="updateTitle('${scope}','${active}',this.value,this)">
+     <select class="titleLanguageSelect" onchange="setTitleLang('${scope}',this.value)">${Object.keys(titles).map(code=>`<option value="${code}" ${code===active?'selected':''}>${langName(code)}</option>`).join('')}</select>
+   </div>
+   <div class="titleLanguageMeta">
+     ${titleStatusChip(scope,'mn','Монгол',false)}
+     ${titleStatusChip(scope,'en','English / Latin',true)}
+     ${Object.keys(titles).filter(c=>!['mn','en'].includes(c)).map(c=>titleStatusChip(scope,c,langName(c),false)).join('')}
+     <button type="button" class="titleAddLang" onclick="openTitleLanguage('${scope}')"><i data-lucide="plus"></i>Нэмэлт хэл</button>
+   </div>
+ </div>
+ ${!(titles.en||'').trim()?`<div class="titleRequirement"><strong>English / Latin хувилбар шаардлагатай.</strong> Хэл дээр дараад нэрийг оруулна.</div>`:''}
+ </div>`;
+}
+function toggleTitleTranslations(scope){render()}
+
+function updateTitle(scope,code,value,el){
+ if(scope==='album'){albumTitles[code]=value;if(mode==='single'&&albumTracks[0]){albumTracks[0].titles=albumTracks[0].titles||{};albumTracks[0].titles[code]=value;if(code==='mn')albumTracks[0].title=value||'Шинэ дуу 1';}} else trackTitles[code]=value;
+ const preview = el?.closest('.localizedTitle')?.querySelector('.titlePreview');
+ if(preview){
+   const titles=scope==='album'?albumTitles:trackTitles;
+   preview.innerHTML=`<div class="previewLabel">Preview</div><div class="previewList">${Object.keys(titles).map(c=>`<div class="previewRow"><span>${langName(c)}</span><span class="previewValue">${titles[c]||'—'}</span></div>`).join('')}</div>`;
+ }
+ autosave();
+}
+function openTitleLanguage(scope){
+ const titles=scope==='album'?albumTitles:trackTitles;
+ const available=languages.filter(l=>!['mn','en'].includes(l.code)&&titles[l.code]===undefined);
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="translationModal"><div class="modal">
+ <div class="modalHead"><div><h3>Орчуулгын хэл нэмэх</h3></div><button class="btn icon" onclick="document.getElementById('translationModal')?.remove()"><i data-lucide="x"></i></button></div>
+ <div class="field"><label>Хэл</label><select id="translationLang">${available.map(l=>`<option value="${l.code}">${l.name}</option>`).join('')}</select></div>
+ <div class="modalFooter"><button class="btn" onclick="document.getElementById('translationModal')?.remove()">Болих</button><button class="btn primary" onclick="addTitleLanguage('${scope}')">Нэмэх</button></div></div></div>`);icons();
+}
+function addTitleLanguage(scope){
+ const code=document.getElementById('translationLang').value;
+ if(scope==='album'){albumTitles[code]='';albumTitleLang=code}else{trackTitles[code]='';trackTitleLang=code};titleTranslationOpen[scope]=true
+ document.getElementById('translationModal')?.remove();render();autosave();
+}
+
+function artistList(kind){return kind==='primary'?primary:featured}
+function artistRoleLabel(kind){return kind==='primary'?'Үндсэн артист':'Хамтарсан артист'}
+function artistSelectedCards(kind){
+ const arr=artistList(kind);
+ if(!arr.length){
+   return `<div class="artistEmpty"><i data-lucide="user-round"></i><span>${kind==='primary'?'Үндсэн артист сонгоогүй байна.':'Хамтарсан артист байхгүй.'}</span></div>`;
+ }
+ return `<div class="artistSelectedList">${arr.map(a=>`<div class="artistSelectedCard">
+   <span class="avatar">${initials(a.name)}</span>
+   <div class="artistSelectedInfo">
+     <b>${a.name}</b>
+     <span>${artistRoleLabel(kind)}</span>
+   </div>
+   <button type="button" class="btn icon" title="Хасах" onclick="removeArtist('${kind}','${a.id}')"><i data-lucide="x"></i></button>
+ </div>`).join('')}</div>`;
+}
+function artistPicker(kind,label,required=true){
+ const count=artistList(kind).length;
+ const helper=kind==='primary'
+   ? 'Нэг эсвэл хэд хэдэн үндсэн артист сонгож болно.'
+   : 'Хэрэв хамтарсан артист байгаа бол нэмнэ.';
+ return `<div class="artistRoleBox ${kind==='primary'?'artistRolePrimary':'artistRoleFeatured'}">
+   <div class="artistRoleHead">
+     <div>
+       <label>${label}${required?' <span class="req">*</span>':''}${info(helper)}</label>
+       <div class="artistRoleHint">${kind==='primary'?'Release дээр голлон харагдах артист':'Заавал биш'}</div>
+     </div>
+     <button type="button" class="btn artistRoleAction" onclick="openArtistSearchModal('${kind}')">
+       <i data-lucide="plus"></i>${count?'Нэмэх':'Артист сонгох'}
+     </button>
+   </div>
+   ${artistSelectedCards(kind)}
+ </div>`;
+}
+function removeArtist(kind,id){
+ if(kind==='primary')primary=primary.filter(a=>a.id!==id);else featured=featured.filter(a=>a.id!==id);
+ render();autosave();
+}
+let artistModalKind='primary';
+let artistModalSelection=new Set();
+
+function openArtistSearchModal(kind){
+ artistModalKind=kind;
+ artistModalSelection=new Set();
+ document.getElementById('artistSearchModal')?.remove();
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack artistSearchModal" id="artistSearchModal"><div class="modal">
+   <div class="modalHead">
+     <div>
+       <h3>${artistRoleLabel(kind)} сонгох</h3>
+       <div class="hint">Нэр эсвэл Artist ID-аар хайгаад нэг эсвэл хэд хэдэн артист сонгоно.</div>
+     </div>
+     <button class="btn icon" onclick="document.getElementById('artistSearchModal')?.remove()"><i data-lucide="x"></i></button>
+   </div>
+   <div class="artistModalSearch">
+     <i data-lucide="search"></i>
+     <input id="artistModalSearchInput" autocomplete="off" autofocus placeholder="Артистын нэр эсвэл Artist ID" oninput="renderArtistSearchResults(this.value)">
+   </div>
+   <div class="artistSearchList" id="artistSearchList"></div>
+   <div class="artistModalActions">
+     <button type="button" class="btn ghost" onclick="openArtistCreateModal()"><i data-lucide="user-round-plus"></i>Шинэ артист үүсгэх</button>
+     <div style="display:flex;gap:8px">
+       <button type="button" class="btn" onclick="document.getElementById('artistSearchModal')?.remove()">Болих</button>
+       <button type="button" class="btn primary" id="artistSelectConfirm" onclick="confirmArtistSelection()" disabled>Сонгох</button>
+     </div>
+   </div>
+ </div></div>`);
+ renderArtistSearchResults('');
+ setTimeout(()=>document.getElementById('artistModalSearchInput')?.focus(),0);
+ icons();
+}
+function renderArtistSearchResults(q=''){
+ const box=document.getElementById('artistSearchList');if(!box)return;
+ const query=q.trim().toLowerCase();
+ const already=new Set(artistList(artistModalKind).map(a=>a.id));
+ const rows=artists
+   .filter(a=>(!query||a.name.toLowerCase().includes(query)||a.id.toLowerCase().includes(query)))
+   .map(a=>{
+     const exists=already.has(a.id),picked=artistModalSelection.has(a.id);
+     return `<div class="artistSearchResult ${picked?'selected':''}" ${exists?'style="opacity:.48;cursor:not-allowed"':''} onclick="${exists?'':`toggleArtistModalSelection('${a.id}')`}">
+       <span class="avatar">${initials(a.name)}</span>
+       <span>
+         <span class="artistResultName">${a.name}</span>
+         <span class="artistResultId">Artist ID · ${a.id}</span>
+       </span>
+       <i data-lucide="${exists?'check':picked?'check-circle-2':'plus-circle'}"></i>
+     </div>`;
+   }).join('');
+ box.innerHTML=rows||`<div class="hint" style="padding:18px">Артист олдсонгүй. “Шинэ артист үүсгэх” товчоор бүртгэж болно.</div>`;
+ const btn=document.getElementById('artistSelectConfirm');
+ if(btn){
+   btn.disabled=!artistModalSelection.size;
+   btn.textContent=artistModalSelection.size?`Сонгох (${artistModalSelection.size})`:'Сонгох';
+ }
+ icons();
+}
+function toggleArtistModalSelection(id){
+ if(artistModalSelection.has(id))artistModalSelection.delete(id);else artistModalSelection.add(id);
+ renderArtistSearchResults(document.getElementById('artistModalSearchInput')?.value||'');
+}
+function confirmArtistSelection(){
+ const target=artistList(artistModalKind);
+ artistModalSelection.forEach(id=>{
+   const a=artists.find(x=>x.id===id);
+   if(a&&!target.some(x=>x.id===id))target.push(a);
+ });
+ document.getElementById('artistSearchModal')?.remove();
+ render();autosave();
+}
+function openArtistCreateModal(){
+ document.getElementById('artistCreateModal')?.remove();
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="artistCreateModal"><div class="modal">
+   <div class="modalHead">
+     <div><h3>Шинэ артист үүсгэх</h3><div class="hint">Шинэ артист үүсгээд шууд сонголтод нэмнэ.</div></div>
+     <button class="btn icon" onclick="document.getElementById('artistCreateModal')?.remove()"><i data-lucide="x"></i></button>
+   </div>
+   <div class="field"><label>Артистын зураг</label><button class="btn"><i data-lucide="image-plus"></i>Зураг сонгох</button></div>
+   <div class="field"><label>Артистын нэр <span class="req">*</span>${info('Түгээлтийн сувгуудад харагдах артистын нэр.')}</label><input id="newArtistName" placeholder="Артистын нэр"></div>
+   <div class="hint">Artist ID автоматаар үүснэ.</div>
+   <div class="modalFooter">
+     <button class="btn" onclick="document.getElementById('artistCreateModal')?.remove()">Болих</button>
+     <button class="btn primary" onclick="createArtistFromModal()">Үүсгээд нэмэх</button>
+   </div>
+ </div></div>`);
+ icons();
+ setTimeout(()=>document.getElementById('newArtistName')?.focus(),0);
+}
+function createArtistFromModal(){
+ const name=document.getElementById('newArtistName')?.value.trim();
+ if(!name)return;
+ const a={id:'ART-'+String(500+artists.length).padStart(6,'0'),name};
+ artists.push(a);
+ const target=artistList(artistModalKind);
+ if(!target.some(x=>x.id===a.id))target.push(a);
+ document.getElementById('artistCreateModal')?.remove();
+ document.getElementById('artistSearchModal')?.remove();
+ render();autosave();
+}
+
+function stage1(){
+ const album=mode==='album';
+ return `<div class="modePill"><i data-lucide="${album?'disc-3':'music-2'}"></i>${album?'Цомог':'Дуу'}</div>
+ <h2>Үндсэн мэдээлэл</h2>
+ <div class="section">
+   ${localizedTitle('album',album?'Цомгийн нэр':'Дууны нэр')}
+   <div class="artistSection">
+     <div class="artistSectionHeader">
+       <h3>Артистууд</h3>
+       <span>Хайж сонгох эсвэл шинэ артист үүсгэх</span>
+     </div>
+     ${artistPicker('primary','Үндсэн артист')}
+     ${artistPicker('featured','Хамтарсан артист',false)}
+   </div>
+   <div class="grid2">${genrePicker('primary','Үндсэн жанр',true)}${genrePicker('secondary','Secondary genre',false)}</div>
+   <div class="field">
+     <label>Label ${info('Энэ Label нь таны account дээр тохируулсан утга. Энэ form-оос өөрчлөх боломжгүй.')}</label>
+     <div class="lockedValue">
+       <div class="lockedValueMain"><i data-lucide="building-2"></i><b>${accountLabel}</b></div>
+       <span><i data-lucide="lock"></i>Account тохиргооноос</span>
+     </div>
+   </div>
+ </div>
+ <div class="section">
+   <div class="field">
+     <label>Энэ ${album?'цомог':'дуу'} өмнө нь гарч байсан уу? <span class="req">*</span>${info('Өмнө нь яг энэ дуу эсвэл цомог хөгжмийн үйлчилгээнд гарсан эсэхийг сонгоно.')}</label>
+     <div class="choiceRow">
+       <label class="radioCard ${previous===false?'active':''}">
+         <input type="radio" name="previous-product" ${previous===false?'checked':''} onchange="previous=false;render();autosave()">
+         <b>Үгүй</b>
+       </label>
+       <label class="radioCard ${previous===true?'active':''}">
+         <input type="radio" name="previous-product" ${previous===true?'checked':''} onchange="previous=true;render();autosave()">
+         <b>Тийм</b>
+       </label>
+     </div>
+   </div>
+
+   ${previous?`
+     <div class="conditional">
+       <div class="grid2">
+         <div class="field" style="margin:0"><label>Анх гарсан огноо <span class="req">*</span>${info('Өмнө нь хамгийн анх нийтлэгдсэн огноо.')}</label><input type="date" value="${originalReleaseDate}" onchange="originalReleaseDate=this.value;autosave()"></div>
+         <div class="field" style="margin:0"><label>Өмнөх UPC код <span class="req">*</span>${info('Өмнө нь яг энэ дуу эсвэл цомогт ашигласан UPC кодоо оруулна.')}</label><input value="${previousUPC}" oninput="previousUPC=this.value;autosave()" placeholder="UPC код"></div>
+       </div>
+     </div>
+   `:`
+     <div class="identifierAuto"><i data-lucide="sparkles"></i><div><b>UPC автоматаар үүснэ</b><span>Илгээхээс өмнө энэ ${album?'цомог':'дуу'}-д UPC код онооно.</span></div></div>
+   `}
+ </div>`
+}
+
+function openAddSong(){
+ addSongSelection=new Set();
+ pendingUploads=[];
+
+ if(mode==='single'){
+   document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="songModal"><div class="modal addTrackModal">
+     <div class="addTrackHeader">
+       <div><h3>Дууны файл</h3></div>
+       <button class="btn icon" onclick="document.getElementById('songModal')?.remove()"><i data-lucide="x"></i></button>
+     </div>
+     <div class="addTrackBody singleUploadOnly">
+       <div class="dropzone" onclick="document.getElementById('new-audio-input').click()">
+         <div><i data-lucide="upload-cloud"></i><b>Дууны файл хуулах</b><span>Файлаа энд чирэх эсвэл компьютерээс сонгох</span></div>
+       </div><input id="new-audio-input" type="file" accept="audio/*" style="display:none" onchange="queueAudioFiles(this)">
+       <div id="uploadedQueue" class="uploadedQueue"></div>
+
+       <div class="orDivider">эсвэл</div>
+
+       <button class="btn" style="width:100%;justify-content:center" onclick="openReleasedSongPicker()">
+         <i data-lucide="history"></i>Өмнө гаргасан дуу ашиглах
+       </button>
+     </div>
+     <div class="addTrackFooter">
+       <button class="btn" onclick="document.getElementById('songModal')?.remove()">Болих</button>
+       <button class="btn primary" id="addSongsBtn" onclick="confirmAddSongs()" disabled>Нэмэх</button>
+     </div>
+   </div></div>`);
+   icons();
+   return;
+ }
+
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="songModal"><div class="modal addTrackModal">
+   <div class="addTrackHeader">
+     <div><h3>Дуу нэмэх</h3></div>
+     <button class="btn icon" onclick="document.getElementById('songModal')?.remove()"><i data-lucide="x"></i></button>
+   </div>
+   <div class="addTrackBody">
+     <div class="dropzone" onclick="document.getElementById('new-audio-input').click()">
+       <div><i data-lucide="upload-cloud"></i><b>Дууны файл хуулах</b><span>Файлаа энд чирэх эсвэл компьютерээс сонгох</span></div>
+     </div><input id="new-audio-input" type="file" accept="audio/*" multiple style="display:none" onchange="queueAudioFiles(this)">
+     <div id="uploadedQueue" class="uploadedQueue"></div>
+
+     <div class="orDivider">эсвэл</div>
+
+     <div class="songLibraryTitle releaseOnlyLabel">
+       <span>Өмнө гарсан дуунууд</span>
+       ${info('Зөвхөн өмнө нь гарсан дуунууд энд харагдана. Draft эсвэл зүгээр хуулсан файл энэ жагсаалтад орохгүй.')}
+     </div>
+     <div class="librarySearch"><i data-lucide="search"></i><input placeholder="Нэр, артист, ISRC-аар хайх" oninput="filterAddSongs(this.value)"></div>
+     <div class="songList" id="songList">${renderSongLibrary('')}</div>
+   </div>
+   <div class="addTrackFooter">
+     <button class="btn" onclick="document.getElementById('songModal')?.remove()">Болих</button>
+     <button class="btn primary" id="addSongsBtn" onclick="confirmAddSongs()" disabled>Нэмэх</button>
+   </div>
+ </div></div>`);
+ icons();
+}
+
+function openReleasedSongPicker(){
+ document.getElementById('songModal')?.remove();
+ addSongSelection=new Set();
+ pendingUploads=[];
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="songModal"><div class="modal addTrackModal">
+   <div class="addTrackHeader">
+     <div>
+       <h3>Өмнө гаргасан дуу ашиглах</h3>
+       <p style="margin:4px 0 0;color:var(--muted);font-size:11px">Зөвхөн өмнө нь гарсан дуунууд</p>
+     </div>
+     <button class="btn icon" onclick="document.getElementById('songModal')?.remove()"><i data-lucide="x"></i></button>
+   </div>
+   <div class="addTrackBody">
+     <div class="librarySearch"><i data-lucide="search"></i><input placeholder="Нэр, артист, ISRC-аар хайх" oninput="filterAddSongs(this.value)"></div>
+     <div class="songList" id="songList">${renderSongLibrary('')}</div>
+   </div>
+   <div class="addTrackFooter">
+     <button class="btn" onclick="document.getElementById('songModal')?.remove();openAddSong()">Буцах</button>
+     <button class="btn primary" id="addSongsBtn" onclick="confirmAddSongs()" disabled>Сонгох</button>
+   </div>
+ </div></div>`);
+ icons();
+}
+
+function queueAudioFiles(input){
+ const files=[...(input?.files||[])]; if(!files.length)return;
+ const chosen=mode==='single'?files.slice(0,1):files;
+ chosen.forEach((file,n)=>{
+   const t=makeNewTrack(pendingUploads.length+1);
+   t.title=file.name.replace(/\.[^.]+$/,''); t.titles.mn=t.title;
+   t.sourceName=file.name; t.fileFormat=(file.name.split('.').pop()||'audio').toUpperCase();
+   t.sampleRate='—';t.bitDepth='—';t.duration='—';t.pendingFile=file;
+   pendingUploads.push(t); readAudioMetadata(t,file,()=>renderPendingUploads());
+ });
+ renderPendingUploads(); updateAddButton(); input.value='';
+}
+
+function mockUploadSong(){
+ const idx=pendingUploads.length+1;
+ pendingUploads.push(makeNewTrack(idx));
+ renderPendingUploads();
+ updateAddButton();
+}
+function renderPendingUploads(){
+ const q=document.getElementById('uploadedQueue');if(!q)return;
+ q.innerHTML=pendingUploads.map((t,i)=>`<div class="uploadedItem">
+   <i data-lucide="file-audio"></i>
+   <span><b>${t.title}</b><span>Шинэ файл</span></span>
+   <button class="btn icon" onclick="removePendingUpload(${i})"><i data-lucide="x"></i></button>
+ </div>`).join('');
+ icons();
+}
+function removePendingUpload(i){pendingUploads.splice(i,1);renderPendingUploads();updateAddButton()}
+function renderSongLibrary(q){
+ const query=(q||'').toLowerCase();
+ return songLibrary
+   .filter(s=>(s.usages?.length||0)>0)
+   .filter(s=>s.title.toLowerCase().includes(query)||s.artist.toLowerCase().includes(query)||s.isrc.toLowerCase().includes(query))
+   .map(s=>{
+     const alreadyAdded=albumTracks.some(t=>t.assetId===s.assetId);
+     const selected=addSongSelection.has(s.assetId);
+     const usedText=s.usages?.length?`${s.usages.length} цомогт орсон`:s.isrc;
+     return `<div class="songItem ${selected?'selected':''}" ${alreadyAdded?'style="opacity:.48;cursor:default"':`onclick="toggleSongSelection('${s.assetId}')"`}>
+       <input class="songCheck" type="checkbox" ${selected?'checked':''} ${alreadyAdded?'disabled':''} onclick="event.stopPropagation();${alreadyAdded?'':`toggleSongSelection('${s.assetId}')`}">
+       <span class="songIcon"><i data-lucide="music-2"></i></span>
+       <span class="songInfo"><b>${s.title}</b><span>${s.artist} · ${s.duration} · ${s.isrc}</span></span>
+       <span class="songRight">${alreadyAdded?'Нэмэгдсэн':usedText}</span>
+     </div>`;
+   }).join('');
+}
+function filterAddSongs(q){const list=document.getElementById('songList');if(list){list.innerHTML=renderSongLibrary(q);icons()}}
+function toggleSongSelection(id){
+ if(mode==='single'){
+   if(addSongSelection.has(id))addSongSelection.clear();else{addSongSelection.clear();addSongSelection.add(id)}
+ }else{
+   if(addSongSelection.has(id))addSongSelection.delete(id);else addSongSelection.add(id);
+ }
+ const search=document.querySelector('#songModal .librarySearch input')?.value||'';
+ filterAddSongs(search);updateAddButton();
+}
+function updateAddButton(){
+ const b=document.getElementById('addSongsBtn');if(!b)return;
+ const count=addSongSelection.size+pendingUploads.length;
+ b.disabled=count===0;
+ b.textContent=mode==='single'?(count>0?'Сонгох':'Сонгох'):(count>0?`Нэмэх (${count})`:'Нэмэх');
+}
+function confirmAddSongs(){
+ const picked=[];
+ addSongSelection.forEach(id=>{const song=songLibrary.find(x=>x.assetId===id);if(song)picked.push({...song,source:'existing',translationOpen:false})});
+ pendingUploads.forEach(song=>{if(song.pendingFile){song.audioUrl=URL.createObjectURL(song.pendingFile)}delete song.pendingFile;picked.push(song)});
+ if(mode==='single'){
+   if(picked[0])albumTracks=[picked[0]];
+ }else{
+   picked.forEach(song=>{if(!albumTracks.some(t=>t.assetId===song.assetId))albumTracks.push(song)});
+ }
+ openTrack=albumTracks.length?0:-1;
+ document.getElementById('songModal')?.remove(); render();autosave();
+}
+
+function trackTitleEditor(t,i){
+ t.titles=t.titles||{mn:t.title||'',en:''}; if(t.titles.mn===undefined)t.titles.mn=''; if(t.titles.en===undefined)t.titles.en='';
+ const active=t.activeLang||'mn';
+ const status=(code,label,required=false)=>{const complete=!!(t.titles[code]||'').trim();return `<button type="button" class="langStatus ${complete?'complete':required?'required':''}" onclick="albumTracks[${i}].activeLang='${code}';render()"><i data-lucide="${complete?'check':'circle'}"></i>${label}${required&&!complete?' · заавал':''}</button>`};
+ return `<div class="field"><label>Дууны нэр <span class="req">*</span>${info('Монгол нэр default. English / Latin хувилбар заавал бөглөгдөнө; бусад хэлийг нэмэлтээр нэмж болно.')}</label>
+   <div class="titleFieldShell">
+     <div class="titleInputRow">
+       <input value="${t.titles[active]||''}" placeholder="Дууны нэр · ${langName(active)}" oninput="updateTrackTitle(${i},'${active}',this.value)">
+       <select class="titleLanguageSelect" onchange="albumTracks[${i}].activeLang=this.value;render()">${Object.keys(t.titles).map(code=>`<option value="${code}" ${code===active?'selected':''}>${langName(code)}</option>`).join('')}</select>
+     </div>
+     <div class="titleLanguageMeta">
+       ${status('mn','Монгол')}${status('en','English / Latin',true)}
+       ${Object.keys(t.titles).filter(c=>!['mn','en'].includes(c)).map(c=>status(c,langName(c))).join('')}
+       <button type="button" class="titleAddLang" onclick="addTrackLanguage(${i})"><i data-lucide="plus"></i>Нэмэлт хэл</button>
+     </div>
+   </div>
+   ${!(t.titles.en||'').trim()?`<div class="titleRequirement"><strong>English / Latin хувилбар шаардлагатай.</strong></div>`:''}
+ </div>`;
+}
+function toggleTrackTranslations(i){albumTracks[i].translationOpen=!albumTracks[i].translationOpen;render()}
+
+function setTrackTitleLang(i,code){albumTracks[i].activeLang=code;render()}
+function updateTrackTitle(i,code,value){albumTracks[i].titles[code]=value;albumTracks[i].title=value||albumTracks[i].title;autosave()}
+function addTrackLanguage(i){
+ const t=albumTracks[i];t.titles=t.titles||{mn:t.title||'',en:''};
+ const available=languages.filter(l=>!['mn','en'].includes(l.code)&&t.titles[l.code]===undefined);
+ if(!available.length)return;
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="trackLangModal"><div class="modal"><div class="modalHead"><div><h3>Нэмэлт хэл</h3></div><button class="btn icon" onclick="document.getElementById('trackLangModal')?.remove()"><i data-lucide="x"></i></button></div><div class="field"><label>Хэл</label><select id="trackLangSelect">${available.map(l=>`<option value="${l.code}">${l.name}</option>`).join('')}</select></div><div class="modalFooter"><button class="btn" onclick="document.getElementById('trackLangModal')?.remove()">Болих</button><button class="btn primary" onclick="confirmTrackLanguage(${i})">Нэмэх</button></div></div></div>`);icons();
+}
+function confirmTrackLanguage(i){const code=document.getElementById('trackLangSelect').value;albumTracks[i].titles[code]='';albumTracks[i].activeLang=code;document.getElementById('trackLangModal')?.remove();render();autosave();}
+function ensureTrackArtistArrays(t){
+ if(!t.primaryArtists){
+   const names=(t.artist||'').split(',').map(x=>x.trim()).filter(Boolean);
+   t.primaryArtists=names.map(name=>artists.find(a=>a.name===name)||{id:'LOCAL-'+name.replace(/\s+/g,'-'),name});
+ }
+ if(!t.featuredArtists){
+   const names=(t.featured||'').split(',').map(x=>x.trim()).filter(Boolean);
+   t.featuredArtists=names.map(name=>artists.find(a=>a.name===name)||{id:'LOCAL-'+name.replace(/\s+/g,'-'),name});
+ }
+}
+function trackArtistArray(i,field){
+ const t=albumTracks[i];ensureTrackArtistArrays(t);
+ return field==='artist'?t.primaryArtists:t.featuredArtists;
+}
+function syncTrackArtistLegacy(i){
+ const t=albumTracks[i];ensureTrackArtistArrays(t);
+ t.artist=t.primaryArtists.map(a=>a.name).join(', ');
+ t.featured=t.featuredArtists.map(a=>a.name).join(', ');
+}
+function trackArtistSelectedCards(i,field){
+ const arr=trackArtistArray(i,field);
+ if(!arr.length){
+   return `<div class="trackArtistEmpty"><i data-lucide="user-round"></i><span>${field==='artist'?'Үндсэн артист сонгоогүй байна.':'Хамтарсан артист байхгүй.'}</span></div>`;
+ }
+ return `<div class="artistSelectedList">${arr.map(a=>`<div class="artistSelectedCard">
+   <span class="avatar">${initials(a.name)}</span>
+   <div class="artistSelectedInfo"><b>${a.name}</b><span>${field==='artist'?'Үндсэн артист':'Хамтарсан артист'}</span></div>
+   <button type="button" class="btn icon" title="Хасах" onclick="removeTrackArtist(${i},'${field}','${a.id}')"><i data-lucide="x"></i></button>
+ </div>`).join('')}</div>`;
+}
+function trackArtistPicker(i,field,label,required=true){
+ const arr=trackArtistArray(i,field);
+ const helper=field==='artist'?'Нэг эсвэл хэд хэдэн үндсэн артист сонгож болно.':'Хэрэв хамтарсан артист байгаа бол нэмнэ.';
+ return `<div class="trackArtistRole ${field==='artist'?'artistRolePrimary':'artistRoleFeatured'}">
+   <div class="artistRoleHead">
+     <div>
+       <label>${label}${required?' <span class="req">*</span>':''}${info(helper)}</label>
+       <div class="artistRoleHint">${field==='artist'?'Track дээр голлон харагдах артист':'Заавал биш'}</div>
+     </div>
+     <button type="button" class="btn artistRoleAction" onclick="openTrackArtistSearchModal(${i},'${field}')">
+       <i data-lucide="plus"></i>${arr.length?'Нэмэх':'Артист сонгох'}
+     </button>
+   </div>
+   ${trackArtistSelectedCards(i,field)}
+ </div>`;
+}
+function removeTrackArtist(i,field,id){
+ const arr=trackArtistArray(i,field);
+ const next=arr.filter(a=>a.id!==id);
+ if(field==='artist')albumTracks[i].primaryArtists=next;else albumTracks[i].featuredArtists=next;
+ syncTrackArtistLegacy(i);render();autosave();
+}
+let trackArtistModalIndex=-1,trackArtistModalField='artist',trackArtistModalSelection=new Set();
+function openTrackArtistSearchModal(i,field){
+ trackArtistModalIndex=i;trackArtistModalField=field;trackArtistModalSelection=new Set();
+ document.getElementById('trackArtistSearchModal')?.remove();
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack artistSearchModal" id="trackArtistSearchModal"><div class="modal">
+   <div class="modalHead">
+     <div><h3>${field==='artist'?'Үндсэн артист':'Хамтарсан артист'} сонгох</h3><div class="hint">Нэр эсвэл Artist ID-аар хайгаад артист сонгоно.</div></div>
+     <button class="btn icon" onclick="document.getElementById('trackArtistSearchModal')?.remove()"><i data-lucide="x"></i></button>
+   </div>
+   <div class="artistModalSearch">
+     <i data-lucide="search"></i>
+     <input id="trackArtistModalSearchInput" autocomplete="off" placeholder="Артистын нэр эсвэл Artist ID" oninput="renderTrackArtistSearchResults(this.value)">
+   </div>
+   <div class="artistSearchList" id="trackArtistSearchList"></div>
+   <div class="artistModalActions">
+     <button type="button" class="btn ghost" onclick="openTrackArtistCreateModal()"><i data-lucide="user-round-plus"></i>Шинэ артист үүсгэх</button>
+     <div style="display:flex;gap:8px">
+       <button type="button" class="btn" onclick="document.getElementById('trackArtistSearchModal')?.remove()">Болих</button>
+       <button type="button" class="btn primary" id="trackArtistSelectConfirm" onclick="confirmTrackArtistSelection()" disabled>Сонгох</button>
+     </div>
+   </div>
+ </div></div>`);
+ renderTrackArtistSearchResults('');
+ setTimeout(()=>document.getElementById('trackArtistModalSearchInput')?.focus(),0);icons();
+}
+function renderTrackArtistSearchResults(q=''){
+ const box=document.getElementById('trackArtistSearchList');if(!box)return;
+ const query=q.trim().toLowerCase();
+ const already=new Set(trackArtistArray(trackArtistModalIndex,trackArtistModalField).map(a=>a.id));
+ const rows=artists.filter(a=>!query||a.name.toLowerCase().includes(query)||a.id.toLowerCase().includes(query)).map(a=>{
+   const exists=already.has(a.id),picked=trackArtistModalSelection.has(a.id);
+   return `<div class="artistSearchResult ${picked?'selected':''}" ${exists?'style="opacity:.48;cursor:not-allowed"':''} onclick="${exists?'':`toggleTrackArtistModalSelection('${a.id}')`}">
+     <span class="avatar">${initials(a.name)}</span>
+     <span><span class="artistResultName">${a.name}</span><span class="artistResultId">Artist ID · ${a.id}</span></span>
+     <i data-lucide="${exists?'check':picked?'check-circle-2':'plus-circle'}"></i>
+   </div>`;
+ }).join('');
+ box.innerHTML=rows||`<div class="hint" style="padding:18px">Артист олдсонгүй. “Шинэ артист үүсгэх” товчоор бүртгэж болно.</div>`;
+ const btn=document.getElementById('trackArtistSelectConfirm');
+ if(btn){btn.disabled=!trackArtistModalSelection.size;btn.textContent=trackArtistModalSelection.size?`Сонгох (${trackArtistModalSelection.size})`:'Сонгох'}
+ icons();
+}
+function toggleTrackArtistModalSelection(id){
+ if(trackArtistModalSelection.has(id))trackArtistModalSelection.delete(id);else trackArtistModalSelection.add(id);
+ renderTrackArtistSearchResults(document.getElementById('trackArtistModalSearchInput')?.value||'');
+}
+function confirmTrackArtistSelection(){
+ const arr=trackArtistArray(trackArtistModalIndex,trackArtistModalField);
+ trackArtistModalSelection.forEach(id=>{
+   const a=artists.find(x=>x.id===id);
+   if(a&&!arr.some(x=>x.id===id))arr.push(a);
+ });
+ syncTrackArtistLegacy(trackArtistModalIndex);
+ document.getElementById('trackArtistSearchModal')?.remove();render();autosave();
+}
+function openTrackArtistCreateModal(){
+ document.getElementById('trackArtistCreateModal')?.remove();
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="trackArtistCreateModal"><div class="modal">
+   <div class="modalHead"><div><h3>Шинэ артист үүсгэх</h3><div class="hint">Үүсгээд энэ track-д шууд нэмнэ.</div></div><button class="btn icon" onclick="document.getElementById('trackArtistCreateModal')?.remove()"><i data-lucide="x"></i></button></div>
+   <div class="field"><label>Артистын нэр <span class="req">*</span></label><input id="newTrackArtistName" placeholder="Артистын нэр"></div>
+   <div class="hint">Artist ID автоматаар үүснэ.</div>
+   <div class="modalFooter"><button class="btn" onclick="document.getElementById('trackArtistCreateModal')?.remove()">Болих</button><button class="btn primary" onclick="createTrackArtistFromModal()">Үүсгээд нэмэх</button></div>
+ </div></div>`);icons();
+ setTimeout(()=>document.getElementById('newTrackArtistName')?.focus(),0);
+}
+function createTrackArtistFromModal(){
+ const name=document.getElementById('newTrackArtistName')?.value.trim();if(!name)return;
+ const a={id:'ART-'+String(500+artists.length).padStart(6,'0'),name};artists.push(a);
+ trackArtistArray(trackArtistModalIndex,trackArtistModalField).push(a);syncTrackArtistLegacy(trackArtistModalIndex);
+ document.getElementById('trackArtistCreateModal')?.remove();document.getElementById('trackArtistSearchModal')?.remove();
+ render();autosave();
+}
+function trackGenrePicker(i,field,label,required=true){
+ const value=albumTracks[i][field]||'';
+ return `<div class="field"><label>${label}${required?' <span class="req">*</span>':''}${info(field==='genre'?'Дууны үндсэн хөгжмийн жанр.':'Нэмэлт жанр шаардлагатай бол сонгоно.')}</label>
+ <div class="trackGenrePicker selectPicker"><div class="selectValue" onclick="openTrackGenre(${i},'${field}',this)"><span>${value||'Жанр хайж сонгох'}</span><i data-lucide="chevron-down"></i></div><div class="selectMenu hidden"></div></div></div>`;
+}
+function openTrackGenre(i,field,el){
+ const menu=el.nextElementSibling;menu.classList.toggle('hidden');if(menu.classList.contains('hidden'))return;
+ menu.innerHTML=`<div class="selectSearch"><i data-lucide="search"></i><input placeholder="Жанр хайх" oninput="filterTrackGenres(${i},'${field}',this)"></div><div class="genreOptions">${trackGenreOptions(i,field,'')}</div>`;icons()
+}
+function trackGenreOptions(i,field,q){
+ const t=albumTracks[i],other=field==='genre'?t.secondaryGenre:t.genre,current=t[field];
+ return genres.filter(g=>g.toLowerCase().includes(q.toLowerCase())&&g!==other).map(g=>`<div class="option ${g===current?'selected':''}" onmousedown="setTrackGenre(${i},'${field}','${g.replace(/'/g,"&#39;")}')">${g}</div>`).join('');
+}
+function filterTrackGenres(i,field,input){input.parentElement.nextElementSibling.innerHTML=trackGenreOptions(i,field,input.value)}
+function setTrackGenre(i,field,value){albumTracks[i][field]=value;render();autosave()}
+function usageBlock(t){
+ if(!t.usages?.length)return '';
+ return `<div class="usageNotice">
+   <div class="usageNoticeTop"><i data-lucide="triangle-alert"></i><div><b>Энэ дуу өмнө нь ${t.usages.length} цомогт орсон</b><p>Энд зассан мэдээлэл энэ дуу ашиглагдсан бусад цомогт мөн шинэчлэгдэнэ.</p></div></div>
+   <div class="usageList">${t.usages.map(u=>`<div class="usageItem"><div><div class="usageAlbum">${u.album}</div><div class="usageMeta">Гарсан огноо · ${u.date}</div></div><div class="usageUPC"><b>UPC</b><br>${u.upc}</div></div>`).join('')}</div>
+ </div>`;
+}
+
+function lyricsSection(t,i){
+ const hasLyrics=t.hasLyrics;
+ return `<div class="section">
+   <div class="sectionTitle">Дууны үг</div>
+   <div class="field">
+     <label>Энэ дуу үгтэй юу? <span class="req">*</span>${info('Үггүй буюу instrumental дуу бол “Үггүй” гэж сонгоно.')}</label>
+     <div class="choiceRow">
+       <label class="radioCard ${hasLyrics===true?'active':''}">
+         <input type="radio" name="lyrics-${i}" ${hasLyrics===true?'checked':''} onchange="setHasLyrics(${i},true)">
+         <b>Үгтэй</b>
+       </label>
+       <label class="radioCard ${hasLyrics===false?'active':''}">
+         <input type="radio" name="lyrics-${i}" ${hasLyrics===false?'checked':''} onchange="setHasLyrics(${i},false)">
+         <b>Үггүй</b>
+       </label>
+     </div>
+   </div>
+
+   ${hasLyrics===true?`
+   <div class="field">
+     <label>Explicit контент <span class="req">*</span>${info('Хараалын үг, бэлгийн агуулга, хүчирхийлэл зэрэг насанд хүрэгчдийн агуулга байвал Explicit гэж сонгоно.')}</label>
+     <div class="choiceRow">
+       <label class="radioCard ${t.explicitStatus==='not_explicit'?'active':''}">
+         <input type="radio" name="explicit-${i}" ${t.explicitStatus==='not_explicit'?'checked':''} onchange="setExplicit(${i},'not_explicit')">
+         <b>Not explicit</b>
+       </label>
+       <label class="radioCard ${t.explicitStatus==='explicit'?'active':''}">
+         <input type="radio" name="explicit-${i}" ${t.explicitStatus==='explicit'?'checked':''} onchange="setExplicit(${i},'explicit')">
+         <b>Explicit</b>
+       </label>
+     </div>
+   </div>
+
+   <div class="field">
+     <label>Дуулагдаж буй үндсэн хэл <span class="req">*</span>${info('Дууны үг голчлон ямар хэл дээр дуулагдаж байгааг сонгоно.')}</label>
+     <select onchange="albumTracks[${i}].vocalLanguage=this.value;autosave()">
+       <option value="">Хэл сонгох</option>
+       ${languages.map(l=>`<option value="${l.code}" ${t.vocalLanguage===l.code?'selected':''}>${l.name}</option>`).join('')}
+     </select>
+   </div>
+
+   <div class="field lyricsBox">
+     <label>Дууны үг ${info('Дууны үгийг мөр мөрөөр нь бүтнээр оруулна.')}</label>
+     <textarea placeholder="Дууны үг оруулах..." oninput="updateLyrics(${i},this)">${t.lyrics||''}</textarea>
+     <div class="charCount">${(t.lyrics||'').length} тэмдэгт</div>
+   </div>`:''}
+ </div>`;
+}
+function setHasLyrics(i,value){
+ albumTracks[i].hasLyrics=value;
+ if(value===false){
+   albumTracks[i].explicitStatus='not_explicit';
+   albumTracks[i].vocalLanguage='';
+   albumTracks[i].lyrics='';
+   if(albumTracks[i].credits)albumTracks[i].credits.lyricist=[];
+ }
+ render();autosave();
+}
+function setExplicit(i,value){albumTracks[i].explicitStatus=value;render();autosave()}
+function updateLyrics(i,el){
+ albumTracks[i].lyrics=el.value;
+ const count=el.parentElement.querySelector('.charCount');if(count)count.textContent=el.value.length+' тэмдэгт';
+ autosave();
+}
+
+
+function inheritedArtistField(label,artist,kind){
+ const isPrimary=kind==='primary';
+ const selectedArtists=isPrimary?primary:featured;
+ return `<div class="field">
+   <label>${label}${isPrimary?' <span class="req">*</span>':''}${info(isPrimary?'Дуу үүсгэх үед энэ артист Үндсэн мэдээлэл хэсгээс автоматаар ашиглагдана.':'Дуу үүсгэх үед хамтарсан артист Үндсэн мэдээлэл хэсгээс автоматаар ашиглагдана.')}</label>
+   <div class="inheritedField">
+     <div class="inheritedMain">
+       ${selectedArtists.length
+          ? selectedArtists.slice(0,1).map(a=>`<span class="avatar">${initials(a.name)}</span><span class="inheritedName">${a.name}</span>`).join('')
+          : `<span class="emptyInherited">${isPrimary?'Үндсэн мэдээлэл дээр артист сонгоно':'Хамтарсан артист сонгоогүй'}</span>`}
+     </div>
+     <span class="inheritedSource"><i data-lucide="lock"></i>Үндсэн мэдээллээс</span>
+   </div>
+   ${!isPrimary && selectedArtists.length>1?`<div class="chips">${selectedArtists.slice(1).map(a=>`<div class="chip"><b>${a.name}</b></div>`).join('')}</div>`:''}
+ </div>`;
+}
+function singleArtistBlock(){
+ return `<div class="grid2">
+   ${inheritedArtistField('Үндсэн артист',primary,'primary')}
+   ${inheritedArtistField('Хамтарсан артист',featured,'featured')}
+ </div>`;
+}
+
+
+function waveformBars(seed=1){
+ const heights=[8,14,20,11,24,17,10,22,28,16,12,25,18,9,21,27,14,19,8,24,13,29,17,11,22,15,26,10,20,14,27,18,9,23,16,28,12,21,15,25,10,19,27,13,22,17,8,24,14,20,11,26,16,9,23,18,28,12,21,15,25,10,19,27,14,22,17,9,24,13,20,11,26,16,8,23,18,28];
+ return heights.map((v,n)=>`<i style="height:${Math.max(5,((v+(seed+n)%7)))}px"></i>`).join('');
+}
+function formatDuration(sec){if(!Number.isFinite(sec)||sec<=0)return '—';const m=Math.floor(sec/60),s=Math.round(sec%60);return `${m}:${String(s).padStart(2,'0')}`}
+async function readAudioMetadata(t,file,done){
+ try{
+   const buf=await file.arrayBuffer();
+   const dv=new DataView(buf);
+   const isWav=buf.byteLength>44 && String.fromCharCode(...new Uint8Array(buf.slice(0,4)))==='RIFF' && String.fromCharCode(...new Uint8Array(buf.slice(8,12)))==='WAVE';
+   if(isWav){
+     let off=12,fmt=null,dataSize=0;
+     while(off+8<=dv.byteLength){const id=String.fromCharCode(dv.getUint8(off),dv.getUint8(off+1),dv.getUint8(off+2),dv.getUint8(off+3));const size=dv.getUint32(off+4,true);if(id==='fmt '&&size>=16)fmt={sampleRate:dv.getUint32(off+12,true),byteRate:dv.getUint32(off+16,true),bits:dv.getUint16(off+22,true)};if(id==='data'){dataSize=size;break}off+=8+size+(size%2)}
+     if(fmt){t.sampleRate=`${(fmt.sampleRate/1000).toFixed(fmt.sampleRate%1000?1:0)} kHz`;t.bitDepth=`${fmt.bits}-bit`;if(dataSize&&fmt.byteRate)t.duration=formatDuration(dataSize/fmt.byteRate)}
+   }
+ }catch(e){}
+ if(done)done();
+}
+function audioSourceCard(t,i){
+ if(!t.sourceName){
+   return `<div class="audioSource"><div class="audioEmpty"><div><b>${t.uploading?'Файл хуулж байна':'Audio файл оруулаагүй'}</b><span>${t.uploading?(t.pendingSourceName||'Audio файл'):'Track source файлаа сонгоно.'}</span></div><button class="btn primary" type="button" ${t.uploading?'disabled':''} onclick="document.getElementById('replace-audio-${i}').click()"><i data-lucide="upload-cloud"></i>Файл хуулах</button><input id="replace-audio-${i}" type="file" accept="audio/*" style="display:none" onchange="replaceTrackAudio(${i},this)"></div>${t.uploading?`<div class="uploadProgress"><div class="uploadProgressTop"><b>${t.pendingSourceName||'Файл хуулж байна'}</b><span>${t.uploadProgress||0}%</span></div><div class="uploadProgressBar"><i style="width:${t.uploadProgress||0}%"></i></div></div>`:''}</div>`;
+ }
+ const fmt=t.fileFormat||'—',hz=t.sampleRate||'—',depth=t.bitDepth||'—';
+ return `<div class="audioSource">
+   <div class="audioSourceTop">
+     <button class="audioPlay" type="button" title="${t.audioUrl?'Тоглуулах':'Preview demo-д source audio холбогдоогүй'}" ${t.audioUrl?`onclick="toggleAudio(${i})"`:'disabled'}><i data-lucide="${t.playing?'pause':'play'}"></i></button>
+     <div class="audioFile"><b>${t.sourceName}</b><span>Track source</span></div>
+     <div class="audioDuration">${t.duration||'—'}</div>
+     <div class="waveform" aria-label="Waveform">${waveformBars(i+1)}</div>
+     <div class="audioActions">
+       <button class="btn audioActionText" type="button" onclick="document.getElementById('replace-audio-${i}').click()"><i data-lucide="refresh-cw"></i>Дахин хуулах</button>
+       <input id="replace-audio-${i}" type="file" accept="audio/*" style="display:none" onchange="replaceTrackAudio(${i},this)">
+       <button class="btn icon" type="button" title="Устгах" onclick="removeTrackAudio(${i})"><i data-lucide="trash-2"></i></button>
+     </div>
+   </div>
+   <div class="audioMeta"><span class="sourceName">${t.sourceName}</span><span>${fmt}</span><span>${hz}</span><span>${depth}</span></div>
+   ${t.uploading?`<div class="uploadProgress"><div class="uploadProgressTop"><b>${t.pendingSourceName||'Файл хуулж байна'}</b><span>${t.uploadProgress||0}%</span></div><div class="uploadProgressBar"><i style="width:${t.uploadProgress||0}%"></i></div></div>`:''}
+ </div>`;
+}
+function replaceTrackAudio(i,input){
+ const file=input?.files?.[0];if(!file)return;const t=albumTracks[i];
+ t.uploading=true;t.uploadProgress=0;t.pendingSourceName=file.name;render();
+ let p=0;const timer=setInterval(()=>{p=Math.min(100,p+12);const current=albumTracks[i];if(!current){clearInterval(timer);return}current.uploadProgress=p;
+   if(p>=100){clearInterval(timer);if(current.audioUrl)URL.revokeObjectURL(current.audioUrl);current.audioUrl=URL.createObjectURL(file);current.sourceName=file.name;current.fileFormat=(file.name.split('.').pop()||'audio').toUpperCase();current.sampleRate='—';current.bitDepth='—';current.uploading=false;current.pendingSourceName='';readAudioMetadata(current,file,()=>{render();autosave()});}
+   render();
+ },180);input.value='';
+}
+function removeTrackAudio(i){const t=albumTracks[i];if(t.audioUrl)URL.revokeObjectURL(t.audioUrl);if(audioPlayers[i]){audioPlayers[i].pause();delete audioPlayers[i]}Object.assign(t,{sourceName:'',fileFormat:'',sampleRate:'',bitDepth:'',duration:'—',audioUrl:'',playing:false});render();autosave()}
+function toggleAudio(i){const t=albumTracks[i];if(!t.audioUrl)return;if(!audioPlayers[i]){audioPlayers[i]=new Audio(t.audioUrl);audioPlayers[i].onended=()=>{t.playing=false;render()}}const a=audioPlayers[i];if(a.paused){a.play();t.playing=true}else{a.pause();t.playing=false}render()}
+
+function trackEditor(t,i){
+ return `<div class="trackEditor"><div class="trackEditorSections">
+
+   <section class="trackPanelSection">
+     <div class="trackPanelHead">
+       <div class="trackPanelTitle"><i data-lucide="waveform"></i><b>Аудио файл</b></div>
+       <span>Source файл ба техникийн мэдээлэл</span>
+     </div>
+     ${audioSourceCard(t,i)}
+   </section>
+
+   ${t.usages?.length?`<section class="trackPanelSection">${usageBlock(t)}
+     <div class="trackReuseNote"><i data-lucide="pencil"></i><span>Энд хийсэн metadata өөрчлөлт тухайн дуу ашиглагдсан бусад цомогт мөн шинэчлэгдэнэ.</span></div>
+   </section>`:''}
+
+   ${mode==='album'?`<section class="trackPanelSection">
+     <div class="trackPanelHead">
+       <div class="trackPanelTitle"><i data-lucide="music-2"></i><b>Дууны үндсэн мэдээлэл</b></div>
+       <span>Track тус бүрийн нэр, артист, жанр</span>
+     </div>
+     <div class="trackAlbumMeta">
+       ${trackTitleEditor(t,i)}
+       <div class="trackAlbumMetaRow artistRows">
+         ${trackArtistPicker(i,'artist','Үндсэн артист',true)}
+         ${trackArtistPicker(i,'featured','Хамтарсан артист',false)}
+       </div>
+       <div class="trackAlbumMetaRow">
+         ${trackGenrePicker(i,'genre','Үндсэн жанр',true)}
+         ${trackGenrePicker(i,'secondaryGenre','Secondary genre',false)}
+       </div>
+     </div>
+   </section>`:''}
+
+   <section class="trackPanelSection">
+     <div class="trackPanelHead">
+       <div class="trackPanelTitle"><i data-lucide="fingerprint"></i><b>ISRC</b></div>
+       <span>Бичлэгийг ялгах unique identifier</span>
+     </div>
+
+     ${t.source==='existing' && t.isrc ? `
+       <div class="reusedIsrc">
+         <div class="reusedIsrcMain">
+           <span class="reusedIsrcIcon"><i data-lucide="fingerprint"></i></span>
+           <span class="reusedIsrcText">
+             <span>Өмнө оноогдсон ISRC</span>
+             <b>${t.isrc}</b>
+           </span>
+         </div>
+         <span class="reusedIsrcBadge">Өмнөх код</span>
+       </div>
+       <div class="reusedIsrcNote">Энэ дуу өмнө гарсан recording тул өмнө ашигласан ISRC код автоматаар дуудагдсан.</div>
+     ` : `
+       <div class="field" style="margin:0">
+         <label>Энэ бичлэг өмнө нь гарч байсан уу? <span class="req">*</span>${info('Өмнө нь яг энэ бичлэг хөгжмийн үйлчилгээнд гарч ISRC код авсан эсэхийг сонгоно.')}</label>
+         <div class="trackInlineChoice">
+           <label class="radioCard ${t.isrcMode==='generate'?'active':''}"><input type="radio" name="isrc-mode-${i}" ${t.isrcMode==='generate'?'checked':''} onchange="albumTracks[${i}].isrcMode='generate';albumTracks[${i}].hasOwnISRC=false;render();autosave()"><b>Үгүй</b></label>
+           <label class="radioCard ${t.isrcMode==='existing'?'active':''}"><input type="radio" name="isrc-mode-${i}" ${t.isrcMode==='existing'?'checked':''} onchange="albumTracks[${i}].isrcMode='existing';albumTracks[${i}].hasOwnISRC=true;render();autosave()"><b>Тийм</b></label>
+         </div>
+         ${t.isrcMode==='existing'?`<div class="conditional"><div class="field" style="margin:0"><label>Өмнөх ISRC код <span class="req">*</span>${info('Өмнө нь яг энэ бичлэгт ашигласан ISRC кодоо оруулна.')}</label><input value="${t.isrc||''}" oninput="albumTracks[${i}].isrc=this.value;autosave()" placeholder="ISRC код"></div></div>`:`<div class="identifierAuto"><i data-lucide="sparkles"></i><div><b>ISRC автоматаар үүснэ</b><span>Илгээхээс өмнө энэ бичлэгт ISRC код онооно.</span></div></div>`}
+       </div>
+     `}
+   </section>
+
+   <section class="trackPanelSection">
+     <div class="trackPanelHead">
+       <div class="trackPanelTitle"><i data-lucide="mic-2"></i><b>Дууны үг & контент</b></div>
+       <span>Lyrics, language, explicit</span>
+     </div>
+     ${lyricsSection(t,i)}
+   </section>
+
+   <section class="trackPanelSection">
+     <div class="trackPanelHead">
+       <div class="trackPanelTitle"><i data-lucide="users"></i><b>Оролцогчид</b></div>
+       <span>Songwriting болон production credits</span>
+     </div>
+     ${trackContributors(i)}
+   </section>
+
+ </div></div>`;
+}
+
+let draggedTrackIndex=null;
+
+function trackDragStart(event,index){
+ if(mode!=='album')return;
+ draggedTrackIndex=index;
+ event.dataTransfer.effectAllowed='move';
+ event.dataTransfer.setData('text/plain',String(index));
+ requestAnimationFrame(()=>event.currentTarget.closest('.track')?.classList.add('dragging'));
+}
+function trackDragOver(event,index){
+ if(mode!=='album' || draggedTrackIndex===null || draggedTrackIndex===index)return;
+ event.preventDefault();
+ event.dataTransfer.dropEffect='move';
+ document.querySelectorAll('.track.dragOver').forEach(el=>el.classList.remove('dragOver'));
+ event.currentTarget.classList.add('dragOver');
+}
+function trackDragLeave(event){
+ if(!event.currentTarget.contains(event.relatedTarget))event.currentTarget.classList.remove('dragOver');
+}
+function trackDrop(event,targetIndex){
+ if(mode!=='album')return;
+ event.preventDefault();
+ const from=draggedTrackIndex!==null?draggedTrackIndex:Number(event.dataTransfer.getData('text/plain'));
+ document.querySelectorAll('.track.dragOver').forEach(el=>el.classList.remove('dragOver'));
+ if(Number.isNaN(from)||from===targetIndex){trackDragEnd();return;}
+
+ const [moved]=albumTracks.splice(from,1);
+ albumTracks.splice(targetIndex,0,moved);
+
+ if(openTrack===from)openTrack=targetIndex;
+ else if(from<openTrack && targetIndex>=openTrack)openTrack--;
+ else if(from>openTrack && targetIndex<=openTrack)openTrack++;
+
+ draggedTrackIndex=null;
+ render();
+ autosave();
+}
+function trackDragEnd(){
+ draggedTrackIndex=null;
+ document.querySelectorAll('.track.dragging,.track.dragOver').forEach(el=>el.classList.remove('dragging','dragOver'));
+}
+
+
+function displayISRC(code){
+ return (code||'').replace(/-/g,'');
+}
+
+function trackRows(){
+ return `<div class="tracks">${albumTracks.map((t,i)=>{
+   const opened=openTrack===i;
+   const displayTitle=mode==='single'
+     ? (albumTitles.mn||albumTitles.en||t.title||'Дууны нэр оруулаагүй')
+     : (t.titles?.mn||t.title||'Дууны нэр оруулаагүй');
+   ensureTrackArtistArrays(t);
+   const artistText=mode==='single'
+     ? (primary.map(a=>a.name).join(', ')||'Үндсэн артист сонгоогүй')
+     : (t.primaryArtists.map(a=>a.name).join(', ')||'Артист сонгоогүй');
+
+   return `<div class="track ${opened?'open':''}"
+     ${mode==='album'?`ondragover="trackDragOver(event,${i})" ondragleave="trackDragLeave(event)" ondrop="trackDrop(event,${i})"`:''}>
+     <div class="trackHead ${mode==='album'?'albumReorder':''}" onclick="openTrack=${opened?'-1':i};render()">
+       ${mode==='album'?`<span class="trackDragHandle" draggable="true"
+          title="Байрлал өөрчлөх"
+          onclick="event.stopPropagation()"
+          ondragstart="trackDragStart(event,${i})"
+          ondragend="trackDragEnd()"><i data-lucide="grip-vertical"></i></span>`:''}
+       <div class="trackNo">${i+1}</div>
+       <div class="trackMain">
+         <div class="trackMainInfo">
+           <span class="trackTitle">${displayTitle}</span>
+           <span class="trackMeta">${artistText} · ${t.duration||'—'}</span>
+         </div>
+         <div class="trackSummary">
+           ${t.isrc?`<span class="trackStatusPill isrcCodePill">${displayISRC(t.isrc)}</span>`:`<span class="trackStatusPill">ISRC үүснэ</span>`}
+           <span class="trackStatusPill">${t.hasLyrics===true?'Үгтэй':t.hasLyrics===false?'Үггүй':'Үг сонгоогүй'}</span>
+           ${t.usages?.length?`<span class="usageBadge">${t.usages.length} цомогт орсон</span>`:''}
+         </div>
+       </div>
+       <i data-lucide="${opened?'chevron-up':'chevron-down'}"></i>
+     </div>
+     ${opened?`<div class="trackBody">${trackEditor(t,i)}</div>`:''}
+   </div>`;
+ }).join('')}</div>`;
+}
+function ensureTrackContributors(i){
+ const t=albumTracks[i];
+ if(!t.credits){
+   t.credits={
+     composer:[{id:'CON-001',name:'Золбоо Энхтүвшин',affiliation:'ASCAP'}],
+     lyricist:[],
+     other:[]
+   };
+ }
+ return t.credits;
+}
+const otherContributorRoles={
+ producer:'Producer',
+ mixing_engineer:'Mixing Engineer',
+ mastering_engineer:'Mastering Engineer',
+ recording_engineer:'Recording Engineer'
+};
+function creditPersonChip(i,role,p){
+ return `<div class="creditPerson">
+   <span class="avatar">${initials(p.name)}</span>
+   <span class="creditPersonInfo"><b>${p.name}</b>${p.affiliation?`<span>${p.affiliation}</span>`:''}</span>
+   <button type="button" class="btn icon" title="Хасах" onclick="removeCoreContributor(${i},'${role}','${p.id}')"><i data-lucide="x"></i></button>
+ </div>`;
+}
+function coreContributorRow(i,role,label){
+ const credits=ensureTrackContributors(i);
+ const arr=credits[role]||[];
+ return `<div class="creditRoleRow">
+   <div class="creditRoleLabel"><b>${label}</b><span>Хууль ёсны бүтэн нэр</span></div>
+   <div class="creditPeople">${arr.length?arr.map(p=>creditPersonChip(i,role,p)).join(''):`<span class="creditEmpty">Нэмээгүй</span>`}</div>
+   <button type="button" class="btn" onclick="openCoreContributorModal(${i},'${role}')"><i data-lucide="plus"></i>Нэмэх</button>
+ </div>`;
+}
+function trackContributors(i){
+ const credits=ensureTrackContributors(i);
+ return `<div class="contribSplit">
+   <div class="contribSubsection">
+     <div class="contribSubHead">
+       <div><h4>Үндсэн оролцогчид</h4><p>Дууны зохиогчийн credit болон эрхийн байгууллагын мэдээлэл.</p></div>
+     </div>
+     <div class="creditRoleList">
+       ${coreContributorRow(i,'composer','Ая зохиогч')}
+       ${albumTracks[i].hasLyrics===true
+         ? coreContributorRow(i,'lyricist','Үг зохиогч')
+         : `<div class="lyricistUnavailable"><i data-lucide="lock"></i><span><b>Үг зохиогч</b><br>“Үггүй” дуу дээр үг зохиогч нэмэх боломжгүй.</span></div>`}
+     </div>
+   </div>
+
+   <div class="contribSubsection">
+     <div class="contribSubHead">
+       <div><h4>Бусад contributor</h4><p>Production болон recording credit. Producer-ийн нэр хууль ёсны нэр байх албагүй.</p></div>
+       <button type="button" class="btn contribAddBtn" onclick="openOtherContributorModal(${i})"><i data-lucide="plus"></i>Contributor нэмэх</button>
+     </div>
+     ${credits.other.length?`<div class="otherCredits">${credits.other.map((c,idx)=>`<div class="otherCreditRow">
+       <span class="otherCreditRole">${otherContributorRoles[c.role]||c.role}</span>
+       <span class="otherCreditPerson"><span class="avatar">${initials(c.name)}</span><b>${c.name}</b></span>
+       <button type="button" class="btn icon" title="Хасах" onclick="removeOtherContributor(${i},${idx})"><i data-lucide="x"></i></button>
+     </div>`).join('')}</div>`:`<div class="hint">Producer, Mixing Engineer, Mastering Engineer, Recording Engineer нэмээгүй.</div>`}
+   </div>
+ </div>`;
+}
+function removeCoreContributor(i,role,id){
+ const credits=ensureTrackContributors(i);
+ credits[role]=credits[role].filter(p=>p.id!==id);
+ render();autosave();
+}
+function removeOtherContributor(i,idx){
+ ensureTrackContributors(i).other.splice(idx,1);
+ render();autosave();
+}
+
+let contributorModalTrack=-1,contributorModalRole='composer',otherContributorRole='producer';
+
+function contributorLibraryRows(i,role,other=false){
+ const credits=ensureTrackContributors(i);
+ const used=new Set(other
+   ? credits.other.filter(x=>x.role===otherContributorRole).map(x=>x.id)
+   : (credits[role]||[]).map(x=>x.id));
+ return accountContributors.map(p=>`<div class="contribLibraryItem" ${used.has(p.id)?'style="opacity:.45;cursor:not-allowed"':''} onclick="${used.has(p.id)?'':other?`selectOtherContributor(${i},'${p.id}')`:`selectCoreContributor(${i},'${role}','${p.id}')`}">
+   <span class="avatar">${initials(p.name)}</span>
+   <span><b>${p.name}</b>${p.affiliation?`<span>${p.affiliation}</span>`:`<span>Өмнө ашигласан contributor</span>`}</span>
+   <i data-lucide="${used.has(p.id)?'check':'plus-circle'}"></i>
+ </div>`).join('');
+}
+function openCoreContributorModal(i,role){
+ if(role==='lyricist' && albumTracks[i].hasLyrics!==true)return;
+ contributorModalTrack=i;contributorModalRole=role;
+ document.getElementById('contribModal')?.remove();
+ const label=role==='composer'?'Ая зохиогч':'Үг зохиогч';
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="contribModal"><div class="modal">
+   <div class="modalHead"><div><h3>${label} нэмэх</h3><div class="hint">Өмнө ашигласан хүнээс сонгох эсвэл шинээр үүсгэнэ.</div></div><button class="btn icon" onclick="document.getElementById('contribModal')?.remove()"><i data-lucide="x"></i></button></div>
+   <div class="field"><label>Өмнө ашигласан хүмүүс</label><div class="contribLibrary">${contributorLibraryRows(i,role,false)}</div></div>
+   <div class="contribModalDivider">эсвэл</div>
+   <button type="button" class="btn" style="width:100%;justify-content:center" onclick="openCreateContributorModal(${i},'${role}',false)"><i data-lucide="user-plus"></i>Шинэ ${label.toLowerCase()} үүсгэх</button>
+ </div></div>`);
+ icons();
+}
+function selectCoreContributor(i,role,id){
+ const p=accountContributors.find(x=>x.id===id);if(!p)return;
+ const arr=ensureTrackContributors(i)[role];
+ if(!arr.some(x=>x.id===id))arr.push({id:p.id,name:p.name,affiliation:p.affiliation||''});
+ document.getElementById('contribModal')?.remove();render();autosave();
+}
+function openOtherContributorModal(i){
+ contributorModalTrack=i;otherContributorRole='producer';
+ document.getElementById('contribModal')?.remove();
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="contribModal"><div class="modal">
+   <div class="modalHead"><div><h3>Contributor нэмэх</h3><div class="hint">Role-оо сонгоод өмнө ашигласан хүнээс сонгох эсвэл шинээр үүсгэнэ.</div></div><button class="btn icon" onclick="document.getElementById('contribModal')?.remove()"><i data-lucide="x"></i></button></div>
+   <div class="field"><label>Role <span class="req">*</span></label>
+     <div class="contribModalRoleGrid">
+       ${Object.entries(otherContributorRoles).map(([key,label])=>`<div class="contribRoleOption ${key==='producer'?'active':''}" data-role="${key}" onclick="setOtherContributorRole('${key}',this)"><b>${label}</b><span>${key==='producer'?'Хууль ёсны нэр заавал биш':'Production credit'}</span></div>`).join('')}
+     </div>
+   </div>
+   <div class="field"><label>Өмнө ашигласан хүмүүс</label><div class="contribLibrary" id="otherContributorLibrary">${contributorLibraryRows(i,'',true)}</div></div>
+   <div class="contribModalDivider">эсвэл</div>
+   <button type="button" class="btn" style="width:100%;justify-content:center" onclick="openCreateContributorModal(${i},otherContributorRole,true)"><i data-lucide="user-plus"></i>Шинэ contributor үүсгэх</button>
+ </div></div>`);
+ icons();
+}
+function setOtherContributorRole(role,el){
+ otherContributorRole=role;
+ document.querySelectorAll('.contribRoleOption').forEach(x=>x.classList.remove('active'));el.classList.add('active');
+ const box=document.getElementById('otherContributorLibrary');
+ if(box)box.innerHTML=contributorLibraryRows(contributorModalTrack,'',true);
+ icons();
+}
+function selectOtherContributor(i,id){
+ const p=accountContributors.find(x=>x.id===id);if(!p)return;
+ const arr=ensureTrackContributors(i).other;
+ if(!arr.some(x=>x.id===id&&x.role===otherContributorRole))arr.push({id:p.id,name:p.name,role:otherContributorRole});
+ document.getElementById('contribModal')?.remove();render();autosave();
+}
+function openCreateContributorModal(i,role,other){
+ document.getElementById('createContribModal')?.remove();
+ const core=!other;
+ const label=core?(role==='composer'?'Ая зохиогч':'Үг зохиогч'):(otherContributorRoles[role]||'Contributor');
+ const legalRequired=core;
+ document.body.insertAdjacentHTML('beforeend',`<div class="modalBack" id="createContribModal"><div class="modal">
+   <div class="modalHead"><div><h3>${label} үүсгэх</h3><div class="hint">Энэ нэр дараа дахин ашиглах account contributor жагсаалтад хадгалагдана.</div></div><button class="btn icon" onclick="document.getElementById('createContribModal')?.remove()"><i data-lucide="x"></i></button></div>
+   <div class="field"><label>${legalRequired?'Хууль ёсны бүтэн нэр':'Credit дээр харагдах нэр'} <span class="req">*</span>${info(legalRequired?'Ая/үг зохиогчийн албан ёсны бүтэн нэр.':role==='producer'?'Producer нь stage/professional нэр ашиглаж болно. Хууль ёсны нэр заавал биш.':'Түгээлтийн credit дээр харагдах нэр.')}</label><input id="newContributorName" placeholder="${legalRequired?'Овог Нэр':'Нэр'}"></div>
+   ${core?`<div class="field"><label>Эрхийн байгууллага${info('Тухайн ая/үг зохиогч харьяалагддаг эрхийн байгууллага байгаа бол оруулна.')}</label><input id="newContributorAffiliation" placeholder="Жишээ: ASCAP, BMI"></div>`:''}
+   <div class="modalFooter"><button class="btn" onclick="document.getElementById('createContribModal')?.remove()">Болих</button><button class="btn primary" onclick="saveCreatedContributor(${i},'${role}',${other})">Үүсгээд нэмэх</button></div>
+ </div></div>`);
+ icons();setTimeout(()=>document.getElementById('newContributorName')?.focus(),0);
+}
+function saveCreatedContributor(i,role,other){
+ const name=document.getElementById('newContributorName')?.value.trim();if(!name)return;
+ const affiliation=other?'':(document.getElementById('newContributorAffiliation')?.value.trim()||'');
+ const p={id:'CON-'+String(100+accountContributors.length).padStart(3,'0'),name,affiliation,legalName:!other};
+ accountContributors.push(p);
+ if(other)ensureTrackContributors(i).other.push({id:p.id,name:p.name,role});
+ else ensureTrackContributors(i)[role].push({id:p.id,name:p.name,affiliation:p.affiliation});
+ document.getElementById('createContribModal')?.remove();document.getElementById('contribModal')?.remove();
+ render();autosave();
+}
+
+function parseDuration(v){
+ if(!v || v==='—') return 0;
+ const p=v.split(':').map(Number);
+ return p.length===2?p[0]*60+p[1]:0;
+}
+function portalTypeLabel(){
+ if(mode==='single') return 'Single';
+ const count=albumTracks.length;
+ const total=albumTracks.reduce((s,t)=>s+parseDuration(t.duration),0);
+ // Demo logic only. Production thresholds must come from the CMS business rule.
+ if(count<=1) return 'Single';
+ if(count<=6 && total<1800) return 'EP';
+ return 'Album';
+}
+function totalDurationLabel(){
+ const sec=albumTracks.reduce((s,t)=>s+parseDuration(t.duration),0);
+ const m=Math.floor(sec/60), s=sec%60;
+ return `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function stage2(){
+ return `<div class="modePill"><i data-lucide="activity"></i>${portalTypeLabel()} · ${albumTracks.length} дуу · ${totalDurationLabel()}</div>
+ <div class="addSongBar">
+   <div>
+     <h2 style="margin:0">Дууны мэдээлэл ${mode==='album'?info('Оруулсан дууны тоо, нийт хугацаанд үндэслэн төрлийг CMS-ийн дүрмээр автоматаар тодорхойлж Portal дээр харуулна.'):info('Дуу үүсгэх үед нэг track байна. Нэр, артист, жанрыг Үндсэн мэдээллээс ашиглана.')}</h2>
+     <div class="hint" style="margin-top:5px">${mode==='single'?'Аудио, ISRC, дууны үг болон оролцогчдын мэдээллийг бөглөнө.':'Track бүрийн мэдээллийг нээгээд бөглөнө.'}</div>
+     ${mode==='album'?`<div class="trackOrderHint"><i data-lucide="grip-vertical"></i>Дуунуудыг чирж дарааллыг өөрчилж болно.</div>`:''}
+   </div>
+   ${mode==='album'?`<button class="btn primary" onclick="openAddSong()"><i data-lucide="plus"></i>Дуу нэмэх</button>`:''}
+ </div>
+ ${trackRows()}`
+}
+
+function stage3(){
+ const meta=cover.name?`${cover.width&&cover.height?`${cover.width} × ${cover.height} px`:''}${cover.size?` · ${(cover.size/1024/1024).toFixed(1)} MB`:''}`:'';
+ return `<div class="publishIntro"><div><h2>Ковер зураг</h2><p>Түгээлтийн үйлчилгээнүүд дээр харагдах үндсэн ковер зургаа оруулна.</p></div></div>
+ ${coverError?`<div class="coverValidationError"><i data-lucide="circle-x"></i><span>${coverError}</span></div>`:''}
+ <div class="coverUploadLayout">
+   <div>
+     <div class="coverDrop" id="coverDrop" onclick="document.getElementById('coverFile').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleCoverDrop(event)">
+       ${cover.dataUrl
+         ? `<img src="${cover.dataUrl}" alt="Ковер preview"><div class="coverOverlay"><div><b>${cover.name}</b><span>${meta}</span></div><button type="button" class="btn icon" title="Дахин сонгох" onclick="event.stopPropagation();document.getElementById('coverFile').click()"><i data-lucide="refresh-cw"></i></button></div>`
+         : `<div class="coverDropContent"><i data-lucide="upload"></i><b>Ковер зургаа оруулах</b><span>Зургаа энд чирэх эсвэл компьютерээс сонгох</span><span style="font-size:10px">PNG, JPG · Max 20MB</span><button type="button" class="btn primary" onclick="event.stopPropagation();document.getElementById('coverFile').click()"><i data-lucide="folder-open"></i>Зураг сонгох</button></div>`}
+     </div>
+     <input id="coverFile" type="file" accept="image/jpeg,image/png" style="display:none" onchange="handleCover(this)">
+     ${cover.name?`<div class="coverActions"><button class="btn" onclick="document.getElementById('coverFile').click()"><i data-lucide="refresh-cw"></i>Дахин сонгох</button><button class="btn" onclick="clearCover()"><i data-lucide="trash-2"></i>Устгах</button></div>`:''}
+   </div>
+
+   <div class="coverRequirementBox">
+     <h3>Ковер зургийн шаардлага</h3>
+     <p>Зургаа оруулахаас өмнө дараах шаардлагыг шалгана уу.</p>
+
+     <div class="coverRequirementGroup">
+       <h4>Зураг дээр агуулагдаж болохгүй</h4>
+       <div class="coverRuleList">
+         <div class="coverRule"><i data-lucide="x"></i><span>Артистын нэр болон <b>дуу/цомгийн нэрээс бусад текст</b></span></div>
+         <div class="coverRule"><i data-lucide="x"></i><span>URL, вэб хаяг эсвэл QR code</span></div>
+         <div class="coverRule"><i data-lucide="x"></i><span>Social media logo, username эсвэл handle</span></div>
+         <div class="coverRule"><i data-lucide="x"></i><span>Брэнд, сурталчилгааны лавлагаа</span></div>
+         <div class="coverRule"><i data-lucide="x"></i><span>Порнографик зураг, контент</span></div>
+         <div class="coverRule"><i data-lucide="x"></i><span>Лицензгүй зураг, бусдын бүтээлийг хуулбарласан контент</span></div>
+         <div class="coverRule"><i data-lucide="x"></i><span>Өөр release-д ашигласан яг ижил artwork</span></div>
+       </div>
+     </div>
+
+     <div class="coverRequirementGroup">
+       <h4>Файлын техникийн шаардлага</h4>
+       <div class="coverRuleList">
+         <div class="coverRule"><i data-lucide="check"></i><span><b>1:1 харьцаатай</b> төгс квадрат зураг</span></div>
+         <div class="coverRule"><i data-lucide="check"></i><span>Хамгийн багадаа <b>1500 × 1500 px</b>, хамгийн ихдээ <b>6000 × 6000 px</b></span></div>
+         <div class="coverRule"><i data-lucide="check"></i><span><b>JPG эсвэл PNG</b> формат</span></div>
+         <div class="coverRule"><i data-lucide="check"></i><span>Файлын хэмжээ <b>20MB-аас ихгүй</b></span></div>
+         <div class="coverRule"><i data-lucide="check"></i><span>Бүдгэрсэн, pixelated, буруу crop/position-той эсвэл эргүүлсэн зураг байж болохгүй</span></div>
+       </div>
+       <div class="coverSpecBadgeRow">
+         <span class="coverSpecBadge">1:1</span>
+         <span class="coverSpecBadge">1500–6000 px</span>
+         <span class="coverSpecBadge">JPG / PNG</span>
+         <span class="coverSpecBadge">≤ 20MB</span>
+       </div>
+     </div>
+
+     ${cover.name?`<div class="identifierAuto" style="margin-top:14px"><i data-lucide="circle-check"></i><div><b>Техникийн шаардлага хангасан</b><span>${meta||cover.name}</span></div></div>`:''}
+   </div>
+ </div>`;
+}
+function validateCoverFile(file,width,height){
+ if(!['image/jpeg','image/png'].includes(file.type))return 'Ковер зураг JPG эсвэл PNG форматтай байх ёстой.';
+ if(file.size>20*1024*1024)return 'Ковер зургийн файлын хэмжээ 20MB-аас их байж болохгүй.';
+ if(width!==height)return 'Ковер зураг 1:1 харьцаатай, төгс квадрат байх ёстой.';
+ if(width<1500||height<1500)return 'Ковер зураг хамгийн багадаа 1500 × 1500 px хэмжээтэй байх ёстой.';
+ if(width>6000||height>6000)return 'Ковер зураг хамгийн ихдээ 6000 × 6000 px хэмжээтэй байж болно.';
+ return '';
+}
+function handleCover(input){
+ const file=input?.files?.[0];if(!file)return;
+ coverError='';
+ if(!['image/jpeg','image/png'].includes(file.type)){
+   coverError='Ковер зураг JPG эсвэл PNG форматтай байх ёстой.';
+   input.value='';render();return;
+ }
+ if(file.size>20*1024*1024){
+   coverError='Ковер зургийн файлын хэмжээ 20MB-аас их байж болохгүй.';
+   input.value='';render();return;
+ }
+ const reader=new FileReader();
+ reader.onload=()=>{
+   const img=new Image();
+   img.onload=()=>{
+     const error=validateCoverFile(file,img.naturalWidth,img.naturalHeight);
+     if(error){
+       coverError=error;
+       input.value='';
+       render();
+       return;
+     }
+     cover={name:file.name,dataUrl:reader.result,width:img.naturalWidth,height:img.naturalHeight,size:file.size};
+     coverError='';
+     render();autosave();
+   };
+   img.onerror=()=>{coverError='Зургийн файлыг унших боломжгүй байна.';input.value='';render()};
+   img.src=reader.result;
+ };
+ reader.readAsDataURL(file);
+}
+function handleCoverDrop(event){
+ event.preventDefault();
+ document.getElementById('coverDrop')?.classList.remove('drag');
+ const file=event.dataTransfer?.files?.[0];if(!file)return;
+ const dt=new DataTransfer();dt.items.add(file);
+ const input=document.getElementById('coverFile');input.files=dt.files;handleCover(input);
+}
+function clearCover(){
+ cover={name:'',dataUrl:'',width:0,height:0,size:0};
+ coverError='';
+ render();autosave();
+}
+
+function toggleService(name){distributionServices.has(name)?distributionServices.delete(name):distributionServices.add(name);render();autosave()}
+function serviceIconLabel(name){
+ const map={'Sonsy Music':'S','M Music':'M','Hitone':'H','Unimusic':'U','SkyMelody':'SM','GTone':'G','Egshig':'E','Apple Music':'AM','Spotify':'SP','YouTube Music':'YT','Deezer':'DZ','Sonsy FM 78.9 & 100.1':'FM'};return map[name]||'♪';
+}
+function scheduleCard(modeKey,title,desc){
+ const active=scheduleMode===modeKey;
+ const icon=modeKey==='asap'?'zap':'calendar-days';
+ return `<label class="scheduleChoice ${active?'active':''}">
+   <input type="radio" name="scheduleMode" ${active?'checked':''} onchange="scheduleMode='${modeKey}';render();autosave()">
+   <span class="scheduleChoiceIcon"><i data-lucide="${icon}"></i></span>
+   <span class="scheduleChoiceText"><b>${title}</b><span>${desc}</span></span>
+   <span class="scheduleChoiceCheck"><i data-lucide="check"></i></span>
+ </label>`;
+}
+function selectedServiceCount(){return distributionServices.size}
+function serviceGroupSelected(names){return names.filter(n=>distributionServices.has(n)).length}
+function selectedServiceMiniIcons(){
+ const selected=[...distributionServices];
+ if(!selected.length)return '';
+ return selected.slice(0,7).map(n=>`<span class="publishSelectionDot">${serviceIconLabel(n)}</span>`).join('');
+}
+function serviceCard(name,desc){
+ const active=distributionServices.has(name);
+ return `<label class="serviceTile ${active?'active':''}">
+   <input type="checkbox" ${active?'checked':''} onchange="toggleService('${name}')">
+   <span class="serviceLogo">${serviceIconLabel(name)}</span>
+   <span class="serviceTileText"><b>${name}</b><span>${desc}</span></span>
+   <span class="serviceTileCheck"><i data-lucide="check"></i></span>
+ </label>`;
+}
+
+
+function groupActive(names){
+ return names.every(n=>distributionServices.has(n));
+}
+function toggleServiceGroup(names){
+ const active=groupActive(names);
+ names.forEach(n=>active?distributionServices.delete(n):distributionServices.add(n));
+ render();autosave();
+}
+function simpleServiceItem(name,desc){
+ const active=distributionServices.has(name);
+ return `<div class="serviceItemSimple ${active?'active':''}">
+   <span class="serviceLogo">${serviceIconLabel(name)}</span>
+   <span class="serviceItemSimpleText"><b>${name}</b><span>${desc}</span></span>
+   <button type="button" class="serviceItemCheck" title="${active?'Сонгогдсон':'Сонгох'}" onclick="toggleService('${name}')"><i data-lucide="check"></i></button>
+ </div>`;
+}
+function bundleServiceItem(name){
+ return `<span class="bundleService"><span class="serviceLogo">${serviceIconLabel(name)}</span><b>${name}</b></span>`;
+}
+function groupToggleControl(label,names){
+ const active=groupActive(names);
+ return `<label class="groupToggle ${active?'active':''}">
+   <input type="checkbox" ${active?'checked':''} onchange="toggleServiceGroup(${JSON.stringify(names).replace(/"/g,'&quot;')})">
+   <span class="groupToggleCheck"><i data-lucide="check"></i></span>
+   <span>${label}</span>
+ </label>`;
+}
+
+function stage4(){
+ const domestic=['Sonsy Music','M Music'];
+ const prbt=['Hitone','Unimusic','SkyMelody','GTone'];
+ const international=['Egshig','Apple Music','Spotify','YouTube Music','Deezer'];
+ const promoRadio=['Sonsy FM 78.9 & 100.1'];
+
+ const publishLabel=scheduleMode==='asap'
+   ? 'Аль болох хурдан · 2–3 ажлын өдөр'
+   : (releaseDate?`Нийтлэх огноо · ${releaseDate}`:'Нийтлэх огноо сонгоогүй');
+
+ return `<div class="publishShell">
+   <div class="publishTopbar">
+     <div>
+       <h2>Нийтлэх & Түгээх</h2>
+       <p>Нийтлэх хугацаа болон хүргэх үйлчилгээнүүдээ нэг дор тохируулна.</p>
+     </div>
+     <div class="publishSummary">
+       <span class="publishSummaryPill"><i data-lucide="calendar-clock"></i>${publishLabel}</span>
+       <span class="publishSummaryPill"><i data-lucide="radio-tower"></i>${selectedServiceCount()} суваг сонгосон</span>
+     </div>
+   </div>
+
+   <section class="publishBlock">
+     <div class="publishBlockHead">
+       <div><h3>Нийтлэх хугацаа</h3><p>Бэлэн болмогц нийтлэх эсвэл тодорхой өдөр төлөвлөнө.</p></div>
+     </div>
+     <div class="publishBlockBody">
+       <div class="scheduleChoiceGrid">
+         ${scheduleCard('asap','Аль болох хурдан','Шалгалт дуусмагц нийтэлнэ. Ойролцоогоор 2–3 ажлын өдөр.')}
+         ${scheduleCard('date','Огноо төлөвлөх','Тодорхой өдөр сонгоно. Сонгосон огноо өнөөдрөөс дор хаяж 7 хоногийн дараа байна.')}
+       </div>
+       ${scheduleMode==='date'?`
+         <div class="scheduleDateModern">
+           <div class="field" style="margin:0">
+             <label>Нийтлэх огноо <span class="req">*</span>${info('Өнөөдрөөс дор хаяж 7 хоногийн дараах огноо сонгоно.')}</label>
+             <input type="date" min="${minPublishDate()}" value="${releaseDate}" onchange="releaseDate=this.value;autosave()">
+           </div>
+           <div class="scheduleDateNote"><i data-lucide="info"></i><span>Хамгийн эрт боломжит огноо: <b>${minPublishDate()}</b>. Энэ хугацаа QC болон түгээлтийн бэлтгэлд зориулагдана.</span></div>
+         </div>`:''}
+     </div>
+   </section>
+
+   <section class="publishBlock">
+     <div class="publishBlockHead">
+       <div><h3>Түгээх үйлчилгээнүүд</h3><p>Бүх сонголт анхнаасаа идэвхтэй. Хүсвэл аль нэг бүлгийг сонголтоос хасаж болно.</p></div>
+     </div>
+     <div class="publishBlockBody">
+       <div class="serviceSection">
+
+         <div class="serviceGroupModern">
+           <div class="serviceGroupModernHead">
+             <div><h4>Дотоодын хөгжмийн үйлчилгээ</h4><p>Монголын хөгжмийн платформууд</p></div>
+             ${groupToggleControl('Сонгосон',domestic)}
+           </div>
+           <div class="bundleServices">
+             ${domestic.map(bundleServiceItem).join('')}
+           </div>
+         </div>
+
+         <div class="serviceGroupModern">
+           <div class="serviceGroupModernHead">
+             <div><h4>PRBT</h4><p>Сонгосноор доорх бүх PRBT үйлчилгээнд хүргэнэ.</p></div>
+             ${groupToggleControl('Сонгосон',prbt)}
+           </div>
+           <div class="bundleServices">
+             ${prbt.map(bundleServiceItem).join('')}
+           </div>
+         </div>
+
+         <div class="serviceGroupModern">
+           <div class="serviceGroupModernHead">
+             <div><h4>Олон улсын хөгжмийн үйлчилгээнүүд</h4><p>Сонгосноор доорх бүх олон улсын платформд хүргэнэ.</p></div>
+             ${groupToggleControl('Сонгосон',international)}
+           </div>
+           <div class="bundleServices">
+             ${international.map(bundleServiceItem).join('')}
+           </div>
+         </div>
+
+         <div class="serviceGroupModern">
+           <div class="serviceGroupModernHead">
+             <div><h4>Сурталчилгааны радио цацалт</h4><p>Дууг promotional airplay хэлбэрээр радио сувгаар цацуулах сонголт.</p></div>
+             ${groupToggleControl('Сонгосон',promoRadio)}
+           </div>
+           <div class="bundleServices">
+             ${promoRadio.map(bundleServiceItem).join('')}
+           </div>
+           <div class="promoRadioNote">
+             <i data-lucide="info"></i>
+             <span>Энэ радио цацалт нь сурталчилгааны зорилготой. Buteel энэ цацалтын royalty орлогыг тооцож, хуваарилахгүй. Хамаарах royalty-г эрх эзэмшигч өөрийн харьяалах Хамтын удирдлагын байгууллагаар бүртгүүлж, цуглуулах боломжтой.</span>
+           </div>
+         </div>
+
+       </div>
+     </div>
+   </section>
+ </div>`;
+}
+function reviewValue(v){return v||'—'}
+function stage5(){
+ if(submitted)return `<div class="successCard"><i data-lucide="circle-check-big"></i><h2>Илгээгдлээ</h2><p>${albumTitles.mn||'Энэ контент'} шалгалтын дараагийн шат руу шилжлээ.</p><div class="modePill" style="margin:14px auto 0;width:max-content"><i data-lucide="clock-3"></i>Review хүлээж байна</div></div>`;
+
+ const title=albumTitles.mn||'—';
+ const englishTitle=albumTitles.en||'—';
+ const publishLabel=scheduleMode==='asap'?'Аль болох хурдан (2–3 ажлын өдөр)':reviewValue(releaseDate);
+ const services=[...distributionServices];
+
+ return `<div class="reviewShell">
+   <div class="reviewHero">
+     <div><h2>Шалгах & Илгээх</h2><p>Илгээхийн өмнө бүх мэдээллээ нэг удаа шалгана уу.</p></div>
+     <span class="reviewHeroStatus"><i data-lucide="clipboard-check"></i>Илгээхэд бэлэн эсэхийг шалгах</span>
+   </div>
+
+   <div class="reviewModernGrid">
+     <div class="reviewColumn">
+
+       <section class="reviewPanel">
+         <div class="reviewPanelHead">
+           <div class="reviewPanelHeadTitle"><i data-lucide="info"></i><b>Үндсэн мэдээлэл</b></div>
+           <button class="btn ghost" onclick="goStage(1)">Засах</button>
+         </div>
+         <div class="reviewPanelBody">
+           <div class="reviewDataGrid">
+             <div class="reviewDataItem"><span>Төрөл</span><b>${portalTypeLabel()}</b></div>
+             <div class="reviewDataItem"><span>Монгол нэр</span><b>${title}</b></div>
+             <div class="reviewDataItem"><span>English / Latin</span><b>${englishTitle}</b></div>
+             <div class="reviewDataItem"><span>Үндсэн артист</span><b>${primary.map(a=>a.name).join(', ')||'—'}</b></div>
+             <div class="reviewDataItem"><span>Жанр</span><b>${primaryGenre||'—'}</b></div>
+             <div class="reviewDataItem"><span>Label</span><b>${accountLabel}</b></div>
+             <div class="reviewDataItem"><span>UPC</span><b>${previous?(previousUPC||'Өмнөх UPC шаардлагатай'):'Автоматаар үүснэ'}</b></div>
+             ${previous?`<div class="reviewDataItem"><span>Анх гарсан огноо</span><b>${originalReleaseDate||'—'}</b></div>`:''}
+           </div>
+         </div>
+       </section>
+
+       <section class="reviewPanel">
+         <div class="reviewPanelHead">
+           <div class="reviewPanelHeadTitle"><i data-lucide="list-music"></i><b>Дууны мэдээлэл</b></div>
+           <button class="btn ghost" onclick="goStage(2)">Засах</button>
+         </div>
+         <div class="reviewPanelBody">
+           <div class="reviewTracks">
+             ${albumTracks.map((t,i)=>{
+               const trackTitle=mode==='single'?(albumTitles.mn||t.title):(t.titles?.mn||t.title);
+               ensureTrackArtistArrays(t);
+               const artistsText=mode==='single'
+                 ? (primary.map(a=>a.name).join(', ')||'—')
+                 : (t.primaryArtists.map(a=>a.name).join(', ')||'—');
+               const isrcText=t.isrc?displayISRC(t.isrc):'Автоматаар үүснэ';
+               return `<div class="reviewTrackRow">
+                 <span class="reviewTrackNo">${i+1}</span>
+                 <span class="reviewTrackInfo"><b>${trackTitle||'—'}</b><span>${artistsText}</span></span>
+                 <span class="reviewTrackMeta"><b>${t.duration||'—'}</b><span>${isrcText}</span></span>
+               </div>`;
+             }).join('')||'<div class="hint">Дуу нэмээгүй байна.</div>'}
+           </div>
+         </div>
+       </section>
+
+       <section class="reviewPanel">
+         <div class="reviewPanelHead">
+           <div class="reviewPanelHeadTitle"><i data-lucide="radio-tower"></i><b>Нийтлэх & Түгээх</b></div>
+           <button class="btn ghost" onclick="goStage(4)">Засах</button>
+         </div>
+         <div class="reviewPanelBody">
+           <div class="reviewDataGrid">
+             <div class="reviewDataItem"><span>Нийтлэх хугацаа</span><b>${publishLabel}</b></div>
+             <div class="reviewDataItem"><span>Үйлчилгээний тоо</span><b>${services.length}</b></div>
+           </div>
+           <div class="reviewServiceWrap" style="margin-top:12px">
+             ${services.map(s=>`<span class="reviewServiceChip"><span class="publishSelectionDot">${serviceIconLabel(s)}</span>${s}</span>`).join('')}
+           </div>
+         </div>
+       </section>
+
+     </div>
+
+     <div class="reviewColumn">
+
+       <section class="reviewPanel">
+         <div class="reviewPanelHead">
+           <div class="reviewPanelHeadTitle"><i data-lucide="image"></i><b>Ковер зураг</b></div>
+           <button class="btn ghost" onclick="goStage(3)">Засах</button>
+         </div>
+         <div class="reviewPanelBody">
+           <div class="reviewCoverCard">
+             <div class="reviewCoverPreview">
+               ${cover.dataUrl?`<img src="${cover.dataUrl}" alt="Cover preview">`:`<div class="reviewCoverEmpty"><i data-lucide="image-off"></i><div>Ковер зураг оруулаагүй</div></div>`}
+             </div>
+             <div class="reviewDataGrid">
+               <div class="reviewDataItem"><span>Файл</span><b>${cover.name||'—'}</b></div>
+               <div class="reviewDataItem"><span>Хэмжээс</span><b>${cover.width?`${cover.width} × ${cover.height} px`:'—'}</b></div>
+             </div>
+           </div>
+         </div>
+       </section>
+
+     </div>
+   </div>
+
+   <label class="reviewConfirmSimple">
+     <input type="checkbox" ${reviewConfirmed?'checked':''} onchange="reviewConfirmed=this.checked;render()">
+     <span><b>Мэдээллээ шалгасан</b><span>Оруулсан мэдээлэл зөв болохыг баталгаажуулна.</span></span>
+   </label>
+ </div>`;
+}
+function submitRelease(){if(!reviewConfirmed)return;submitted=true;render()}
+
+function updateFooter(){
+ const b=document.getElementById('nextBtn');if(!b)return;
+ if(submitted){b.style.display='none';return}b.style.display='inline-flex';
+ if(stage===5){b.disabled=!reviewConfirmed;b.innerHTML='Илгээх<i data-lucide="send"></i>'}else{b.disabled=false;b.innerHTML='Үргэлжлүүлэх<i data-lucide="arrow-right"></i>'}icons();
+}
+function render(){
+ if(!mode){chooseMode();return}
+ document.getElementById('pageTitle').textContent=mode==='album'?'Цомог үүсгэх':'Дуу үүсгэх';
+ renderSteps();
+ document.getElementById('form').innerHTML=stage===1?stage1():stage===2?stage2():stage===3?stage3():stage===4?stage4():stage5();
+ icons();updateFooter();
+}
+function next(){if(stage<5){goStage(stage+1)}else submitRelease()}
+function back(){if(stage>1){goStage(stage-1)}else{mode=null;stage=1;openTrack=-1;chooseMode()}}
+
+render()
+</script>
+</body>
+</html>
