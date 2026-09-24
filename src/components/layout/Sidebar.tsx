@@ -7,9 +7,9 @@ const NAV_GROUPS = [
     label: "ҮНДСЭН",
     items: [
       { id: "dashboard",        path: "/dashboard",          label: "Хяналтын Самбар", icon: BarChart2 },
-      { id: "catalog-music",    path: "/catalog/music",     label: "Дуу / Цомог", icon: Disc3 },
-      { id: "catalog-audiobook",path: "/catalog/audiobook", label: "Аудио Ном",   icon: BookOpen },
-      { id: "catalog-film",     path: "/catalog/film",      label: "Кино",         icon: Film },
+      { id: "catalog-music",    path: "/releases",   label: "Дуу / Цомог", icon: Disc3 },
+      { id: "catalog-audiobook",path: "/audiobooks", label: "Аудио Ном",   icon: BookOpen },
+      { id: "catalog-film",     path: "/movies",     label: "Кино",         icon: Film },
       { id: "reports",          path: "/reports",            label: "Тайлан",           icon: TrendingUp },
       { id: "revenue",          path: "/revenue",            label: "Орлого",           icon: Wallet },
     ],
@@ -30,9 +30,9 @@ export function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () =>
 
   const isActive = (id: string) => {
     if (id === "dashboard")         return pathname === "/dashboard";
-    if (id === "catalog-music")     return pathname.startsWith("/catalog/music");
-    if (id === "catalog-audiobook") return pathname.startsWith("/catalog/audiobook");
-    if (id === "catalog-film")      return pathname.startsWith("/catalog/film");
+    if (id === "catalog-music")     return pathname.startsWith("/releases");
+    if (id === "catalog-audiobook") return pathname.startsWith("/audiobooks");
+    if (id === "catalog-film")      return pathname.startsWith("/movies");
     if (id === "reports")           return pathname.startsWith("/reports");
     if (id === "revenue")           return pathname.startsWith("/revenue");
     if (id === "account")           return pathname.startsWith("/account");

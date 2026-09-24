@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import {
   Music2, Plus, Search, Check, X, AlertCircle, Disc3, Eye, BookOpen,
@@ -74,9 +74,15 @@ function artistLabel(r: ReleaseData) {
 }
 
 function detailPath(r: ReleaseData) {
-  if (r.contentType === "film")      return `/catalog/film/film?id=${r.id}`;
-  if (r.contentType === "audiobook") return `/catalog/audiobook/book?id=${r.id}`;
-  return `/catalog/music/release?id=${r.id}`;
+  if (r.contentType === "film")      return `/movies/${r.id}`;
+  if (r.contentType === "audiobook") return `/audiobooks/${r.id}`;
+  return `/releases/${r.id}`;
+}
+
+function editPath(r: ReleaseData) {
+  if (r.contentType === "film")      return `/movies/${r.id}/edit`;
+  if (r.contentType === "audiobook") return `/audiobooks/${r.id}/edit`;
+  return `/releases/${r.id}/edit`;
 }
 
 function ContentTypeIcon({ ct }: { ct: string }) {
@@ -140,8 +146,8 @@ export default function CatalogScreen() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const ct: "music" | "audiobook" | "film" =
-    pathname.includes("audiobook") ? "audiobook" :
-    pathname.includes("film") ? "film" : "music";
+    pathname.startsWith("/audiobooks") ? "audiobook" :
+    pathname.startsWith("/movies")     ? "film" : "music";
   const cfg = TYPE_CONFIG[ct];
 
   // ── filter state ──────────────────────────────────────────────────────────
@@ -187,12 +193,17 @@ export default function CatalogScreen() {
     setStatusFilters(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
 
   // ── New content ───────────────────────────────────────────────────────────
-  const [showMusicModal, setShowMusicModal] = useState(false);
+  const [showMusicModal, setShowMusicModal] = useState(pathname === "/releases/new");
   const [musicMode, setMusicMode]           = useState<"single" | "album" | null>(null);
 
+  // auto-open modal when landing on /releases/new
+  useEffect(() => {
+    if (pathname === "/releases/new") setShowMusicModal(true);
+  }, [pathname]);
+
   const handleNew = () => {
-    if (ct === "audiobook") { navigate("/submit/audiobook"); return; }
-    if (ct === "film")      { navigate("/submit/film"); return; }
+    if (ct === "audiobook") { navigate("/audiobooks/new"); return; }
+    if (ct === "film")      { navigate("/movies/new"); return; }
     setMusicMode(null); setShowMusicModal(true);
   };
 
@@ -410,11 +421,7 @@ export default function CatalogScreen() {
                     <Eye size={14} />
                   </button>
                   {(r.status === "draft" || r.status === "revision") && (
-                    <button type="button" onClick={() => navigate(
-                      r.contentType === "film" ? `/submit/film?edit=${r.id}` :
-                      r.contentType === "audiobook" ? `/submit/audiobook?edit=${r.id}` :
-                      `/submit/release?edit=${r.id}&mode=${r.type === "Single" ? "single" : "album"}`
-                    )}
+                    <button type="button" onClick={() => navigate(editPath(r))}
                       className="flex items-center justify-center w-8 h-8 rounded-xl border border-violet-200 text-violet-600 hover:bg-violet-50 transition-colors">
                       <Pencil size={14} />
                     </button>
@@ -500,11 +507,7 @@ export default function CatalogScreen() {
                           <Eye size={14} />
                         </button>
                         {(r.status === "draft" || r.status === "revision") && (
-                          <button type="button" onClick={() => navigate(
-                      r.contentType === "film" ? `/submit/film?edit=${r.id}` :
-                      r.contentType === "audiobook" ? `/submit/audiobook?edit=${r.id}` :
-                      `/submit/release?edit=${r.id}&mode=${r.type === "Single" ? "single" : "album"}`
-                    )}
+                          <button type="button" onClick={() => navigate(editPath(r))}
                             className="flex items-center justify-center w-8 h-8 rounded-xl border border-violet-200 text-violet-600 hover:bg-violet-50 transition-colors">
                             <Pencil size={14} />
                           </button>
@@ -592,7 +595,7 @@ export default function CatalogScreen() {
                 Болих
               </button>
               <button type="button" disabled={!musicMode}
-                onClick={() => { if (musicMode) { setShowMusicModal(false); navigate(`/submit/release?mode=${musicMode}`); } }}
+                onClick={() => { if (musicMode) { setShowMusicModal(false); navigate(`/releases/new/${musicMode}`); } }}
                 className="h-9 px-5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
                 Үргэлжлүүлэх <ArrowRight size={14} />
               </button>

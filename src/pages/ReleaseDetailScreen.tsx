@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, useParams } from "react-router";
 import {
   Music2, ArrowLeft, ExternalLink, Globe, ChevronDown,
   Play, Pause, Pencil, MessageSquare, Send, CheckCircle2,
@@ -7,7 +7,7 @@ import {
   CalendarDays, Hash, Mic2, FileAudio2,
   LayoutList, UserCheck, Tags, ScrollText, ShieldAlert,
   Globe2, Film, PlayCircle, UsersRound, Headphones, BookOpen,
-  AudioWaveform,
+  AudioWaveform, Building2,
 } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
@@ -56,6 +56,15 @@ const RELEASE_TITLES: Record<string, TitleTrans[]> = {
   "REL-009": [{ lang:"Монгол", title:"Мөнгөн Шөнө"   }, { lang:"English / Latin", title:"Silver Night"      }],
   "REL-010": [{ lang:"Монгол", title:"Хот Дуусгавар" }, { lang:"English / Latin", title:"City's End"        }],
 };
+
+// ── audiobook extras (mock data not in ReleaseData type) ─────────────────────
+type AbExtras = { author: string; narrator: string; language: string; isbn?: string; isAbridged: boolean; ageRating: string };
+const AB_EXTRAS: Record<string, AbExtras> = {
+  "REL-004": { author: "Болд Жаргал", narrator: "Болд Жаргал", language: "Монгол", isAbridged: false, ageRating: "Бүгдэд тохиромжтой" },
+  "REL-007": { author: "Д. Мөнхбат",  narrator: "Д. Мөнхбат",  language: "Монгол", isbn: "978-99929-3-084-7", isAbridged: false, ageRating: "12+" },
+  "REL-011": { author: "Б. Дашдорж",  narrator: "Б. Дашдорж",  language: "Монгол", isAbridged: false, ageRating: "Бүгдэд тохиромжтой" },
+};
+const DEFAULT_AB_EXTRAS: AbExtras = { author: "—", narrator: "—", language: "Монгол", isAbridged: false, ageRating: "Бүгдэд тохиромжтой" };
 
 // ── track extras ──────────────────────────────────────────────────────────────
 type TrackExtras = {
@@ -381,6 +390,155 @@ function TrackCard({ t }: { t: TrackItem }) {
   );
 }
 
+// ── chapter card (audiobook — no music-specific sections) ────────────────────
+function ChapterCard({ t }: { t: TrackItem }) {
+  const [open, setOpen] = useState(false);
+  const chapterTitles = RELEASE_TITLES[`CH-${t.no}`] ?? [];
+
+  return (
+    <div className={`rounded-2xl border transition-all overflow-hidden ${open ? "border-primary/25 shadow-sm" : "border-border hover:border-border/80"}`}>
+      <button type="button" className="w-full flex items-center gap-3 px-5 py-3.5 text-left bg-white"
+        onClick={() => setOpen(v => !v)}>
+        <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[11px] font-bold text-muted-foreground flex-shrink-0">{t.no}</span>
+        <div className="flex-1 min-w-0">
+          <span className="font-semibold text-sm text-foreground block truncate">{t.title}</span>
+          <span className="text-xs text-muted-foreground">{t.primaryArtist}</span>
+        </div>
+        <span className="text-xs text-muted-foreground tabular-nums hidden sm:block flex-shrink-0">{t.duration}</span>
+        <div onClick={e => e.stopPropagation()}><TrackPreview title={t.title} /></div>
+        <ChevronDown size={14} className={`text-muted-foreground flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="bg-muted/15 border-t border-border/50 px-5 py-5">
+
+          {/* Title translations */}
+          {chapterTitles.length > 0 && (
+            <div className="mb-4 pb-4 border-b border-border/30">
+              <SectionHead icon={Globe2} label="Нэрний орчуулга" />
+              <div className="flex flex-wrap gap-4">
+                {chapterTitles.map(tr => (
+                  <div key={tr.lang} className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">{langCode(tr.lang)}</span>
+                    <span className="text-sm text-foreground">{tr.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Audio file */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <SectionHead icon={AudioWaveform} label="Аудио файл" />
+              <span className="text-[10px] text-muted-foreground -mt-3">Source файл ба техникийн мэдээлэл</span>
+            </div>
+            <div className="rounded-xl border border-border bg-white overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3">
+                <button type="button" onClick={e => e.stopPropagation()}
+                  className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center flex-shrink-0 hover:bg-muted/80">
+                  <Play size={10} className="text-foreground ml-0.5" />
+                </button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{t.fileName}</p>
+                  <p className="text-xs text-primary">Track source</p>
+                </div>
+                <span className="text-sm text-muted-foreground tabular-nums flex-shrink-0">{t.duration}</span>
+                <div className="hidden sm:block flex-shrink-0"><WaveBars seed={t.no * 7} size="sm" /></div>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 border-t border-border/50">
+                <span className="text-xs text-muted-foreground">{t.fileSize}</span>
+                {t.bitrate && <><span className="text-border text-xs">·</span><span className="text-xs text-muted-foreground">{t.bitrate}</span></>}
+                <div className="flex items-center gap-1.5 ml-auto">
+                  {t.audioFormat && <span className="text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-white text-foreground">{t.audioFormat}</span>}
+                  {t.sampleRate  && <span className="text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-white text-foreground">{t.sampleRate}</span>}
+                  {t.bitDepth    && <span className="text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-white text-foreground">{t.bitDepth}</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── audiobook detail ──────────────────────────────────────────────────────────
+function AudiobookDetail({ r }: { r: ReleaseData }) {
+  const ab = AB_EXTRAS[r.id] ?? DEFAULT_AB_EXTRAS;
+  const year = r.releaseDate?.split("-")[0] ?? "—";
+  const relTitles = RELEASE_TITLES[r.id] ?? [];
+
+  return (
+    <>
+      <Card className="p-5">
+        <SectionHead icon={BookOpen} label="Үндсэн мэдээлэл" />
+
+        {relTitles.length > 0 && (
+          <div className="mb-4 pb-4 border-b border-border/30">
+            <p className="text-xs text-muted-foreground mb-2.5 flex items-center gap-1.5">
+              <Globe2 size={11} className="opacity-60" />Нэрний орчуулга
+            </p>
+            <div className="flex flex-wrap gap-4">
+              {relTitles.map(t => (
+                <div key={t.lang} className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">{langCode(t.lang)}</span>
+                  <span className="text-sm font-medium text-foreground">{t.title}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
+          <div>
+            <KV icon={Hash}         label="UPC"               value={r.upc || "—"} />
+            <KV icon={CalendarDays} label="Гарах огноо"       value={r.releaseDate} />
+            <KV icon={LayoutList}   label="Үндсэн жанр"       value={r.genre} />
+            {r.subGenre           && <KV icon={Tags}       label="Дэд жанр"      value={r.subGenre} />}
+            <KV icon={Headphones}   label="Уншигч / Нарратор" value={ab.narrator} />
+            <KV icon={Mic2}         label="Зохиолч"           value={ab.author} />
+          </div>
+          <div>
+            <KV label="Зохиогчийн эрх ©" value={`© ${year} ${r.label || "Steppe Records"}`} />
+            <KV icon={Globe2}       label="Хэл"               value={ab.language} />
+            <KV icon={BookOpen}     label="Бүлэг тоо"         value={`${r.tracks.length} бүлэг`} />
+            <KV icon={ShieldAlert}  label="Насны тохиромж"    value={r.ageRating ?? ab.ageRating} />
+            <KV icon={ScrollText}   label="Хувилбар"          value={ab.isAbridged ? "Товчилсон" : "Бүтэн"} />
+            {ab.isbn              && <KV icon={Hash}       label="ISBN"          value={ab.isbn} />}
+          </div>
+        </div>
+
+        {r.synopsis && (
+          <div className="mt-4 pt-4 border-t border-border/40">
+            <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
+              <ScrollText size={11} className="opacity-60" />Тайлбар
+            </p>
+            <p className="text-sm text-foreground/80 leading-relaxed">{r.synopsis}</p>
+          </div>
+        )}
+
+        <div className="mt-4 pt-4 border-t border-border/40">
+          <a href="#" className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold border border-border text-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors">
+            <Globe size={13} />Номын холбоос<ExternalLink size={11} className="text-muted-foreground" />
+          </a>
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <div className="flex items-center justify-between mb-1">
+          <SectionHead icon={BookOpen} label="Бүлгүүд" />
+          <span className="text-[11px] font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">{r.tracks.length}</span>
+        </div>
+        <div className="space-y-2">
+          {r.tracks.map(t => <ChapterCard key={t.no} t={t} />)}
+        </div>
+      </Card>
+    </>
+  );
+}
+
 // ── PRBT song accordion ───────────────────────────────────────────────────────
 function PrbtSongRow({ song, segs }: { song: string; segs: { name: string; code: string }[] }) {
   const hasCodes = segs.length > 0;
@@ -564,7 +722,8 @@ type Tab = "info" | "services" | "ringtone";
 export default function ReleaseDetailScreen() {
   const navigate   = useNavigate();
   const [params]   = useSearchParams();
-  const id         = params.get("id");
+  const { id: pathId } = useParams<{ id?: string }>();
+  const id         = pathId ?? params.get("id");
   const r          = (id ? RELEASES.find(x => x.id === id) : null) ?? RELEASES[0];
 
   const [tab,           setTab]           = useState<Tab>("info");
@@ -594,12 +753,12 @@ export default function ReleaseDetailScreen() {
   const currentPrbt = prbtData.find(p => p.provider === prbtTab) ?? prbtData[0]!;
 
   const goEdit = () => {
-    if (isFilm) navigate(`/submit/film?edit=${r.id}`);
-    else if (isAudiobook) navigate(`/submit/audiobook?edit=${r.id}`);
-    else navigate(`/submit/release?edit=${r.id}&mode=${r.type === "Single" ? "single" : "album"}`);
+    if (isFilm)      navigate(`/movies/${r.id}/edit`);
+    else if (isAudiobook) navigate(`/audiobooks/${r.id}/edit`);
+    else navigate(`/releases/${r.id}/edit`);
   };
 
-  const catalogPath = isFilm ? "/catalog/film" : isAudiobook ? "/catalog/audiobook" : "/catalog/music";
+  const catalogPath = isFilm ? "/movies" : isAudiobook ? "/audiobooks" : "/releases";
 
   return (
     <Shell title="">
@@ -646,7 +805,12 @@ export default function ReleaseDetailScreen() {
                 )}
               </div>
               <div className="flex items-center gap-4 mt-2.5 flex-wrap">
-                {r.label && <span className="text-xs text-white/35">{r.label}</span>}
+                {r.label && (
+                  <span className="flex items-center gap-1 text-xs text-white/35">
+                    <Building2 size={11} className="flex-shrink-0" />
+                    {r.label}
+                  </span>
+                )}
                 <span className="flex items-center gap-1.5 text-xs text-white/30">
                   <Clock size={10} />Нэмэгдсэн: {r.createdAt}
                 </span>
@@ -704,12 +868,13 @@ export default function ReleaseDetailScreen() {
           <div className="space-y-4">
             {isFilm ? (
               <FilmDetail r={r} />
+            ) : isAudiobook ? (
+              <AudiobookDetail r={r} />
             ) : (
               <>
                 <Card className="p-5">
-                  <SectionHead icon={isAudiobook ? BookOpen : Disc3} label="Үндсэн мэдээлэл" />
+                  <SectionHead icon={Disc3} label="Үндсэн мэдээлэл" />
 
-                  {/* Release title translations */}
                   {relTitles.length > 0 && (
                     <div className="mb-4 pb-4 border-b border-border/30">
                       <p className="text-xs text-muted-foreground mb-2.5 flex items-center gap-1.5">
@@ -738,7 +903,6 @@ export default function ReleaseDetailScreen() {
                     <div>
                       <KV label="Зохиогчийн эрх ©" value={`© ${year} ${r.label || "Steppe Records"}`} />
                       <KV label="Бичлэгийн эрх ℗"  value={`℗ ${year} ${r.label || "Steppe Records"}`} />
-                      {isAudiobook && <KV icon={BookOpen} label="Бүлэг тоо" value={`${r.tracks.length} бүлэг`} />}
                     </div>
                   </div>
 
@@ -753,14 +917,14 @@ export default function ReleaseDetailScreen() {
 
                   <div className="mt-4 pt-4 border-t border-border/40">
                     <a href="#" className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold border border-border text-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors">
-                      <Globe size={13} />{isAudiobook ? "Номын холбоос" : "Цомгийн холбоос"}<ExternalLink size={11} className="text-muted-foreground" />
+                      <Globe size={13} />Цомгийн холбоос<ExternalLink size={11} className="text-muted-foreground" />
                     </a>
                   </div>
                 </Card>
 
                 <Card className="p-5">
                   <div className="flex items-center justify-between mb-1">
-                    <SectionHead icon={isAudiobook ? BookOpen : Music2} label={isAudiobook ? "Бүлгүүд" : "Дуунууд"} />
+                    <SectionHead icon={Music2} label="Дуунууд" />
                     <span className="text-[11px] font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">{r.tracks.length}</span>
                   </div>
                   <div className="space-y-2">

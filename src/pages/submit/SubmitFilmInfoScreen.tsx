@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, useParams } from "react-router";
 import { Shell } from "@/components/layout/Shell";
 import {
   Film, ArrowLeft, ArrowRight, Send, Plus, X, Check,
@@ -102,7 +102,8 @@ function filmSvcIcon(name: string): string {
 export default function SubmitFilmInfoScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const editId = searchParams.get("edit");
+  const { id: pathId } = useParams<{ id?: string }>();
+  const editId = pathId ?? searchParams.get("edit");
   const editRelease = editId ? RELEASES.find(r => r.id === editId && r.contentType === "film") : null;
 
   const [stage, setStage] = useState<Stage>(1);
@@ -898,8 +899,8 @@ export default function SubmitFilmInfoScreen() {
           <p style={{ color: "var(--w-muted)", marginTop: 6 }}>"{titleMn}" кино шалгагдаж байна.</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
-          <button className="wiz-btn" onClick={() => navigate("/catalog")}>Каталог харах</button>
-          <button className="wiz-btn primary" onClick={() => navigate("/")}>Хяналтын самбар</button>
+          <button className="wiz-btn" onClick={() => navigate("/movies")}>Каталог харах</button>
+          <button className="wiz-btn primary" onClick={() => navigate("/dashboard")}>Хяналтын самбар</button>
         </div>
       </div>
     );

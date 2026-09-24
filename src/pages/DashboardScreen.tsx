@@ -21,9 +21,9 @@ function typeLabel(r: ReleaseData) {
 }
 
 const ADD_TYPES = [
-  { id: "music",     label: "Хөгжим",    sub: "Дуу, EP, Цомог",          icon: Music2,   color: "text-primary",   bg: "bg-primary/10",  path: "/submit/release" },
-  { id: "audiobook", label: "Аудио ном", sub: "Бүлэгтэй номын аудио",    icon: BookOpen, color: "text-violet-600", bg: "bg-violet-100",  path: "/submit/audiobook" },
-  { id: "film",      label: "Кино",      sub: "Уран сайхны, баримтат",   icon: Film,     color: "text-rose-600",   bg: "bg-rose-100",    path: "/submit/film" },
+  { id: "music",     label: "Хөгжим",    sub: "Дуу, EP, Цомог",          icon: Music2,   color: "text-primary",   bg: "bg-primary/10",  path: "/releases/new" },
+  { id: "audiobook", label: "Аудио ном", sub: "Бүлэгтэй номын аудио",    icon: BookOpen, color: "text-violet-600", bg: "bg-violet-100",  path: "/audiobooks/new" },
+  { id: "film",      label: "Кино",      sub: "Уран сайхны, баримтат",   icon: Film,     color: "text-rose-600",   bg: "bg-rose-100",    path: "/movies/new" },
 ];
 
 export default function DashboardScreen() {
@@ -170,7 +170,7 @@ export default function DashboardScreen() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <h3 className="font-bold text-foreground text-sm">Сүүлийн контент</h3>
               <button type="button" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => navigate("/catalog")}>Бүгдийг харах</button>
+                onClick={() => navigate("/releases")}>Бүгдийг харах</button>
             </div>
             <div className="divide-y divide-border/40">
               {recentContent.map(r => {
@@ -180,9 +180,9 @@ export default function DashboardScreen() {
                   <div key={r.id}
                     className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/30 cursor-pointer transition-colors"
                     onClick={() => navigate(
-  r.contentType === "film" ? `/catalog/film/film?id=${r.id}` :
-  r.contentType === "audiobook" ? `/catalog/audiobook/book?id=${r.id}` :
-  `/catalog/music/release?id=${r.id}`
+  r.contentType === "film"      ? `/movies/${r.id}` :
+  r.contentType === "audiobook" ? `/audiobooks/${r.id}` :
+  `/releases/${r.id}`
 )}>
                     <div className={`w-9 h-9 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
                       <Icon size={14} className="text-white" />

@@ -1,12 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, useParams } from "react-router";
 import { Shell } from "@/components/layout/Shell";
 import {
   BookOpen, ArrowLeft, ArrowRight, Send, Plus, X, Check,
-  ChevronDown, Play, RefreshCw, Trash2, UploadCloud, FileAudio,
+  ChevronDown, ChevronUp, Play, RefreshCw, Trash2, UploadCloud, FileAudio,
   AudioWaveform, TriangleAlert, CircleCheckBig, ClipboardCheck,
   Search, UserRound, ZapIcon, CalendarDays, CalendarClock,
   Info, Fingerprint, Image as ImageIcon, ImageOff, AlertCircle,
+  GripVertical, Building2, Lock,
 } from "lucide-react";
 import "@/styles/wizard.css";
 import { RELEASES } from "@/data/releases";
@@ -14,7 +15,10 @@ import { RELEASES } from "@/data/releases";
 type Stage = 1 | 2 | 3 | 4 | 5;
 type Person = { id: string; name: string };
 type Chapter = {
-  id: string; title: string; duration: string;
+  id: string; title: string;
+  titles: { mn: string; en: string; [k: string]: string };
+  activeLang: string;
+  duration: string;
   sourceName: string; fileFormat: string; sampleRate: string; bitDepth: string;
   uploading: boolean; uploadProgress: number;
 };
@@ -82,7 +86,14 @@ function initials(name: string) {
 }
 
 function makeChapter(idx: number): Chapter {
-  return { id: "CH-" + Date.now() + "-" + idx, title: `${idx}-р бүлэг`, duration: "", sourceName: "", fileFormat: "", sampleRate: "", bitDepth: "", uploading: false, uploadProgress: 0 };
+  return {
+    id: "CH-" + Date.now() + "-" + idx,
+    title: `${idx}-р бүлэг`,
+    titles: { mn: `${idx}-р бүлэг`, en: "" },
+    activeLang: "mn",
+    duration: "", sourceName: "", fileFormat: "", sampleRate: "", bitDepth: "",
+    uploading: false, uploadProgress: 0,
+  };
 }
 
 function WaveBars({ seed = 0 }: { seed?: number }) {
@@ -188,7 +199,8 @@ function PersonPicker({
 export default function SubmitAudioBookInfoScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const editId = searchParams.get("edit");
+  const { id: pathId } = useParams<{ id?: string }>();
+  const editId = pathId ?? searchParams.get("edit");
   const editRelease = editId ? RELEASES.find(r => r.id === editId && r.contentType === "audiobook") : null;
 
   const [stage, setStage] = useState<Stage>(1);
@@ -219,13 +231,15 @@ export default function SubmitAudioBookInfoScreen() {
   const [isbn, setIsbn] = useState("");
   const [cOwner, setCOwner] = useState("");
   const [cYear, setCYear] = useState(String(new Date().getFullYear()));
-  const [showCopyright, setShowCopyright] = useState(false);
   const [ageRating, setAgeRating] = useState("Бүгдэд тохиромжтой");
   const [isAbridged, setIsAbridged] = useState(false);
 
   // Chapters
   const [chapters, setChapters] = useState<Chapter[]>([makeChapter(1)]);
   const [openChapter, setOpenChapter] = useState(0);
+  const [chDragOver, setChDragOver] = useState<number | null>(null);
+  const chDragFromRef = useRef<number | null>(null);
+  const [chLangOpenId, setChLangOpenId] = useState<string | null>(null);
   const uploadRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const updateChapter = useCallback((id: string, patch: Partial<Chapter>) => {
@@ -283,7 +297,84 @@ export default function SubmitAudioBookInfoScreen() {
 
   const handleNext = () => { if (stage < 5) setStage((stage + 1) as Stage); else if (reviewConfirmed) setSubmitted(true); };
   const handleBack = () => { if (stage > 1) setStage((stage - 1) as Stage); else navigate(-1); };
-  const closeAll = () => { setAuthorOpen(false); setNarratorOpen(false); setGenreOpen(false); setTitleLangOpen(false); };
+  function handleChapterDrop(targetIdx: number) {
+    const from = chDragFromRef.current;
+    if (from === null || from === targetIdx) { setChDragOver(null); chDragFromRef.current = null; return; }
+    setChapters(cs => { const next = [...cs]; const [moved] = next.splice(from, 1); next.splice(targetIdx, 0, moved); return next; });
+    setOpenChapter(oc => {
+      if (oc === from) return targetIdx;
+      if (from < oc && targetIdx >= oc) return oc - 1;
+      if (from > oc && targetIdx <= oc) return oc + 1;
+      return oc;
+    });
+    setChDragOver(null); chDragFromRef.current = null;
+  }
+
+  function ChapterTitleEditor({ ch, idx }: { ch: Chapter; idx: number }) {
+    const active = ch.activeLang || "mn";
+    const extraCodes = Object.keys(ch.titles).filter(k => k !== active && k !== "en");
+    const addableLangs = TITLE_LANGS.filter(l => l.code !== active && l.code !== "en" && !(l.code in ch.titles));
+    return (
+      <div className="wiz-field" onClick={e => e.stopPropagation()}>
+        <label className="wiz-label">Бүлгийн гарчиг <span className="wiz-req">*</span></label>
+        <div className="wiz-title-wrap">
+          <div className="wiz-title-row">
+            <input value={ch.titles[active] || ""}
+              onChange={e => updateChapter(ch.id, { title: e.target.value, titles: { ...ch.titles, [active]: e.target.value } })}
+              placeholder={`${idx + 1}-р бүлэг`} />
+            <button type="button" className="wiz-title-lang-btn"
+              onClick={() => setChLangOpenId(chLangOpenId === ch.id ? null : ch.id)}>
+              <span>{titleLangLabel(active)}</span>
+              <ChevronDown size={11} />
+              {chLangOpenId === ch.id && (
+                <div className="wiz-title-lang-drop" onMouseDown={e => e.stopPropagation()}>
+                  {TITLE_LANGS.map(l => (
+                    <div key={l.code} className={`wiz-title-lang-opt ${active === l.code ? "active" : ""}`}
+                      onMouseDown={() => { updateChapter(ch.id, { activeLang: l.code }); setChLangOpenId(null); }}>
+                      {l.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </button>
+          </div>
+          {active !== "en" && (
+            <div className="wiz-title-row wiz-title-en-row">
+              <span className="wiz-title-en-label">EN · заавал</span>
+              <input value={ch.titles.en || ""}
+                onChange={e => updateChapter(ch.id, { titles: { ...ch.titles, en: e.target.value } })}
+                placeholder="English / Latin гарчиг" />
+            </div>
+          )}
+          {extraCodes.map(code => (
+            <div className="wiz-title-row wiz-title-extra-row" key={code}>
+              <span className="wiz-title-extra-lang-badge">{titleLangLabel(code)}</span>
+              <input value={ch.titles[code] || ""}
+                onChange={e => updateChapter(ch.id, { titles: { ...ch.titles, [code]: e.target.value } })}
+                placeholder={`${titleLangLabel(code)} гарчиг`} />
+              <button type="button" className="wiz-title-remove-btn"
+                onClick={() => { const nt = { ...ch.titles }; delete nt[code]; updateChapter(ch.id, { titles: nt }); }}>
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+        {addableLangs.length > 0 && (
+          <div className="wiz-title-add-strip">
+            <span className="wiz-title-add-strip-label">Нэмэлт хувилбар:</span>
+            {addableLangs.map(l => (
+              <button key={l.code} type="button" className="wiz-title-add-btn"
+                onClick={() => updateChapter(ch.id, { titles: { ...ch.titles, [l.code]: "" } })}>
+                + {l.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const closeAll = () => { setAuthorOpen(false); setNarratorOpen(false); setGenreOpen(false); setTitleLangOpen(false); setChLangOpenId(null); };
 
   const s1ok = !!titleMn.trim() && authors.length > 0 && !!genre;
   const s2ok = chapters.length > 0 && chapters.some(c => c.sourceName && !c.uploading);
@@ -459,8 +550,11 @@ export default function SubmitAudioBookInfoScreen() {
         <div className="wiz-section">
           <div className="wiz-grid2">
             <div className="wiz-field">
-              <label className="wiz-label">Нийтлэгч / Хэвлэлийн газар</label>
-              <input value={publisher} onChange={e => setPublisher(e.target.value)} className="wiz-input" placeholder="Хэвлэлийн газар нэр" />
+              <label className="wiz-label">Нийтлэгч / Хэвлэлийн газар<InfoTip text="Аудио номын хэвлэлийн газар. Байхгүй бол хоосон орхино — артистын нэр ашиглагдана." /></label>
+              <div className="wiz-locked">
+                <div className="wiz-locked-main"><Building2 size={15} /><b>MOCO Records</b></div>
+                <span><Lock size={11} />Account тохиргооноос</span>
+              </div>
             </div>
             <div className="wiz-field">
               <label className="wiz-label">Хэл</label>
@@ -529,28 +623,23 @@ export default function SubmitAudioBookInfoScreen() {
           </div>
         </div>
 
-        {/* Copyright */}
+        {/* Copyright — always visible */}
         <div className="wiz-section">
-          <button type="button" onClick={() => setShowCopyright(v => !v)}
-            style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, color: "var(--w-text)", padding: "4px 0", width: "100%" }}>
-            {!cOwner && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--w-danger)", flexShrink: 0 }} />}
-            Зохиогчийн эрх
-            {!cOwner && <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 20, background: "#fde8e8", color: "var(--w-danger)" }}>Дутуу</span>}
-            {cOwner && <Check size={13} style={{ color: "#22c55e" }} />}
-            <ChevronDown size={14} style={{ marginLeft: "auto", transform: showCopyright ? "rotate(180deg)" : "", transition: "transform .2s" }} />
-          </button>
-          {showCopyright && (
-            <div className="wiz-grid2" style={{ marginTop: 12 }}>
-              <div className="wiz-field">
-                <label className="wiz-label">© Эзэмшигч <span className="wiz-req">*</span><InfoTip text="Оюуны өмчийн эрх эзэмшигч. Зохиолч, хэвлэлийн газар эсвэл компани байж болно." /></label>
-                <input value={cOwner} onChange={e => setCOwner(e.target.value)} className="wiz-input" placeholder="Хувь хүн эсвэл компани" />
-              </div>
-              <div className="wiz-field">
-                <label className="wiz-label">© Он<InfoTip text="Оюуны өмчийн эрх анх авсан жил." /></label>
-                <input type="number" value={cYear} onChange={e => setCYear(e.target.value)} min="1900" max="2030" className="wiz-input" />
-              </div>
-            </div>
-          )}
+          <div className="wiz-field" style={{ marginBottom: 6 }}>
+            <label className="wiz-label">
+              Зохиогчийн эрх <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>©</span>
+              <InfoTip text="Оюуны өмчийн эрх эзэмшигч болон он. Зохиолч, хэвлэлийн газар эсвэл компани байж болно." />
+            </label>
+          </div>
+          <div className="wiz-rights-row">
+            <input value={cOwner} onChange={e => setCOwner(e.target.value)} className="wiz-input" placeholder="Эрх эзэмшигчийн нэр эсвэл байгууллага" />
+            <select className="wiz-select wiz-rights-year" value={cYear} onChange={e => setCYear(e.target.value)}>
+              {Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
+                const y = new Date().getFullYear() - i;
+                return <option key={y} value={String(y)}>{y}</option>;
+              })}
+            </select>
+          </div>
         </div>
       </>
     );
@@ -558,10 +647,12 @@ export default function SubmitAudioBookInfoScreen() {
     // ── Stage 2 ────────────────────────────────────────────────────────────
     if (stage === 2) return (
       <>
-        <h2>Бүлгүүд</h2>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <span style={{ fontSize: 13, color: "var(--w-muted)" }}>{chapters.length} бүлэг</span>
-          <button type="button" className="wiz-btn" style={{ gap: 6 }}
+        <div className="wiz-add-song-bar">
+          <div>
+            <h2 style={{ margin: "0 0 4px" }}>Бүлгийн мэдээлэл</h2>
+            <div className="wiz-hint">Бүлэг бүрийн мэдээллийг нээгээд бөглөнө.</div>
+          </div>
+          <button type="button" className="wiz-btn" style={{ gap: 6, flexShrink: 0 }}
             onClick={() => setChapters(prev => [...prev, makeChapter(prev.length + 1)])}>
             <Plus size={13} />Бүлэг нэмэх
           </button>
@@ -570,13 +661,23 @@ export default function SubmitAudioBookInfoScreen() {
           {chapters.map((ch, idx) => {
             const isOpen = openChapter === idx;
             const hasFile = !!ch.sourceName;
+            const displayTitle = ch.titles?.[ch.activeLang || "mn"] || ch.title || `${idx + 1}-р бүлэг`;
             return (
-              <div key={ch.id} className="wiz-track">
-                <div className="wiz-track-head single" onClick={() => setOpenChapter(isOpen ? -1 : idx)}>
+              <div key={ch.id}
+                className={`wiz-track ${chDragOver === idx ? "drag-over" : ""} ${isOpen ? "open" : ""}`}
+                onDragOver={e => { e.preventDefault(); setChDragOver(idx); }}
+                onDragLeave={() => setChDragOver(null)}
+                onDrop={() => handleChapterDrop(idx)}>
+                <div className="wiz-track-head" onClick={() => setOpenChapter(isOpen ? -1 : idx)}>
+                  <div className="wiz-drag-handle" draggable onClick={e => e.stopPropagation()}
+                    onDragStart={() => { chDragFromRef.current = idx; }}
+                    onDragEnd={() => { setChDragOver(null); chDragFromRef.current = null; }}>
+                    <GripVertical size={14} />
+                  </div>
                   <span className="wiz-track-no">{idx + 1}</span>
                   <div className="wiz-track-main">
                     <div className="wiz-track-main-info">
-                      <span className="wiz-track-title">{ch.title || `${idx + 1}-р бүлэг`}</span>
+                      <span className="wiz-track-title">{displayTitle}</span>
                       <span className="wiz-track-meta-text">
                         {ch.uploading ? `Хуулж байна ${ch.uploadProgress}%` : hasFile ? `${ch.sourceName}${ch.duration ? " · " + ch.duration : ""}` : "Файл оруулаагүй"}
                       </span>
@@ -592,15 +693,12 @@ export default function SubmitAudioBookInfoScreen() {
                       </button>
                     </div>
                   </div>
-                  <ChevronDown size={14} style={{ color: "#aaa", transform: isOpen ? "rotate(180deg)" : "", transition: "transform .2s", flexShrink: 0 }} />
+                  {isOpen ? <ChevronUp size={16} style={{ color: "#999", flexShrink: 0 }} /> : <ChevronDown size={16} style={{ color: "#999", flexShrink: 0 }} />}
                 </div>
                 {isOpen && (
                   <div className="wiz-track-body">
                     <div className="wiz-track-panel">
-                      <div className="wiz-field">
-                        <label className="wiz-label">Бүлгийн гарчиг</label>
-                        <input value={ch.title} onChange={e => updateChapter(ch.id, { title: e.target.value })} className="wiz-input" placeholder={`${idx + 1}-р бүлэг`} />
-                      </div>
+                      {ChapterTitleEditor({ ch, idx })}
                       <div className="wiz-track-panel-head" style={{ marginTop: 14 }}>
                         <div className="wiz-track-panel-title"><AudioWaveform size={16} /><b>Аудио файл</b></div>
                         <span>WAV · FLAC · MP3</span>
@@ -779,8 +877,8 @@ export default function SubmitAudioBookInfoScreen() {
           <p style={{ color: "var(--w-muted)", marginTop: 6 }}>"{titleMn}" аудио ном шалгагдаж байна.</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
-          <button className="wiz-btn" onClick={() => navigate("/catalog")}>Каталог харах</button>
-          <button className="wiz-btn primary" onClick={() => navigate("/")}>Хяналтын самбар</button>
+          <button className="wiz-btn" onClick={() => navigate("/audiobooks")}>Каталог харах</button>
+          <button className="wiz-btn primary" onClick={() => navigate("/dashboard")}>Хяналтын самбар</button>
         </div>
       </div>
     );
@@ -832,7 +930,7 @@ export default function SubmitAudioBookInfoScreen() {
                     <div key={ch.id} className="wiz-review-track-row">
                       <div className="wiz-review-track-no">{i + 1}</div>
                       <div className="wiz-review-track-info">
-                        <b>{ch.title || `${i + 1}-р бүлэг`}</b>
+                        <b>{ch.titles?.[ch.activeLang || "mn"] || ch.title || `${i + 1}-р бүлэг`}</b>
                         <span>{ch.sourceName || "Файл оруулаагүй"}</span>
                       </div>
                       <div className="wiz-review-track-meta">

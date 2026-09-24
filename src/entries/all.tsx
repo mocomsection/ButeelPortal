@@ -11,10 +11,23 @@ export const OnboardingComplete    = makePage('/onboarding/complete');
 export const Dashboard             = makePage('/dashboard');
 export const Revenue               = makePage('/revenue');
 export const RevenueStatement      = makePage('/revenue/statement');
-export const Catalog               = makePage('/catalog');
-export const CatalogMusicRelease    = makePage('/catalog/music/release');
-export const CatalogAudiobookBook   = makePage('/catalog/audiobook/book');
-export const CatalogFilmFilm        = makePage('/catalog/film/film');
+// ── Content catalogs ──────────────────────────────────────────────────────────
+export const Releases              = makePage('/releases');
+export const ReleasesNew           = makePage('/releases/new');
+export const ReleasesNewSingle     = makePage('/releases/new/single');
+export const ReleasesNewAlbum      = makePage('/releases/new/album');
+export const Audiobooks            = makePage('/audiobooks');
+export const AudiobooksNew         = makePage('/audiobooks/new');
+export const Movies                = makePage('/movies');
+export const MoviesNew             = makePage('/movies/new');
+
+// ── Legacy aliases (backward compat) ─────────────────────────────────────────
+export const Catalog               = makePage('/releases');
+export const CatalogMusicRelease   = makePage('/releases');
+export const CatalogAudiobookBook  = makePage('/audiobooks');
+export const CatalogFilmFilm       = makePage('/movies');
+export const SubmitAudiobookInfo   = makePage('/audiobooks/new');
+export const SubmitFilmInfo        = makePage('/movies/new');
 export const Submit                = makePage('/submit');
 export const SubmitReleaseInfo     = makePage('/submit/release-info');
 export const SubmitTracks          = makePage('/submit/tracks');
@@ -22,8 +35,6 @@ export const SubmitCoverArt        = makePage('/submit/cover-art');
 export const SubmitSettings        = makePage('/submit/settings');
 export const SubmitReview          = makePage('/submit/review');
 export const SubmitSuccess         = makePage('/submit/success');
-export const SubmitAudiobookInfo   = makePage('/submit/audiobook');
-export const SubmitFilmInfo        = makePage('/submit/film');
 export const AccountStatus         = makePage('/account');
 export const AccountTax            = makePage('/account/tax');
 export const AccountAgreement      = makePage('/account/agreement');

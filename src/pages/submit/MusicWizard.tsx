@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams, useParams, useLocation } from "react-router";
 import { Shell } from "@/components/layout/Shell";
 import {
   Music2, Disc3, ArrowLeft, ArrowRight, Send, CloudUpload,
@@ -13,6 +13,17 @@ import {
 } from "lucide-react";
 import "@/styles/wizard.css";
 import { RELEASES } from "@/data/releases";
+import skymelodyLogo from "@/imports/skymelody.png";
+import unimusicLogo from "@/imports/unimusic.png";
+import gtoneLogo from "@/imports/gtone.png";
+import hitoneLogo from "@/imports/hitone.png";
+
+const SERVICE_LOGOS: Record<string, string> = {
+  "SkyMelody": skymelodyLogo,
+  "Unimusic":  unimusicLogo,
+  "GTone":     gtoneLogo,
+  "Hitone":    hitoneLogo,
+};
 
 // ─── types ───────────────────────────────────────────────────────────────────
 type Mode = "single" | "album";
@@ -35,6 +46,7 @@ type Track = {
   vocalLanguage: string; lyrics: string;
   credits: TrackCredits;
   source: "new" | "existing";
+  releaseStatus?: "live" | "approved" | "draft" | "denied" | "taken_down";
   usages: { album: string; upc: string; date: string }[];
 };
 type Cover = { name: string; dataUrl: string; width: number; height: number; size: number };
@@ -70,6 +82,9 @@ const OTHER_ROLES: Record<string, string> = {
   mastering_engineer: "Mastering Engineer",
   recording_engineer: "Recording Engineer",
 };
+type SongStatus = NonNullable<Track["releaseStatus"]>;
+const ELIGIBLE_SONG_STATUSES: Set<SongStatus> = new Set(["approved", "live"]);
+
 const SONG_LIBRARY: Track[] = [
   {
     assetId: "AST-000701", title: "Бороо",
@@ -81,7 +96,7 @@ const SONG_LIBRARY: Track[] = [
     genre: "Pop", secondaryGenre: "R&B / Soul",
     hasLyrics: true, explicitStatus: "not_explicit", vocalLanguage: "mn", lyrics: "Бороо орж байна...\nЧамайг санаж байна...",
     credits: { composer: [{ id: "CON-001", name: "Золбоо Энхтүвшин", affiliation: "ASCAP" }], lyricist: [], other: [] },
-    source: "existing",
+    source: "existing", releaseStatus: "live",
     usages: [{ album: "Шөнийн хот", upc: "865123456789", date: "2026-05-18" }],
   },
   {
@@ -94,7 +109,7 @@ const SONG_LIBRARY: Track[] = [
     genre: "Pop", secondaryGenre: "Hip-Hop / Rap",
     hasLyrics: true, explicitStatus: "explicit", vocalLanguage: "mn", lyrics: "",
     credits: { composer: [], lyricist: [], other: [] },
-    source: "existing",
+    source: "existing", releaseStatus: "live",
     usages: [{ album: "Дурсамж", upc: "865111222333", date: "2026-02-14" }],
   },
   {
@@ -107,7 +122,31 @@ const SONG_LIBRARY: Track[] = [
     genre: "Rock", secondaryGenre: "Alternative",
     hasLyrics: false, explicitStatus: "not_explicit", vocalLanguage: "", lyrics: "",
     credits: { composer: [], lyricist: [], other: [] },
-    source: "existing", usages: [],
+    source: "existing", releaseStatus: "approved", usages: [],
+  },
+  {
+    assetId: "AST-000503", title: "Манлай",
+    titles: { mn: "Манлай", en: "Champion" }, activeLang: "mn",
+    duration: "03:55", sourceName: "ThunderZ - Manlay.wav", fileFormat: "WAV", sampleRate: "44.1 kHz", bitDepth: "16-bit",
+    audioUrl: "", playing: false, uploading: false, uploadProgress: 0, pendingSourceName: "",
+    isrc: "MN-THZ-25-00088", hasOwnISRC: true, isrcMode: "existing",
+    primaryArtists: [{ id: "ART-000391", name: "ThunderZ" }], featuredArtists: [],
+    genre: "Hip-Hop / Rap", secondaryGenre: "",
+    hasLyrics: true, explicitStatus: "not_explicit", vocalLanguage: "mn", lyrics: "",
+    credits: { composer: [], lyricist: [], other: [] },
+    source: "existing", releaseStatus: "draft", usages: [],
+  },
+  {
+    assetId: "AST-000412", title: "Замын Эхлэл",
+    titles: { mn: "Замын Эхлэл", en: "Start of the Road" }, activeLang: "mn",
+    duration: "02:58", sourceName: "Wasabies - Zamiin.wav", fileFormat: "WAV", sampleRate: "48 kHz", bitDepth: "24-bit",
+    audioUrl: "", playing: false, uploading: false, uploadProgress: 0, pendingSourceName: "",
+    isrc: "MN-WBS-25-00041", hasOwnISRC: true, isrcMode: "existing",
+    primaryArtists: [{ id: "ART-000184", name: "The Wasabies" }], featuredArtists: [],
+    genre: "Rock", secondaryGenre: "Alternative",
+    hasLyrics: false, explicitStatus: "not_explicit", vocalLanguage: "mn", lyrics: "",
+    credits: { composer: [], lyricist: [], other: [] },
+    source: "existing", releaseStatus: "denied", usages: [],
   },
 ];
 
@@ -189,15 +228,19 @@ function WaveBars({ seed = 0 }) {
 export default function MusicWizard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { id: pathId } = useParams<{ id?: string }>();
+  const { pathname } = useLocation();
 
-  // mode selection — pre-set from URL ?mode=single|album
+  // mode from path (/releases/new/single or /releases/new/album) or ?mode= query param
+  const pathMode: Mode | null = pathname.endsWith("/single") ? "single" : pathname.endsWith("/album") ? "album" : null;
   const urlMode = searchParams.get("mode") as Mode | null;
-  const editId = searchParams.get("edit");
+  // edit id from path param (/releases/:id/edit) or ?edit= query param
+  const editId = pathId ?? searchParams.get("edit");
   const editRelease = editId ? RELEASES.find(r => r.id === editId) : null;
   const isRevisionEdit = editRelease?.status === "revision";
   const autoMode: Mode | null = editRelease
     ? (editRelease.type === "Single" ? "single" : "album")
-    : (urlMode === "single" || urlMode === "album" ? urlMode : null);
+    : (pathMode ?? (urlMode === "single" || urlMode === "album" ? urlMode : null));
   const [mode, setMode] = useState<Mode | null>(autoMode);
   const [stage, setStage] = useState<Stage>(1);
 
@@ -495,7 +538,7 @@ export default function MusicWizard() {
   }
   function handleBack() {
     if (stage > 1) goStage((stage - 1) as Stage);
-    else navigate("/submit");
+    else navigate("/releases");
   }
 
   function portalType() {
@@ -780,7 +823,25 @@ export default function MusicWizard() {
   }
 
   function AudioSourceCard({ t, idx }: { t: Track; idx: number }) {
+    const isLinked = t.source === "existing";
+
     if (!t.sourceName) {
+      // existing-sourced track without a stored filename — show locked empty state
+      if (isLinked) {
+        return (
+          <div className="wiz-audio-source">
+            <div className="wiz-audio-empty" style={{ opacity: 0.7 }}>
+              <div>
+                <b>Аудио файл холбогдсон</b>
+                <span>Эх сурвалжийн аудиог солих боломжгүй.</span>
+              </div>
+              <span className="wiz-status-pill" style={{ background: "#f0fdf4", color: "#166534", borderColor: "#bbf7d0", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                <Lock size={10} />Холбогдсон
+              </span>
+            </div>
+          </div>
+        );
+      }
       return (
         <div className="wiz-audio-source">
           <div className="wiz-audio-empty">
@@ -806,14 +867,21 @@ export default function MusicWizard() {
       <div className="wiz-audio-source">
         <div className="wiz-audio-source-top">
           <button className="wiz-audio-play" disabled={!t.audioUrl}><Play size={13} /></button>
-          <div className="wiz-audio-file"><b>{t.sourceName}</b><span>Track source</span></div>
+          <div className="wiz-audio-file"><b>{t.sourceName}</b><span>{isLinked ? "Холбогдсон · солих боломжгүй" : "Track source"}</span></div>
           <div className="wiz-audio-duration">{t.duration || "—"}</div>
           <WaveBars seed={idx + 1} />
-          <div className="wiz-audio-actions">
-            <button className="wiz-btn" style={{ fontSize: 11, gap: 5 }} onClick={() => uploadRefs.current[t.assetId]?.click()}><RefreshCw size={12} />Дахин хуулах</button>
-            <button className="wiz-btn icon-btn" onClick={() => updateTrack(idx, { sourceName: "", fileFormat: "", sampleRate: "", bitDepth: "", duration: "", audioUrl: "" })}><Trash2 size={13} /></button>
-          </div>
-          <input ref={el => { uploadRefs.current[t.assetId] = el; }} type="file" accept="audio/*" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) simulateUpload(idx, f); e.target.value = ""; }} />
+          {!isLinked && (
+            <div className="wiz-audio-actions">
+              <button className="wiz-btn" style={{ fontSize: 11, gap: 5 }} onClick={() => uploadRefs.current[t.assetId]?.click()}><RefreshCw size={12} />Дахин хуулах</button>
+              <button className="wiz-btn icon-btn" onClick={() => updateTrack(idx, { sourceName: "", fileFormat: "", sampleRate: "", bitDepth: "", duration: "", audioUrl: "" })}><Trash2 size={13} /></button>
+            </div>
+          )}
+          {isLinked && (
+            <span className="wiz-status-pill" style={{ background: "#f0fdf4", color: "#166534", borderColor: "#bbf7d0", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+              <Lock size={10} />Холбогдсон
+            </span>
+          )}
+          {!isLinked && <input ref={el => { uploadRefs.current[t.assetId] = el; }} type="file" accept="audio/*" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) simulateUpload(idx, f); e.target.value = ""; }} />}
         </div>
         <div className="wiz-audio-meta">
           <span className="source-name">{t.sourceName}</span>
@@ -1150,8 +1218,10 @@ export default function MusicWizard() {
 
   function Stage2() {
     const libFiltered = SONG_LIBRARY.filter(s =>
-      s.title.toLowerCase().includes(addSongSearch.toLowerCase()) ||
-      s.primaryArtists.some(a => a.name.toLowerCase().includes(addSongSearch.toLowerCase()))
+      ELIGIBLE_SONG_STATUSES.has(s.releaseStatus ?? "live") && (
+        s.title.toLowerCase().includes(addSongSearch.toLowerCase()) ||
+        s.primaryArtists.some(a => a.name.toLowerCase().includes(addSongSearch.toLowerCase()))
+      )
     );
     const addedIds = new Set(tracks.map(t => t.assetId));
 
@@ -1171,17 +1241,19 @@ export default function MusicWizard() {
 
         <div className="wiz-tracks">
           {tracks.map((t, i) => {
-            const opened = openTrack === i;
+            const opened = isSingle || openTrack === i;
             const displayTitle = isSingle ? (titlesMn || titlesEn || "Дуу нэмэх") : (t.titles?.mn || t.title || "Нэргүй дуу");
             const primaryNames = isSingle ? primary.map(a => a.name).join(", ") : t.primaryArtists?.map(a => a.name).join(", ") || "";
             const featNames = isSingle ? featured.map(a => a.name).join(", ") : t.featuredArtists?.map(a => a.name).join(", ") || "";
             const artistText = [primaryNames || "Артист сонгоогүй", featNames ? `(feat. ${featNames})` : ""].filter(Boolean).join(" ");
             return (
-              <div key={t.assetId} className={`wiz-track ${dragOver === i ? "drag-over" : ""} ${openTrack === i ? "open" : ""}`}
+              <div key={t.assetId} className={`wiz-track ${dragOver === i ? "drag-over" : ""} ${opened ? "open" : ""}`}
                 onDragOver={e => { e.preventDefault(); setDragOver(i); }}
                 onDragLeave={() => setDragOver(null)}
                 onDrop={() => handleDrop(i)}>
-                <div className={`wiz-track-head ${isSingle ? "single" : ""}`} onClick={() => setOpenTrack(opened ? -1 : i)}>
+                <div className={`wiz-track-head ${isSingle ? "single" : ""}`}
+                  onClick={isSingle ? undefined : () => setOpenTrack(opened ? -1 : i)}
+                  style={isSingle ? { cursor: "default" } : undefined}>
                   {!isSingle && (
                     <div className="wiz-drag-handle" draggable onClick={e => e.stopPropagation()}
                       onDragStart={() => { setDragFrom(i); dragFromRef.current = i; }}
@@ -1201,10 +1273,10 @@ export default function MusicWizard() {
                         : <span className="wiz-status-pill">ISRC үүснэ</span>}
                       <span className="wiz-status-pill">{t.hasLyrics === true ? "Үгтэй" : t.hasLyrics === false ? "Үггүй" : "Үг сонгоогүй"}</span>
                       {t.explicitStatus === "explicit" && <span className="wiz-status-pill" style={{ background: "#fff5f6", color: "#cf4b5e", borderColor: "#f5c2c7" }}>E</span>}
-                      {t.sourceName && <span className="wiz-status-pill ok">Audio ✓</span>}
+                      {(t.sourceName || t.source === "existing") && <span className="wiz-status-pill ok">{t.source === "existing" ? "Audio холбогдсон" : "Audio ✓"}</span>}
                     </div>
                   </div>
-                  {opened ? <ChevronUp size={16} style={{ color: "#999", flexShrink: 0 }} /> : <ChevronDown size={16} style={{ color: "#999", flexShrink: 0 }} />}
+                  {!isSingle && (opened ? <ChevronUp size={16} style={{ color: "#999", flexShrink: 0 }} /> : <ChevronDown size={16} style={{ color: "#999", flexShrink: 0 }} />)}
                 </div>
                 {opened && TrackBody({ t, idx: i })}
               </div>
@@ -1212,7 +1284,7 @@ export default function MusicWizard() {
           })}
         </div>
 
-        {/* Add track row — below tracks, album mode */}
+        {/* Add track row — below tracks, album mode only */}
         {!isSingle && (
           <button
             type="button"
@@ -1220,14 +1292,6 @@ export default function MusicWizard() {
             onClick={() => { setShowAddSong(true); setAddSongSel(new Set()); setPendingUploads([]); setAddSongSearch(""); }}
           >
             <Plus size={14} />Дуу нэмэх
-          </button>
-        )}
-
-        {/* Add song for single mode */}
-        {isSingle && !tracks[0]?.sourceName && !showAddSong && (
-          <button className="wiz-btn" style={{ marginTop: 12, width: "100%", justifyContent: "center" }}
-            onClick={() => { setShowAddSong(true); setAddSongSel(new Set()); setPendingUploads([]); setAddSongSearch(""); }}>
-            <Plus size={14} />Өмнөх дуу ашиглах
           </button>
         )}
       </>
@@ -1326,7 +1390,10 @@ export default function MusicWizard() {
           <div className="wiz-bundle-services">
             {svcList.map(name => (
               <div key={name} className="wiz-bundle-service">
-                <span className="wiz-service-logo">{serviceIconLabel(name)}</span>
+                {SERVICE_LOGOS[name]
+                  ? <img src={SERVICE_LOGOS[name]} alt={name} className="wiz-service-logo" style={{ objectFit: "contain", padding: 4 }} />
+                  : <span className="wiz-service-logo">{serviceIconLabel(name)}</span>
+                }
                 <b>{name}</b>
               </div>
             ))}
@@ -1517,7 +1584,7 @@ export default function MusicWizard() {
 
     // Stage 2
     const n = tracks.length;
-    const nAudio    = tracks.filter(t => !!t.sourceName).length;
+    const nAudio    = tracks.filter(t => t.source === "existing" || !!t.sourceName).length;
     const nIsrc     = tracks.filter(isrcComplete).length;
     const nLyrics   = tracks.filter(t => t.hasLyrics !== null).length;
     const nComposer = tracks.filter(t => t.credits.composer.length > 0).length;
@@ -1810,9 +1877,11 @@ export default function MusicWizard() {
     if (!showAddSong && !showReleasedPicker) return null;
     const addedIds = new Set(tracks.map(t => t.assetId));
     const libFiltered = SONG_LIBRARY.filter(s =>
-      s.title.toLowerCase().includes(addSongSearch.toLowerCase()) ||
-      s.primaryArtists.some(a => a.name.toLowerCase().includes(addSongSearch.toLowerCase())) ||
-      (s.isrc || "").toLowerCase().includes(addSongSearch.toLowerCase())
+      ELIGIBLE_SONG_STATUSES.has(s.releaseStatus ?? "live") && (
+        s.title.toLowerCase().includes(addSongSearch.toLowerCase()) ||
+        s.primaryArtists.some(a => a.name.toLowerCase().includes(addSongSearch.toLowerCase())) ||
+        (s.isrc || "").toLowerCase().includes(addSongSearch.toLowerCase())
+      )
     );
     const totalSel = addSongSel.size + pendingUploads.length;
 
@@ -1904,14 +1973,7 @@ export default function MusicWizard() {
                 </div>
               </>
             )}
-            {isSingle && (
-              <>
-                <div className="wiz-or-divider">эсвэл</div>
-                <button className="wiz-btn" style={{ width: "100%", justifyContent: "center" }} onClick={() => { setShowAddSong(false); setShowReleasedPicker(true); }}>
-                  Өмнө гаргасан дуу ашиглах
-                </button>
-              </>
-            )}
+{/* "Add Existing Single" is album/EP-only — not shown in single mode */}
           </div>
           <div className="wiz-add-track-footer">
             <button className="wiz-btn" onClick={() => setShowAddSong(false)}>Болих</button>
