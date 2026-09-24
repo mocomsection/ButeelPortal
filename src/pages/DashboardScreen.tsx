@@ -10,7 +10,10 @@ import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { RELEASES } from "@/data/releases";
+import { AUDIOBOOKS } from "@/data/audiobooks";
+import { MOVIES } from "@/data/movies";
 import type { ReleaseData } from "@/types";
+const ALL_RELEASES = [...RELEASES, ...AUDIOBOOKS, ...MOVIES];
 
 function typeLabel(r: ReleaseData) {
   if (r.contentType === "audiobook") return "Аудио ном";
@@ -29,16 +32,16 @@ const ADD_TYPES = [
 export default function DashboardScreen() {
   const navigate = useNavigate();
 
-  const music      = RELEASES.filter(r => r.contentType === "music");
-  const audiobooks = RELEASES.filter(r => r.contentType === "audiobook");
-  const films      = RELEASES.filter(r => r.contentType === "film");
+  const music      = ALL_RELEASES.filter(r => r.contentType === "music");
+  const audiobooks = ALL_RELEASES.filter(r => r.contentType === "audiobook");
+  const films      = ALL_RELEASES.filter(r => r.contentType === "film");
 
-  const distributed = RELEASES.filter(r => r.status === "distributed").length;
-  const draft       = RELEASES.filter(r => r.status === "draft").length;
-  const waiting     = RELEASES.filter(r => r.status === "reviewing" || r.status === "submitted").length;
-  const revision    = RELEASES.filter(r => r.status === "revision").length;
+  const distributed = ALL_RELEASES.filter(r => r.status === "distributed").length;
+  const draft       = ALL_RELEASES.filter(r => r.status === "draft").length;
+  const waiting     = ALL_RELEASES.filter(r => r.status === "reviewing" || r.status === "submitted").length;
+  const revision    = ALL_RELEASES.filter(r => r.status === "revision").length;
 
-  const recentContent = [...RELEASES].reverse().slice(0, 8);
+  const recentContent = [...ALL_RELEASES].reverse().slice(0, 8);
 
   return (
     <Shell title="Хяналтын самбар">
@@ -68,7 +71,7 @@ export default function DashboardScreen() {
             </div>
           </div>
           <p className="text-xs font-semibold text-muted-foreground mb-1">Нийт контент</p>
-          <div className="text-2xl font-extrabold text-foreground mb-3">{RELEASES.length}</div>
+          <div className="text-2xl font-extrabold text-foreground mb-3">{ALL_RELEASES.length}</div>
           <div className="space-y-2 mt-auto">
             {[
               { label: "Хөгжим",    count: music.length,      color: "bg-primary",    text: "text-primary" },
@@ -79,7 +82,7 @@ export default function DashboardScreen() {
                 <span className="text-[11px] text-muted-foreground w-[4.5rem] flex-shrink-0">{label}</span>
                 <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
                   <div className={`h-full rounded-full ${color}`}
-                    style={{ width: `${Math.round((count / RELEASES.length) * 100)}%` }} />
+                    style={{ width: `${Math.round((count / ALL_RELEASES.length) * 100)}%` }} />
                 </div>
                 <span className={`text-[11px] font-extrabold tabular-nums w-4 text-right ${text}`}>{count}</span>
               </div>
@@ -121,7 +124,7 @@ export default function DashboardScreen() {
             </div>
           </div>
           <p className="text-xs font-semibold text-muted-foreground mb-1">Идэвхтэй түгээлт</p>
-          <div className="text-2xl font-extrabold text-foreground mb-3">{distributed} / {RELEASES.length}</div>
+          <div className="text-2xl font-extrabold text-foreground mb-3">{distributed} / {ALL_RELEASES.length}</div>
           <div className="space-y-2 mt-auto">
             <div className="flex items-center gap-2">
               <Clock size={11} className="text-blue-500 flex-shrink-0" />

@@ -4,22 +4,23 @@ import {
   Plus, User, CreditCard, AlertCircle, Clock, CheckCircle2,
   Building2, Shield, Tag, BadgeCheck, Lock, FileText,
   ChevronRight, Receipt, Pencil, ArrowUpRight, MessageSquare, Send,
+  Music2, Film, BookOpen,
 } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
-import { OB_AGREEMENTS } from "@/data/agreements";
+import { OB_CONTRACTS } from "@/data/agreements";
+import { getAccountState } from "@/data/ob-state";
 
 type AccountTab = "info" | "agreements" | "bank" | "security";
 
 const TABS: { id: AccountTab; label: string; icon: React.ElementType }[] = [
-  { id: "info",       label: "Мэдээлэл",        icon: User        },
-  { id: "agreements", label: "Гэрээ",            icon: FileText    },
-  { id: "bank",       label: "Банк",             icon: CreditCard  },
-  { id: "security",   label: "Үйл ажиллагаа",   icon: Shield      },
+  { id: "info",       label: "Мэдээлэл",      icon: User      },
+  { id: "agreements", label: "Гэрээ",          icon: FileText  },
+  { id: "bank",       label: "Банк",           icon: CreditCard},
+  { id: "security",   label: "Үйл ажиллагаа", icon: Shield    },
 ];
 
-// ── account-level activity log (changes to account data only) ────────────────
 const ACCOUNT_LOG = [
   { icon: BadgeCheck, label: "E-Mongolia баталгаажуулалт хийгдсэн", detail: "Болд Жаргал · УН12345678", time: "2026-09-15 10:12", color: "text-green-600", bg: "bg-green-50" },
   { icon: CreditCard, label: "Банкны данс нэмэгдсэн",               detail: "Хаан банк · ****7890",     time: "2026-09-10 14:33", color: "text-blue-600",  bg: "bg-blue-50"  },
@@ -31,10 +32,12 @@ const ACCOUNT_LOG = [
 
 export default function AccountStatusScreen() {
   const navigate = useNavigate();
+  const accState = getAccountState();
+
   const [demoAccType, setDemoAccType] = useState<"individual" | "org">("individual");
-  const [mongoVerified, setMongoVerified]         = useState(false);
+  const [mongoVerified, setMongoVerified]           = useState(false);
   const [accountInfoSubmitted, setAccountInfoSubmitted] = useState(false);
-  const [showLabelRequest, setShowLabelRequest]   = useState(false);
+  const [showLabelRequest, setShowLabelRequest]     = useState(false);
   const [tab, setTab] = useState<AccountTab>("info");
   const [vatPayer, setVatPayer] = useState(false);
 
@@ -53,20 +56,29 @@ export default function AccountStatusScreen() {
     : { initials: "БЖ", name: "Болд Жаргал",        register: "УН12345678", taxNo: "9900112233" };
 
   const bankNameMismatch = bankHolderName.trim() !== "" && bankHolderName.trim() !== accInfo.name;
-
   const completionItems = [accountInfoSubmitted, mongoVerified, true, bankSubmitted];
   const completionPct   = Math.round((completionItems.filter(Boolean).length / completionItems.length) * 100);
 
   const tabStatus: Record<AccountTab, "ok" | "warn" | "none"> = {
     info:       mongoVerified ? "ok" : "warn",
-    agreements: "ok",
+    agreements: accState.signedContracts.length > 0 ? "ok" : "warn",
     bank:       bankSubmitted ? "ok" : "warn",
     security:   "none",
   };
 
+  // Signed contracts from account state (fallback: demo shows music signed)
+  const signedIds: string[] = accState.signedContracts.length > 0
+    ? accState.signedContracts
+    : ["music"]; // demo fallback
+
+  // Setup data from account state
+  const musicSetup = accState.setups?.["music"] ?? { name: "Steppe Records" };
+  const filmSetup  = accState.setups?.["film"];
+  const abSetup    = accState.setups?.["audiobook"];
+
   return (
     <Shell title="Аккаунтын Тохиргоо">
-      {/* ── Support request modal (E-Mongolia lock) ── */}
+      {/* Support modal */}
       {showSupportModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => { if (!supportSent) setShowSupportModal(false); }}>
@@ -103,21 +115,17 @@ export default function AccountStatusScreen() {
                   <label className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">
                     Шалтгааны тайлбар <span className="text-red-500">*</span>
                   </label>
-                  <textarea
-                    value={supportReason}
-                    onChange={e => setSupportReason(e.target.value)}
-                    placeholder="Жишээ: Нэрийн алдаа засах, гэрлэлтийн улмаас овог солигдсон гэх мэт..."
+                  <textarea value={supportReason} onChange={e => setSupportReason(e.target.value)}
+                    placeholder="Жишээ: Нэрийн алдаа засах, гэрлэлтийн улмаас овог солигдсон..."
                     rows={4}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-background resize-none"
-                  />
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-background resize-none" />
                 </div>
                 <div className="flex gap-3 mt-5">
                   <button type="button" onClick={() => setShowSupportModal(false)}
                     className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors">
                     Болих
                   </button>
-                  <button type="button"
-                    disabled={!supportReason.trim()}
+                  <button type="button" disabled={!supportReason.trim()}
                     onClick={() => { if (supportReason.trim()) setSupportSent(true); }}
                     className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #000))" }}>
@@ -130,7 +138,7 @@ export default function AccountStatusScreen() {
         </div>
       )}
 
-      {/* ── Label request modal ── */}
+      {/* Label request modal */}
       {showLabelRequest && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setShowLabelRequest(false)}>
@@ -161,19 +169,16 @@ export default function AccountStatusScreen() {
       )}
 
       <div className="max-w-2xl space-y-5">
-
-        {/* ── Profile summary card ── */}
+        {/* Profile summary card */}
         <div className="relative overflow-hidden rounded-2xl border border-violet-100 shadow-sm"
           style={{ background: "linear-gradient(135deg,#F5F3FF 0%,#EEF2FF 100%)" }}>
           <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full opacity-[0.07] pointer-events-none"
             style={{ background: "var(--primary)" }} />
           <div className="px-5 py-4 flex items-center gap-4 relative">
-            {/* Avatar */}
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md"
               style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 72%, #000))" }}>
               {accInfo.initials}
             </div>
-            {/* Name + type */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-extrabold text-zinc-900 text-base leading-tight">{accInfo.name}</span>
@@ -188,7 +193,6 @@ export default function AccountStatusScreen() {
               </div>
               <p className="text-xs text-zinc-500 mt-1">Регистр: {accInfo.register}</p>
             </div>
-            {/* Completion */}
             <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <div className="w-24 h-1.5 bg-white/70 rounded-full overflow-hidden border border-violet-200">
@@ -200,7 +204,6 @@ export default function AccountStatusScreen() {
               <span className="text-[11px] text-zinc-400">Профайл бэлэн</span>
             </div>
           </div>
-          {/* DEMO toggle */}
           <div className="px-5 pb-3 flex items-center gap-2 border-t border-violet-100/60 pt-2.5">
             <span className="text-[10px] font-bold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded">DEMO</span>
             <button type="button" onClick={() => setDemoAccType(t => t === "individual" ? "org" : "individual")}
@@ -210,7 +213,7 @@ export default function AccountStatusScreen() {
           </div>
         </div>
 
-        {/* ── Tabs ── */}
+        {/* Tabs */}
         <div className="flex gap-1 bg-muted/40 p-1 rounded-2xl border border-border">
           {TABS.map(t => {
             const st = tabStatus[t.id];
@@ -219,9 +222,7 @@ export default function AccountStatusScreen() {
             return (
               <button key={t.id} type="button" onClick={() => setTab(t.id)}
                 className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                  active
-                    ? "bg-white text-foreground shadow-sm border border-border/60"
-                    : "text-muted-foreground hover:text-foreground"
+                  active ? "bg-white text-foreground shadow-sm border border-border/60" : "text-muted-foreground hover:text-foreground"
                 }`}>
                 <Icon size={13} className={active ? "text-primary" : ""} />
                 <span className="hidden sm:inline">{t.label}</span>
@@ -232,28 +233,23 @@ export default function AccountStatusScreen() {
           })}
         </div>
 
-        {/* ══════════ МЭДЭЭЛЭЛ ══════════ */}
+        {/* ══ МЭДЭЭЛЭЛ ══ */}
         {tab === "info" && (
           <div className="space-y-4">
-
-            {/* Account fields */}
             <Card className="p-5">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-bold text-sm text-foreground">Аккаунтын мэдээлэл</p>
                     {mongoVerified
-                      ? (
-                        <button type="button" onClick={() => setShowSupportModal(true)}
-                          className="flex items-center gap-1 text-xs font-semibold text-amber-600 hover:underline leading-none">
+                      ? <button type="button" onClick={() => setShowSupportModal(true)}
+                          className="flex items-center gap-1 text-xs font-semibold text-amber-600 hover:underline">
                           <MessageSquare size={11} />Support
                         </button>
-                      ) : (
-                        <button type="button" onClick={() => navigate(`/account/tax?type=${isOrg ? "org" : "individual"}`)}
-                          className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline leading-none">
+                      : <button type="button" onClick={() => navigate(`/account/tax?type=${isOrg ? "org" : "individual"}`)}
+                          className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
                           <Pencil size={11} />Засах
                         </button>
-                      )
                     }
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">Татварын болон бүртгэлийн мэдээлэл</p>
@@ -264,11 +260,10 @@ export default function AccountStatusScreen() {
                   )}
                 </div>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
                 {(isOrg
                   ? [["Байгууллагын нэр", accInfo.name], ["Регистр", accInfo.register], ["ТТД", accInfo.taxNo]]
-                  : [["Овог нэр",         accInfo.name], ["Регистр", accInfo.register], ["ТТД", accInfo.taxNo]]
+                  : [["Овог нэр", accInfo.name], ["Регистр", accInfo.register], ["ТТД", accInfo.taxNo]]
                 ).map(([k, v]) => (
                   <div key={k} className="bg-muted/40 rounded-xl px-3.5 py-2.5 border border-border/60">
                     <p className="text-[10px] font-bold uppercase text-muted-foreground">{k}</p>
@@ -276,8 +271,6 @@ export default function AccountStatusScreen() {
                   </div>
                 ))}
               </div>
-
-              {/* НӨАТ */}
               <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-border/60 bg-muted/30">
                 <span className="text-sm text-foreground">НӨАТ төлөгч:</span>
                 <span className={`text-sm font-semibold ${vatPayer ? "text-green-600" : "text-muted-foreground"}`}>
@@ -311,9 +304,7 @@ export default function AccountStatusScreen() {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-bold text-zinc-800">E-Mongolia-аар баталгаажуулах</p>
-                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed">
-                          Орлого авах болон банкны данс нэмэхийн өмнө шаардлагатай
-                        </p>
+                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed">Орлого авах болон банкны данс нэмэхийн өмнө шаардлагатай</p>
                       </div>
                     </div>
                     <button type="button" onClick={() => { setAccountInfoSubmitted(true); setMongoVerified(true); }}
@@ -326,54 +317,102 @@ export default function AccountStatusScreen() {
               </div>
             </Card>
 
-            {/* Labels */}
-            <Card className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="font-bold text-sm text-foreground">Лейблүүд</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Контент нийтлэх лейбл байгууллагууд</p>
+            {/* Label/Setup info from signed contracts */}
+            {(signedIds.includes("music") || signedIds.includes("film") || signedIds.includes("audiobook")) && (
+              <Card className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="font-bold text-sm text-foreground">Гэрээний тохиргоо</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Зурсан гэрээнүүдийн лейбл болон байгууллагын нэрс</p>
+                  </div>
+                  <Btn variant="ghost" size="sm" onClick={() => setTab("agreements")}>Гэрээнүүд</Btn>
                 </div>
-                <button type="button" onClick={() => setShowLabelRequest(true)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground border border-dashed border-border px-3 py-1.5 rounded-xl hover:border-primary/50 hover:text-primary transition-colors">
-                  <Plus size={12} />Нэмэх
-                </button>
-              </div>
-              <div className="flex items-center gap-3 px-4 py-3 bg-secondary/40 border border-border/60 rounded-xl">
-                <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold flex-shrink-0">SR</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-foreground">Steppe Records</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Үүсгэсэн: 2024-10-15 · Контент: 5</p>
+                <div className="space-y-2">
+                  {signedIds.includes("music") && musicSetup && (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl">
+                      <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+                        <Music2 size={14} className="text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-foreground truncate">{musicSetup.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Хөгжмийн лейбл</p>
+                      </div>
+                      <span className="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg flex-shrink-0">Идэвхтэй</span>
+                    </div>
+                  )}
+                  {signedIds.includes("film") && filmSetup && (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-rose-50 border border-rose-100 rounded-xl">
+                      <div className="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center flex-shrink-0">
+                        <Film size={14} className="text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-foreground truncate">{filmSetup.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Продакшн компани</p>
+                      </div>
+                      <span className="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg flex-shrink-0">Идэвхтэй</span>
+                    </div>
+                  )}
+                  {signedIds.includes("audiobook") && abSetup && (
+                    <div className="flex items-center gap-3 px-4 py-3 bg-violet-50 border border-violet-100 rounded-xl">
+                      <div className="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center flex-shrink-0">
+                        <BookOpen size={14} className="text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-foreground truncate">{abSetup.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Нийтлэгч</p>
+                      </div>
+                      <span className="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg flex-shrink-0">Идэвхтэй</span>
+                    </div>
+                  )}
+                  <button type="button" onClick={() => setShowLabelRequest(true)}
+                    className="w-full flex items-center gap-1.5 text-xs font-semibold text-muted-foreground border border-dashed border-border px-3 py-2 rounded-xl hover:border-primary/50 hover:text-primary transition-colors justify-center mt-1">
+                    <Plus size={12} />Нэмэлт тохиргоо хүсэх
+                  </button>
                 </div>
-                <span className="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg flex-shrink-0">Үндсэн</span>
-              </div>
-            </Card>
+              </Card>
+            )}
           </div>
         )}
 
-        {/* ══════════ ГЭРЭЭ ══════════ */}
+        {/* ══ ГЭРЭЭ ══ */}
         {tab === "agreements" && (
           <Card className="p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="font-bold text-sm text-foreground">Гэрээнүүд</p>
-                <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5"><CheckCircle2 size={10} />1 идэвхтэй гэрээ</p>
+                <p className={`text-xs flex items-center gap-1 mt-0.5 ${signedIds.length > 0 ? "text-green-600" : "text-amber-600"}`}>
+                  {signedIds.length > 0
+                    ? <><CheckCircle2 size={10} />{signedIds.length} идэвхтэй гэрээ</>
+                    : "Гэрээ байгуулаагүй байна"
+                  }
+                </p>
               </div>
               <Btn variant="ghost" size="sm" onClick={() => navigate("/account/agreement")}>Бүгдийг харах</Btn>
             </div>
             <div className="space-y-2">
-              {OB_AGREEMENTS.map((ag, i) => {
-                const signed = i === 0;
+              {OB_CONTRACTS.map(c => {
+                const isSigned = signedIds.includes(c.id);
+                const setup = accState.setups?.[c.id];
+                const signedDate = accState.signedDates?.[c.id];
                 return (
-                  <button key={ag.id} type="button"
+                  <button key={c.id} type="button"
                     onClick={() => navigate("/account/agreement")}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-colors hover:shadow-sm ${signed ? "bg-green-50/50 border-green-100 hover:bg-green-50" : "bg-muted/30 border-border hover:bg-muted/60"}`}>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white ${ag.iconBg}`}>
-                      <ag.icon size={15} />
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-colors hover:shadow-sm ${
+                      isSigned ? "bg-green-50/50 border-green-100 hover:bg-green-50" : "bg-muted/30 border-border hover:bg-muted/60"
+                    }`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white ${c.iconBg}`}>
+                      <c.icon size={15} />
                     </div>
-                    <p className="flex-1 text-sm font-medium text-foreground truncate">{ag.name}</p>
-                    {signed
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{c.name}</p>
+                      {isSigned && setup?.name && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{setup.name}{signedDate ? ` · ${signedDate}` : ""}</p>
+                      )}
+                    </div>
+                    {isSigned
                       ? <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-lg font-bold flex-shrink-0 flex items-center gap-1"><CheckCircle2 size={10} />Зурагдсан</span>
-                      : <span className="text-xs bg-amber-100 text-amber-600 px-2.5 py-1 rounded-lg font-bold flex-shrink-0">Гэрээ хийх</span>}
+                      : <span className="text-xs bg-amber-100 text-amber-600 px-2.5 py-1 rounded-lg font-bold flex-shrink-0">Гэрээ хийх</span>
+                    }
                     <ChevronRight size={14} className="text-muted-foreground flex-shrink-0" />
                   </button>
                 );
@@ -382,7 +421,7 @@ export default function AccountStatusScreen() {
           </Card>
         )}
 
-        {/* ══════════ БАНК ══════════ */}
+        {/* ══ БАНК ══ */}
         {tab === "bank" && (
           !mongoVerified ? (
             <Card className="p-8 text-center">
@@ -442,18 +481,13 @@ export default function AccountStatusScreen() {
                       placeholder={accInfo.name}
                       className={`w-full px-3.5 py-2.5 text-sm rounded-xl border outline-none focus:ring-2 transition-colors bg-background ${bankNameMismatch ? "border-red-400 bg-red-50/20 focus:ring-red-400/20 focus:border-red-400" : "border-border focus:ring-primary/20 focus:border-primary"}`} />
                     {bankNameMismatch ? (
-                      <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-                        <AlertCircle size={11} />Нэр «{accInfo.name}» байх ёстой
-                      </p>
+                      <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1"><AlertCircle size={11} />Нэр «{accInfo.name}» байх ёстой</p>
                     ) : bankHolderName.trim() ? (
-                      <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1">
-                        <CheckCircle2 size={11} />Нэр таарч байна
-                      </p>
+                      <p className="text-xs text-green-600 mt-1.5 flex items-center gap-1"><CheckCircle2 size={11} />Нэр таарч байна</p>
                     ) : (
                       <p className="text-xs text-muted-foreground mt-1">Аккаунтын нэртэй яг таарах ёстой: <strong>{accInfo.name}</strong></p>
                     )}
                   </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">Банк <span className="text-red-500">*</span></label>
@@ -472,7 +506,6 @@ export default function AccountStatusScreen() {
                         className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-background" />
                     </div>
                   </div>
-
                   <button type="button"
                     disabled={!bankHolderName.trim() || bankNameMismatch || !bankNumber.trim() || !bankName}
                     onClick={() => setBankSubmitted(true)}
@@ -486,7 +519,7 @@ export default function AccountStatusScreen() {
           )
         )}
 
-        {/* ══════════ ҮЙЛ АЖИЛЛАГАА ══════════ */}
+        {/* ══ ҮЙЛ АЖИЛЛАГАА ══ */}
         {tab === "security" && (
           <Card className="p-5">
             <div className="mb-4">
@@ -512,7 +545,6 @@ export default function AccountStatusScreen() {
             </div>
           </Card>
         )}
-
       </div>
     </Shell>
   );

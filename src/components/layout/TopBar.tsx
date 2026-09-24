@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { Bell, ChevronDown, CheckCircle2, AlertCircle, Settings, User, Users, Shield, LogOut, Menu } from "lucide-react";
 import { NOTIFS } from "@/data/notifications";
 import { PasswordModal } from "@/components/ui/PasswordModal";
+import profilePhoto from "@/imports/513145850_23886763664345716_5292993413416052748_n.jpg";
 
 export function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void }) {
   const navigate = useNavigate();
@@ -71,7 +72,9 @@ export function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () 
           <div className="relative">
             <button type="button" onClick={() => { setShowProfile(v => !v); setShowNotifs(false); }}
               className="flex items-center gap-2.5 pl-1 pr-2.5 py-1 rounded-xl hover:bg-muted/60 transition-colors cursor-pointer">
-              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-primary-foreground text-xs font-bold">БЖ</div>
+              <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 border border-border/40">
+                <img src={profilePhoto} alt="Профайл" className="w-full h-full object-cover" />
+              </div>
               <div className="hidden md:block text-left leading-tight">
                 <p className="text-xs font-semibold text-foreground">Болд Жаргал</p>
                 <p className="text-xs text-muted-foreground">Үндсэн Хэрэглэгч</p>
@@ -82,7 +85,9 @@ export function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () 
               <div className="absolute right-0 top-11 w-64 bg-card rounded-2xl shadow-xl border border-border z-50 overflow-hidden">
                 <div className="px-4 py-3.5 border-b border-border bg-muted/30">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold">БЖ</div>
+                    <div className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 border border-border/40">
+                      <img src={profilePhoto} alt="Профайл" className="w-full h-full object-cover" />
+                    </div>
                     <div>
                       <p className="text-sm font-bold text-foreground">Болд Жаргал</p>
                       <p className="text-xs text-muted-foreground">bold@example.mn</p>

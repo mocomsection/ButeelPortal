@@ -1,9 +1,16 @@
-import type { Track, ReleaseData } from "@/types";
+import type { ReleaseData } from "@/types";
+import musicCover001 from "@/imports/3000x3000bb__1_.jpg";
+import musicCover002 from "@/imports/3000x3000bb__2_.jpg";
+import musicCover003 from "@/imports/3000x3000bb__3_.jpg";
+import musicCover004 from "@/imports/3000x3000bb__4_.jpg";
+import musicCover005 from "@/imports/3000x3000bb__5_.jpg";
+import musicCover006 from "@/imports/3000x3000bb.jpg";
 
 export const RELEASES: ReleaseData[] = [
   // ── Album (Distributed) ─────────────────────────────────────────────────────
   {
-    id: "REL-001",
+    id: "47382910",
+    cover: musicCover001,
     title: "Говийн Оргил",
     primaryArtist: "Энхтайван",
     featArtists: [],
@@ -29,7 +36,8 @@ export const RELEASES: ReleaseData[] = [
 
   // ── EP (Reviewing) ──────────────────────────────────────────────────────────
   {
-    id: "REL-002",
+    id: "82719304",
+    cover: musicCover002,
     title: "Нэгэн Цаг",
     primaryArtist: "Нэнэ",
     featArtists: ["ThunderZ"],
@@ -53,7 +61,8 @@ export const RELEASES: ReleaseData[] = [
 
   // ── Single (Revision) ───────────────────────────────────────────────────────
   {
-    id: "REL-003",
+    id: "63047291",
+    cover: musicCover003,
     title: "Гал Сэтгэл",
     primaryArtist: "ThunderZ",
     featArtists: ["Нэнэ"],
@@ -76,7 +85,8 @@ export const RELEASES: ReleaseData[] = [
 
   // ── Single (Draft) ──────────────────────────────────────────────────────────
   {
-    id: "REL-004",
+    id: "19485720",
+    cover: musicCover004,
     title: "Хайр",
     primaryArtist: "Болд",
     featArtists: ["Номин"],
@@ -96,124 +106,10 @@ export const RELEASES: ReleaseData[] = [
     ],
   },
 
-  // ── Audiobook (Distributed) ──────────────────────────────────────────────────
-  {
-    id: "REL-005",
-    title: "Нутгийн тэмдэглэл",
-    primaryArtist: "Болд Жаргал",
-    featArtists: [],
-    type: "Album",
-    createdAt: "2025-03-10",
-    releaseDate: "2025-04-01",
-    upc: "8801234567894",
-    status: "distributed",
-    updatedAt: "2025-04-05 10:00",
-    label: "Steppe Records",
-    genre: "Audiobook",
-    synopsis: "Монгол хөдөөгийн уламжлалт ахуй амьдралын дурсамжийг цэгцтэй тэмдэглэн бичсэн хоёр хэсгээс бүрдсэн аудио номын эхний боть.",
-    contentType: "audiobook",
-    services: ["Audible", "Apple Books", "Google Play Books"],
-    tracks: [
-      { no:1, title:"1-р бүлэг: Эхлэл",   isrc:"MNSTE2500010", primaryArtist:"Болд Жаргал", featArtists:[], explicit:false, duration:"12:30", fileName:"chapter01.wav", fileSize:"297 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:2, title:"2-р бүлэг: Зам мөр", isrc:"MNSTE2500011", primaryArtist:"Болд Жаргал", featArtists:[], explicit:false, duration:"15:45", fileName:"chapter02.wav", fileSize:"374 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-    ],
-  },
-
-  // ── Audiobook (Reviewing) ────────────────────────────────────────────────────
-  {
-    id: "REL-007",
-    title: "Чингисийн Зам",
-    primaryArtist: "Д. Мөнхбат",
-    featArtists: [],
-    type: "Album",
-    createdAt: "2026-07-15",
-    releaseDate: "2026-10-01",
-    upc: "8801234567896",
-    status: "reviewing",
-    updatedAt: "2026-08-20 11:00",
-    label: "Heritage Audio",
-    genre: "Audiobook",
-    synopsis: "Монгол эзэнт гүрний үүсэл, тэлэлт, уналтын тухай өгүүлдэг түүхэн аудио ном. Чингис хааны амьдрал, тулалдааны дайчин замыг тайлбарлан өгүүлнэ.",
-    contentType: "audiobook",
-    services: ["Audible", "Apple Books"],
-    tracks: [
-      { no:1, title:"1-р бүлэг: Тал нутгийн хүү",      isrc:"MNHAG2600001", primaryArtist:"Д. Мөнхбат", featArtists:[], explicit:false, duration:"18:20", fileName:"ch01.wav", fileSize:"436 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:2, title:"2-р бүлэг: Нэгдэл ба тулалдаан", isrc:"MNHAG2600002", primaryArtist:"Д. Мөнхбат", featArtists:[], explicit:false, duration:"21:05", fileName:"ch02.wav", fileSize:"500 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:3, title:"3-р бүлэг: Эзэнт гүрний өргөн",  isrc:"MNHAG2600003", primaryArtist:"Д. Мөнхбат", featArtists:[], explicit:false, duration:"19:48", fileName:"ch03.wav", fileSize:"470 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-    ],
-  },
-
-  // ── Film (Submitted) ─────────────────────────────────────────────────────────
-  {
-    id: "REL-006",
-    title: "Говийн Салхи",
-    primaryArtist: "Б. Отгонбаяр",
-    featArtists: [],
-    type: "Single",
-    createdAt: "2025-05-01",
-    releaseDate: "2025-06-01",
-    upc: "8801234567895",
-    status: "submitted",
-    updatedAt: "2025-05-10 09:00",
-    label: "Ordu Films",
-    genre: "Documentary",
-    subGenre: "Байгаль, Нийгэм",
-    contentType: "film",
-    synopsis: "Говийн цөлийн тэвэрт өсч торниж, бараг мартагдсан нүүдлийн ахуй амьдралын тэмцэлт замыг дагасан документаль бүтээл. Монгол Говийн хүмүүст өнөөдрийн ертөнцөд хэрхэн амьдарч байгааг харуулна. Уур амьсгалын өөрчлөлт, орчин үеийн хот суурин руу чиглэсэн шилжилт хөдөлгөөн, тал нутгийн уламжлалт ахуйн хоорондох тэнцвэрийн тухай гүнзгий бодолтой бүтээл.",
-    ageRating: "12+",
-    filmDuration: "1ц 27м",
-    trailerUrl: "#trailer",
-    cast: [
-      { name: "Б. Отгонбаяр", role: "Найруулагч" },
-      { name: "М. Даваасүрэн", role: "Продюсер" },
-      { name: "Д. Отгонсүрэн", role: "Зохиолч" },
-      { name: "Э. Очирваань",  role: "Жүжигчин" },
-      { name: "Н. Батзориг",   role: "Жүжигчин" },
-      { name: "Ш. Энжамц",     role: "Жүжигчин" },
-      { name: "Г. Батболд",    role: "Жүжигчин" },
-      { name: "Б. Эрдэнэболд", role: "Жүжигчин" },
-    ],
-    services: ["Netflix", "Vimeo"],
-    tracks: [
-      { no:1, title:"Говийн Салхи (Full Film)", isrc:"MNSTE2500001", primaryArtist:"Б. Отгонбаяр", featArtists:[], explicit:false, duration:"1:27:00", fileName:"film_main.mp4", fileSize:"4.2 GB", audioFormat:"MP4", bitrate:"320kbps", sampleRate:"48 kHz", bitDepth:"24-bit" },
-    ],
-  },
-
-  // ── Film (Draft) ─────────────────────────────────────────────────────────────
-  {
-    id: "REL-008",
-    title: "Улаан Хаан",
-    primaryArtist: "Ж. Бадрал",
-    featArtists: [],
-    type: "Single",
-    createdAt: "2026-08-01",
-    releaseDate: "2026-12-01",
-    upc: "",
-    status: "draft",
-    updatedAt: "2026-09-01 14:00",
-    label: "Nomad Pictures",
-    genre: "Drama",
-    subGenre: "Түүхэн кино",
-    contentType: "film",
-    synopsis: "XIII зуунд амьдарч байсан нэгэн ханы залуу хоньчин хүүгийн нутгаа хамгаалах тэмцлийн тухай өгүүлдэг түүхэн драм.",
-    ageRating: "16+",
-    filmDuration: "2ц 10м",
-    trailerUrl: "#trailer",
-    cast: [
-      { name: "Ж. Бадрал",     role: "Найруулагч" },
-      { name: "Т. Ганболд",    role: "Продюсер" },
-      { name: "О. Мөнхзул",    role: "Жүжигчин" },
-      { name: "С. Батэрдэнэ",  role: "Жүжигчин" },
-      { name: "Д. Нямгэрэл",   role: "Жүжигчин" },
-    ],
-    services: ["Netflix", "Apple TV+"],
-    tracks: [
-      { no:1, title:"Улаан Хаан (Full Film)", isrc:"", primaryArtist:"Ж. Бадрал", featArtists:[], explicit:false, duration:"2:10:00", fileName:"red_king_draft.mp4", fileSize:"6.8 GB", audioFormat:"MP4", bitrate:"320kbps", sampleRate:"48 kHz", bitDepth:"24-bit" },
-    ],
-  },
   // ── Single (Submitted) ───────────────────────────────────────────────────────
   {
-    id: "REL-009",
+    id: "36204817",
+    cover: musicCover005,
     title: "Мөнгөн Шөнө",
     primaryArtist: "Нэнэ",
     featArtists: [],
@@ -235,7 +131,8 @@ export const RELEASES: ReleaseData[] = [
 
   // ── EP (Withdrawn) ──────────────────────────────────────────────────────────
   {
-    id: "REL-010",
+    id: "85920374",
+    cover: musicCover006,
     title: "Хот Дуусгавар",
     primaryArtist: "DJ Greko",
     featArtists: ["Болд"],
@@ -254,143 +151,6 @@ export const RELEASES: ReleaseData[] = [
       { no:1, title:"Хот Шөнө",     isrc:"MNGKP2600001", primaryArtist:"DJ Greko", featArtists:[],       explicit:false, duration:"4:22", fileName:"hot_shono.wav",     fileSize:"174 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"24-bit" },
       { no:2, title:"Дуусгавар",    isrc:"MNGKP2600002", primaryArtist:"DJ Greko", featArtists:["Болд"], explicit:false, duration:"3:55", fileName:"duusgavar.wav",    fileSize:"156 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"24-bit" },
       { no:3, title:"Дахин Эргэлт", isrc:"MNGKP2600003", primaryArtist:"DJ Greko", featArtists:[],       explicit:true,  duration:"5:01", fileName:"dahiin_ergelt.wav", fileSize:"200 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"24-bit" },
-    ],
-  },
-
-  // ── Audiobook (Distributed) ──────────────────────────────────────────────────
-  {
-    id: "REL-011",
-    title: "Нүүдлийн Соёл",
-    primaryArtist: "Б. Дашдорж",
-    featArtists: [],
-    type: "Album",
-    createdAt: "2026-01-15",
-    releaseDate: "2026-02-01",
-    upc: "8801234567901",
-    status: "distributed",
-    updatedAt: "2026-02-05 09:00",
-    label: "Steppe Records",
-    genre: "Audiobook",
-    synopsis: "Монгол нүүдлийн соёл иргэншлийн гарал үүсэл, өв уламжлал, орчин цагийн ертөнцөд хэрхэн оршин тогтнож байгааг судалсан ерөнхий боловсролын аудио ном.",
-    contentType: "audiobook",
-    services: ["Audible", "Apple Books", "Google Play Books"],
-    tracks: [
-      { no:1, title:"1-р бүлэг: Эзэгтэй тал нутаг",    isrc:"MNSTE2600101", primaryArtist:"Б. Дашдорж", featArtists:[], explicit:false, duration:"14:20", fileName:"ch01.wav", fileSize:"341 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:2, title:"2-р бүлэг: Гэр ба гэр бүл",        isrc:"MNSTE2600102", primaryArtist:"Б. Дашдорж", featArtists:[], explicit:false, duration:"16:05", fileName:"ch02.wav", fileSize:"382 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:3, title:"3-р бүлэг: Аж ахуй ба уламжлал",   isrc:"MNSTE2600103", primaryArtist:"Б. Дашдорж", featArtists:[], explicit:false, duration:"18:40", fileName:"ch03.wav", fileSize:"443 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:4, title:"4-р бүлэг: Орчин үед",               isrc:"MNSTE2600104", primaryArtist:"Б. Дашдорж", featArtists:[], explicit:false, duration:"13:55", fileName:"ch04.wav", fileSize:"331 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-    ],
-  },
-
-  // ── Audiobook (Revision) ─────────────────────────────────────────────────────
-  {
-    id: "REL-012",
-    title: "Хайрын Үлгэр",
-    primaryArtist: "Н. Баясгалан",
-    featArtists: [],
-    type: "Album",
-    createdAt: "2026-05-20",
-    releaseDate: "2026-07-01",
-    upc: "",
-    status: "revision",
-    updatedAt: "2026-06-15 14:30",
-    label: "Heritage Audio",
-    genre: "Audiobook",
-    synopsis: "Хүүхдэд зориулсан уянгын үлгэр туужуудын цуглуулга. Хайр, найрамдал, зоригийн сэдэвтэй богино өгүүллэгүүдийг уран уншигч дуут өнгөөр амилуулжээ.",
-    statusReason: "Бүлэг 3-ын аудио чанар шаардлага хангахгүй байна. Дахин бичлэг хийж илгээнэ үү.",
-    contentType: "audiobook",
-    services: ["Audible", "Apple Books"],
-    tracks: [
-      { no:1, title:"1-р үлгэр: Арслан ба Жараахай",    isrc:"MNHAG2600011", primaryArtist:"Н. Баясгалан", featArtists:[], explicit:false, duration:"8:15",  fileName:"story01.wav", fileSize:"196 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:2, title:"2-р үлгэр: Нарны охин",              isrc:"MNHAG2600012", primaryArtist:"Н. Баясгалан", featArtists:[], explicit:false, duration:"9:40",  fileName:"story02.wav", fileSize:"230 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:3, title:"3-р үлгэр: Хурдан Морь",             isrc:"MNHAG2600013", primaryArtist:"Н. Баясгалан", featArtists:[], explicit:false, duration:"11:20", fileName:"story03.wav", fileSize:"269 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-    ],
-  },
-
-  // ── Audiobook (Draft) ────────────────────────────────────────────────────────
-  {
-    id: "REL-013",
-    title: "Монгол Судар",
-    primaryArtist: "Э. Гантулга",
-    featArtists: [],
-    type: "Album",
-    createdAt: "2026-09-01",
-    releaseDate: "2026-11-15",
-    upc: "",
-    status: "draft",
-    updatedAt: "2026-09-18 11:00",
-    label: "Nomad Audio",
-    genre: "Audiobook",
-    synopsis: "Монголын эртний сударт тэмдэглэгдсэн он дараалал, домог, угсаа гарал, дайн тулааны тухай тэмдэглэлүүдийг орчин цагийн монгол хэлнээ шилжүүлэн аудио номын хэлбэрт оруулжээ.",
-    contentType: "audiobook",
-    services: ["Audible"],
-    tracks: [
-      { no:1, title:"Нэгдүгээр хэсэг: Гарал үүсэл",       isrc:"", primaryArtist:"Э. Гантулга", featArtists:[], explicit:false, duration:"22:10", fileName:"part1.wav", fileSize:"527 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:2, title:"Хоёрдугаар хэсэг: Дайн ба тулаан",    isrc:"", primaryArtist:"Э. Гантулга", featArtists:[], explicit:false, duration:"25:35", fileName:"part2.wav", fileSize:"608 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-    ],
-  },
-
-  // ── Film (Distributed) ───────────────────────────────────────────────────────
-  {
-    id: "REL-014",
-    title: "Нүүдэлчин",
-    primaryArtist: "Г. Балдан",
-    featArtists: [],
-    type: "Single",
-    createdAt: "2025-10-01",
-    releaseDate: "2026-01-15",
-    upc: "8801234567902",
-    status: "distributed",
-    updatedAt: "2026-01-18 10:00",
-    label: "Blue Sky Cinema",
-    genre: "Drama",
-    subGenre: "Урлагийн кино",
-    contentType: "film",
-    synopsis: "Орчин үеийн Улаанбаатарт амьдардаг залуу зураач нутаг буцаж, эцгийнхээ тал нутгийн ахуйтай дахин танилцах аяны тухай уянгын драм.",
-    ageRating: "6+",
-    filmDuration: "1ц 52м",
-    cast: [
-      { name: "Г. Балдан",      role: "Найруулагч" },
-      { name: "Б. Сарантуяа",   role: "Продюсер" },
-      { name: "Т. Мөнхбаяр",    role: "Зохиолч" },
-      { name: "Д. Анхзаяа",     role: "Жүжигчин" },
-      { name: "П. Оюунбаатар",  role: "Жүжигчин" },
-      { name: "Н. Сэлэнгэ",     role: "Жүжигчин" },
-    ],
-    services: ["Netflix", "Vimeo", "Apple TV+"],
-    tracks: [
-      { no:1, title:"Нүүдэлчин (Full Film)", isrc:"MNBSC2600001", primaryArtist:"Г. Балдан", featArtists:[], explicit:false, duration:"1:52:00", fileName:"nuudelchin_final.mp4", fileSize:"5.6 GB", audioFormat:"MP4", bitrate:"320kbps", sampleRate:"48 kHz", bitDepth:"24-bit" },
-    ],
-  },
-
-  // ── Film (Reviewing) ─────────────────────────────────────────────────────────
-  {
-    id: "REL-015",
-    title: "Нарны Тал",
-    primaryArtist: "М. Зундуй",
-    featArtists: [],
-    type: "Single",
-    createdAt: "2026-06-01",
-    releaseDate: "2026-11-01",
-    upc: "8801234567903",
-    status: "reviewing",
-    updatedAt: "2026-09-10 16:00",
-    label: "Nomad Pictures",
-    genre: "Animation",
-    subGenre: "Хүүхдийн кино",
-    contentType: "film",
-    synopsis: "Монгол нүүдлийн соёлоос сэдэвлэсэн анхны 3D анимацийн кино. Бага насны хүүхдийн нутгийнхаа байгалийг хайрлан хамгаалах аянгын тухай өгүүлдэг.",
-    ageRating: "0+",
-    filmDuration: "1ц 18м",
-    cast: [
-      { name: "М. Зундуй",      role: "Найруулагч" },
-      { name: "Д. Нарантуяа",   role: "Продюсер" },
-      { name: "Т. Энхжаргал",   role: "Жүжигчин" },
-      { name: "О. Мөнгөнцэцэг", role: "Жүжигчин" },
-    ],
-    services: ["Netflix", "Apple TV+"],
-    tracks: [
-      { no:1, title:"Нарны Тал (Full Film)", isrc:"MNNMP2600001", primaryArtist:"М. Зундуй", featArtists:[], explicit:false, duration:"1:18:00", fileName:"narny_tal_v2.mp4", fileSize:"3.9 GB", audioFormat:"MP4", bitrate:"320kbps", sampleRate:"48 kHz", bitDepth:"24-bit" },
     ],
   },
 ] satisfies ReleaseData[];

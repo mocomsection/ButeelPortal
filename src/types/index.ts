@@ -26,6 +26,7 @@ export interface ReleaseData {
   contentType: "music" | "audiobook" | "film";
   services: string[];
   tracks: Track[];
+  cover?: string;
   synopsis?: string;
   ageRating?: string;
   filmDuration?: string;

@@ -10,7 +10,7 @@ import {
   GripVertical, Building2, Lock,
 } from "lucide-react";
 import "@/styles/wizard.css";
-import { RELEASES } from "@/data/releases";
+import { AUDIOBOOKS as RELEASES } from "@/data/audiobooks";
 
 type Stage = 1 | 2 | 3 | 4 | 5;
 type Person = { id: string; name: string };

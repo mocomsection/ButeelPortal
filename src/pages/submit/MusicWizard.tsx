@@ -13,16 +13,33 @@ import {
 } from "lucide-react";
 import "@/styles/wizard.css";
 import { RELEASES } from "@/data/releases";
+
 import skymelodyLogo from "@/imports/skymelody.png";
 import unimusicLogo from "@/imports/unimusic.png";
 import gtoneLogo from "@/imports/gtone.png";
 import hitoneLogo from "@/imports/hitone.png";
+import appleMusicLogo from "@/imports/applemusic.png";
+import deezerLogo from "@/imports/deezer.png";
+import egshigLogo from "@/imports/egshig.png";
+import mmusicLogo from "@/imports/mmusic.png";
+import sonsyLogo from "@/imports/sonsy.png";
+import sonsyFmLogo from "@/imports/sonsyfm.png";
+import spotifyLogo from "@/imports/spotify.png";
+import youtubeMusicLogo from "@/imports/youtubemusic.png";
 
 const SERVICE_LOGOS: Record<string, string> = {
-  "SkyMelody": skymelodyLogo,
-  "Unimusic":  unimusicLogo,
-  "GTone":     gtoneLogo,
-  "Hitone":    hitoneLogo,
+  "SkyMelody":           skymelodyLogo,
+  "Unimusic":            unimusicLogo,
+  "GTone":               gtoneLogo,
+  "Hitone":              hitoneLogo,
+  "Apple Music":         appleMusicLogo,
+  "Deezer":              deezerLogo,
+  "Egshig":              egshigLogo,
+  "M Music":             mmusicLogo,
+  "Sonsy Music":         sonsyLogo,
+  "Sonsy FM 78.9 & 100.1": sonsyFmLogo,
+  "Spotify":             spotifyLogo,
+  "YouTube Music":       youtubeMusicLogo,
 };
 
 // ─── types ───────────────────────────────────────────────────────────────────
@@ -1391,7 +1408,7 @@ export default function MusicWizard() {
             {svcList.map(name => (
               <div key={name} className="wiz-bundle-service">
                 {SERVICE_LOGOS[name]
-                  ? <img src={SERVICE_LOGOS[name]} alt={name} className="wiz-service-logo" style={{ objectFit: "contain", padding: 4 }} />
+                  ? <img src={SERVICE_LOGOS[name]} alt={name} className="wiz-service-logo" style={{ objectFit: "contain" }} />
                   : <span className="wiz-service-logo">{serviceIconLabel(name)}</span>
                 }
                 <b>{name}</b>

@@ -6,8 +6,9 @@ import VerifyScreen from "@/pages/auth/VerifyScreen";
 import TermsScreen from "@/pages/auth/TermsScreen";
 
 import OnboardingAccountTypeScreen from "@/pages/onboarding/OnboardingAccountTypeScreen";
-import OnboardingLabelScreen from "@/pages/onboarding/OnboardingLabelScreen";
-import OnboardingAgreementsScreen from "@/pages/onboarding/OnboardingAgreementsScreen";
+import OnboardingContractsScreen from "@/pages/onboarding/OnboardingContractsScreen";
+import OnboardingSignScreen from "@/pages/onboarding/OnboardingSignScreen";
+import OnboardingSetupScreen from "@/pages/onboarding/OnboardingSetupScreen";
 import OnboardingCompleteScreen from "@/pages/onboarding/OnboardingCompleteScreen";
 
 import DashboardScreen from "@/pages/DashboardScreen";
@@ -44,8 +45,9 @@ export const routes = [
   { path: "/verify",                  element: <VerifyScreen /> },
   { path: "/terms",                   element: <TermsScreen /> },
   { path: "/onboarding/account-type", element: <OnboardingAccountTypeScreen /> },
-  { path: "/onboarding/label",        element: <OnboardingLabelScreen /> },
-  { path: "/onboarding/agreements",   element: <OnboardingAgreementsScreen /> },
+  { path: "/onboarding/contracts",    element: <OnboardingContractsScreen /> },
+  { path: "/onboarding/sign",         element: <OnboardingSignScreen /> },
+  { path: "/onboarding/setup",        element: <OnboardingSetupScreen /> },
   { path: "/onboarding/complete",     element: <OnboardingCompleteScreen /> },
   { path: "/dashboard",               element: <DashboardScreen /> },
   { path: "/reports",                  element: <ReportsScreen /> },

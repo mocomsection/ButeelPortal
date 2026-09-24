@@ -9,7 +9,7 @@ import {
   Building2, Clapperboard, Clock,
 } from "lucide-react";
 import "@/styles/wizard.css";
-import { RELEASES } from "@/data/releases";
+import { MOVIES as RELEASES } from "@/data/movies";
 
 type Stage = 1 | 2 | 3 | 4 | 5;
 type Person = { id: string; name: string };
@@ -125,6 +125,11 @@ export default function SubmitFilmInfoScreen() {
   const [producerOpen, setProducerOpen] = useState(false);
   const [producerQuery, setProducerQuery] = useState("");
 
+  // Writers — separate optional field
+  const [writers, setWriters] = useState<Person[]>([]);
+  const [writerOpen, setWriterOpen] = useState(false);
+  const [writerQuery, setWriterQuery] = useState("");
+
   // Other cast/crew — excludes director and producer roles
   const [cast, setCast] = useState<CastMember[]>(
     editRelease?.cast?.map((c, i) => ({ id: String(i), name: c.name, role: c.role })) ?? []
@@ -152,7 +157,8 @@ export default function SubmitFilmInfoScreen() {
   const [synopsis, setSynopsis] = useState(editRelease?.synopsis ?? "");
   const [cOwner, setCOwner] = useState("");
   const [cYear, setCYear] = useState(String(new Date().getFullYear()));
-  const [showCopyright, setShowCopyright] = useState(false);
+
+
 
   // File — URL + password instead of direct upload
   const [filmUrl, setFilmUrl] = useState("");
@@ -193,13 +199,14 @@ export default function SubmitFilmInfoScreen() {
       } catch {}
     }, 1500);
     return () => clearTimeout(tid);
-  }, [titleMn, titleEn, directors, producers, cast, genre, subGenre, ageRating, studios,
+  }, [titleMn, titleEn, directors, producers, writers, cast, genre, subGenre, ageRating, studios,
       duration, filmUrl, filmPassword,
       poster, scheduleMode, releaseDate, selectedServices, reviewConfirmed]);
 
   const handleNext = () => { if (stage < 5) setStage((stage + 1) as Stage); else if (reviewConfirmed) setSubmitted(true); };
   const handleBack = () => { if (stage > 1) setStage((stage - 1) as Stage); else navigate(-1); };
-  const closeAll = () => { setCastOpen(false); setGenreOpen(false); setTitleLangOpen(false); setDirectorOpen(false); setProducerOpen(false); setStudioOpen(false); };
+  const closeAll = () => { setCastOpen(false); setGenreOpen(false); setTitleLangOpen(false); setDirectorOpen(false); setProducerOpen(false); setWriterOpen(false); setStudioOpen(false); };
+
 
   const s1ok = !!titleMn.trim() && directors.length > 0 && !!genre && !!ageRating;
   const s2ok = !!filmUrl.trim();
@@ -335,6 +342,15 @@ export default function SubmitFilmInfoScreen() {
           people: producers, setPeople: setProducers,
           open: producerOpen, setOpen: setProducerOpen, query: producerQuery, setQuery: setProducerQuery,
           emptyText: "Продюсер нэмэгдээгүй байна.", accentColor: "#7c3aed",
+        });
+      }
+
+      function writerPickerJSX() {
+        return personPickerJSX({
+          label: "Зохиолч", hint: "Сценарийн зохиолч",
+          people: writers, setPeople: setWriters,
+          open: writerOpen, setOpen: setWriterOpen, query: writerQuery, setQuery: setWriterQuery,
+          emptyText: "Зохиолч нэмэгдээгүй байна.", accentColor: "#0ea5e9",
         });
       }
 
@@ -526,6 +542,9 @@ export default function SubmitFilmInfoScreen() {
           {/* Producer */}
           <div className="wiz-section">{producerPickerJSX()}</div>
 
+          {/* Writer */}
+          <div className="wiz-section">{writerPickerJSX()}</div>
+
           {/* Other cast/crew */}
           <div className="wiz-section">{castPickerJSX()}</div>
 
@@ -579,7 +598,8 @@ export default function SubmitFilmInfoScreen() {
               </div>
 
               {/* Studios — searchable multiple */}
-              <div className="wiz-field" style={{ gridColumn: "1/-1", position: "relative" }}>
+              <div className="wiz-field" style={{ gridColumn: "1/-1", position: "relative" }}
+                onClick={e => e.stopPropagation()}>
                 <label className="wiz-label">Студи / Продакшн<InfoTip text="Кино бүтээлд оролцсон продакшн компани. Олон байвал бүгдийг нэмнэ." /></label>
                 {studios.length > 0 && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
@@ -601,8 +621,7 @@ export default function SubmitFilmInfoScreen() {
                     placeholder="Студи хайх эсвэл нэр бичих..." />
                 </div>
                 {studioOpen && (studioQuery.trim() || KNOWN_STUDIOS.length > 0) && (
-                  <div style={{ marginTop: 4, border: "1px solid var(--w-line)", borderRadius: 10, background: "#fff", overflow: "hidden", boxShadow: "0 8px 24px #0002", position: "relative", zIndex: 20 }}
-                    onClick={e => e.stopPropagation()}>
+                  <div style={{ marginTop: 4, border: "1px solid var(--w-line)", borderRadius: 10, background: "#fff", overflow: "hidden", boxShadow: "0 8px 24px #0002", position: "relative", zIndex: 20 }}>
                     <div style={{ maxHeight: 180, overflowY: "auto" }}>
                       {KNOWN_STUDIOS.filter(s => !studios.includes(s.name) && (!studioQuery || s.name.toLowerCase().includes(studioQuery.toLowerCase()))).map(s => (
                         <div key={s.id} className="wiz-option" style={{ display: "flex", alignItems: "center", gap: 9 }}
@@ -632,28 +651,23 @@ export default function SubmitFilmInfoScreen() {
             </div>
           </div>
 
-          {/* Copyright */}
+          {/* Copyright — always visible */}
           <div className="wiz-section">
-            <button type="button" onClick={() => setShowCopyright(v => !v)}
-              style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", fontWeight: 700, fontSize: 13, color: "var(--w-text)", padding: "4px 0", width: "100%" }}>
-              {!cOwner && <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--w-danger)", flexShrink: 0 }} />}
-              Зохиогчийн эрх
-              {!cOwner && <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 7px", borderRadius: 20, background: "#fde8e8", color: "var(--w-danger)" }}>Дутуу</span>}
-              {cOwner && <Check size={13} style={{ color: "#22c55e" }} />}
-              <ChevronDown size={14} style={{ marginLeft: "auto", transform: showCopyright ? "rotate(180deg)" : "", transition: "transform .2s" }} />
-            </button>
-            {showCopyright && (
-              <div className="wiz-grid2" style={{ marginTop: 12 }}>
-                <div className="wiz-field">
-                  <label className="wiz-label">© Эзэмшигч <span className="wiz-req">*</span><InfoTip text="Оюуны өмчийн эрх эзэмшигч. Зохиолч, хэвлэлийн газар эсвэл компани байж болно." /></label>
-                  <input value={cOwner} onChange={e => setCOwner(e.target.value)} className="wiz-input" placeholder="Хувь хүн эсвэл компани" />
-                </div>
-                <div className="wiz-field">
-                  <label className="wiz-label">© Он<InfoTip text="Оюуны өмчийн эрх анх авсан жил." /></label>
-                  <input type="number" value={cYear} onChange={e => setCYear(e.target.value)} min="1900" max="2030" className="wiz-input" />
-                </div>
-              </div>
-            )}
+            <div className="wiz-field" style={{ marginBottom: 6 }}>
+              <label className="wiz-label">
+                Зохиогчийн эрх <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>©</span>
+                <InfoTip text="Оюуны өмчийн эрх эзэмшигч болон он. Зохиолч, хэвлэлийн газар эсвэл компани байж болно." />
+              </label>
+            </div>
+            <div className="wiz-rights-row">
+              <input value={cOwner} onChange={e => setCOwner(e.target.value)} className="wiz-input" placeholder="Эрх эзэмшигчийн нэр эсвэл байгууллага" />
+              <select className="wiz-select wiz-rights-year" value={cYear} onChange={e => setCYear(e.target.value)}>
+                {Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
+                  const y = new Date().getFullYear() - i;
+                  return <option key={y} value={String(y)}>{y}</option>;
+                })}
+              </select>
+            </div>
           </div>
         </>
       );
@@ -911,6 +925,7 @@ export default function SubmitFilmInfoScreen() {
     ).map(([name, roles]) => `${name} (${roles.join(", ")})`).join(" · ") || "—";
     const directorSummary = directors.map(d => d.name).join(", ") || "—";
     const producerSummary = producers.map(p => p.name).join(", ") || "—";
+    const writerSummary = writers.map(w => w.name).join(", ") || "—";
 
     return (
       <div className="wiz-review-shell">
@@ -950,6 +965,7 @@ export default function SubmitFilmInfoScreen() {
                 <div className="wiz-review-data-grid">
                   <div className="wiz-review-data-item"><span>Найруулагч</span><b>{directorSummary}</b></div>
                   <div className="wiz-review-data-item"><span>Продюсер</span><b>{producerSummary}</b></div>
+                  <div className="wiz-review-data-item"><span>Зохиолч</span><b>{writerSummary}</b></div>
                   {cast.length > 0 && (
                     <div className="wiz-review-data-item"><span>Бусад баг</span><b style={{ lineHeight: 1.6 }}>{castSummary}</b></div>
                   )}

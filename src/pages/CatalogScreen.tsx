@@ -10,6 +10,9 @@ import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { RELEASES } from "@/data/releases";
+import { AUDIOBOOKS } from "@/data/audiobooks";
+import { MOVIES } from "@/data/movies";
+const ALL_RELEASES = [...RELEASES, ...AUDIOBOOKS, ...MOVIES];
 import type { ReleaseData } from "@/types";
 
 // ── Per-type static config ────────────────────────────────────────────────────
@@ -170,7 +173,7 @@ export default function CatalogScreen() {
     setStatusOpen(false); setReleaseTypeOpen(false);
   };
 
-  const typeReleases = RELEASES.filter(r => r.contentType === ct);
+  const typeReleases = ALL_RELEASES.filter(r => r.contentType === ct);
   const uniqueArtists = [...new Set(typeReleases.map(r => r.primaryArtist))].sort();
   const uniqueLabels  = [...new Set(typeReleases.map(r => r.label).filter(Boolean))].sort();
 
@@ -357,7 +360,9 @@ export default function CatalogScreen() {
               {/* Cover */}
               <div className={`${ct === "film" ? "aspect-[2/3]" : "aspect-square"} bg-zinc-900 flex items-center justify-center cursor-pointer group relative`}
                 onClick={() => navigate(detailPath(r))}>
-                {r.contentType === "audiobook" ? <BookOpen size={28} className="text-white/30" />
+                {r.cover
+                  ? <img src={r.cover} alt={r.title} className="absolute inset-0 w-full h-full object-cover" />
+                  : r.contentType === "audiobook" ? <BookOpen size={28} className="text-white/30" />
                   : r.contentType === "film"  ? <Film     size={28} className="text-white/30" />
                   : <Music2 size={28} className="text-white/30" />}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -399,14 +404,12 @@ export default function CatalogScreen() {
                   )}
                   {ct === "audiobook" && (
                     <>
-                      <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Зохиолч:</span> {r.primaryArtist}</p>
                       {r.label && <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Нийтлэгч:</span> {r.label}</p>}
-                      <p className="text-xs text-zinc-400"><span className="font-semibold text-zinc-500">Бүлэг:</span> {r.tracks.length}</p>
                     </>
                   )}
                   {ct === "film" && (
                     <>
-                      <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Найруулагч:</span> {r.primaryArtist}</p>
+  
                       {r.label && <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Студи:</span> {r.label}</p>}
                     </>
                   )}
@@ -475,10 +478,12 @@ export default function CatalogScreen() {
                   <tr key={r.id} className="hover:bg-zinc-100/70 transition-colors">
                     <td className="px-5 py-3.5 cursor-pointer" onClick={() => navigate(detailPath(r))}>
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center flex-shrink-0">
-                          {r.contentType === "audiobook" ? <BookOpen size={14} className="text-white" />
-                            : r.contentType === "film"  ? <Film size={14} className="text-white" />
-                            : <Music2 size={14} className="text-white" />}
+                        <div className={`relative rounded-lg bg-zinc-900 overflow-hidden flex-shrink-0 flex items-center justify-center ${r.contentType === "film" ? "w-7 h-10" : "w-9 h-9"}`}>
+                          {r.cover
+                            ? <img src={r.cover} alt={r.title} className="absolute inset-0 w-full h-full object-cover" />
+                            : r.contentType === "audiobook" ? <BookOpen size={13} className="text-white/50" />
+                            : r.contentType === "film"      ? <Film     size={13} className="text-white/50" />
+                            : <Music2 size={13} className="text-white/50" />}
                         </div>
                         <div>
                           <p className="font-medium text-sm text-zinc-900">{r.title}</p>

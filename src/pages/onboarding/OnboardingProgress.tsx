@@ -1,26 +1,38 @@
 import { Check } from "lucide-react";
 import { OB_STEPS } from "@/data/agreements";
 
-export function OnboardingProgress({ step }: { step: number }) {
+interface Props {
+  step: number;
+  subLabel?: string;
+}
+
+export function OnboardingProgress({ step, subLabel }: Props) {
+  const total = OB_STEPS.length;
+  const f = total > 1 ? step / (total - 1) : 0;
+
   return (
-    <div className="flex items-center justify-between mb-8 px-1">
+    <div className="relative flex justify-between items-start mb-8">
+      {/* Background line */}
+      <div className="absolute top-4 left-4 right-4 h-0.5 bg-border" />
+      {/* Active line */}
+      <div
+        className="absolute top-4 left-4 h-0.5 bg-primary transition-all duration-500"
+        style={{ width: step === 0 ? 0 : `calc(${(f * 100).toFixed(2)}% - ${(f * 32).toFixed(2)}px)` }}
+      />
       {OB_STEPS.map((label, i) => (
-        <div key={i} className="flex items-center">
-          <div className="flex flex-col items-center gap-1">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
-              i < step ? "bg-primary border-primary text-primary-foreground"
-              : i === step ? "border-primary text-primary bg-card"
-              : "border-border text-muted-foreground bg-card"
-            }`}>
-              {i < step ? <Check size={13} /> : i + 1}
-            </div>
-            <span className={`text-xs font-semibold hidden sm:block text-center leading-tight max-w-[64px] ${
-              i === step ? "text-primary" : i < step ? "text-foreground/60" : "text-muted-foreground/50"
-            }`}>{label}</span>
+        <div key={i} className="relative flex flex-col items-center gap-1.5 z-10">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all ${
+            i < step  ? "bg-primary border-primary text-primary-foreground"
+            : i === step ? "border-primary text-primary bg-card"
+            : "border-border text-muted-foreground bg-card"
+          }`}>
+            {i < step ? <Check size={13} /> : i + 1}
           </div>
-          {i < OB_STEPS.length - 1 && (
-            <div className={`mx-2 h-0.5 w-8 sm:w-14 mt-[-14px] ${i < step ? "bg-primary" : "bg-border"}`} />
-          )}
+          <span className={`text-[11px] font-semibold text-center leading-tight max-w-[52px] ${
+            i === step ? "text-primary" : i < step ? "text-foreground/60" : "text-muted-foreground/40"
+          }`}>
+            {i === step && subLabel ? subLabel : label}
+          </span>
         </div>
       ))}
     </div>

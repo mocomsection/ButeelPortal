@@ -4,7 +4,7 @@ import {
   Music2, ArrowLeft, ExternalLink, Globe, ChevronDown,
   Play, Pause, Pencil, MessageSquare, Send, CheckCircle2,
   AlertCircle, Clock, Disc3, Radio, Signal, Copy, Check,
-  CalendarDays, Hash, Mic2, FileAudio2,
+  CalendarDays, Hash, Mic2,
   LayoutList, UserCheck, Tags, ScrollText, ShieldAlert,
   Globe2, Film, PlayCircle, UsersRound, Headphones, BookOpen,
   AudioWaveform, Building2,
@@ -13,6 +13,9 @@ import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { RELEASES } from "@/data/releases";
+import { AUDIOBOOKS } from "@/data/audiobooks";
+import { MOVIES } from "@/data/movies";
+const ALL_RELEASES = [...RELEASES, ...AUDIOBOOKS, ...MOVIES];
 import type { ReleaseData } from "@/types";
 
 // ── hero gradient ─────────────────────────────────────────────────────────────
@@ -49,20 +52,20 @@ function WaveBars({ seed = 0, size = "md" }: { seed?: number; size?: "sm" | "md"
 // ── release title translations ────────────────────────────────────────────────
 type TitleTrans = { lang: string; title: string };
 const RELEASE_TITLES: Record<string, TitleTrans[]> = {
-  "REL-001": [{ lang:"Монгол", title:"Говийн Оргил"  }, { lang:"English / Latin", title:"Peak of the Gobi"  }],
-  "REL-002": [{ lang:"Монгол", title:"Нэгэн Цаг"     }, { lang:"English / Latin", title:"One Moment"        }],
-  "REL-003": [{ lang:"Монгол", title:"Гал Сэтгэл"    }, { lang:"English / Latin", title:"Burning Heart"     }],
-  "REL-004": [{ lang:"Монгол", title:"Хайр"          }, { lang:"English / Latin", title:"Love"              }],
-  "REL-009": [{ lang:"Монгол", title:"Мөнгөн Шөнө"   }, { lang:"English / Latin", title:"Silver Night"      }],
-  "REL-010": [{ lang:"Монгол", title:"Хот Дуусгавар" }, { lang:"English / Latin", title:"City's End"        }],
+  "47382910": [{ lang:"Монгол", title:"Говийн Оргил"  }, { lang:"English / Latin", title:"Peak of the Gobi"  }],
+  "82719304": [{ lang:"Монгол", title:"Нэгэн Цаг"     }, { lang:"English / Latin", title:"One Moment"        }],
+  "63047291": [{ lang:"Монгол", title:"Гал Сэтгэл"    }, { lang:"English / Latin", title:"Burning Heart"     }],
+  "19485720": [{ lang:"Монгол", title:"Хайр"          }, { lang:"English / Latin", title:"Love"              }],
+  "36204817": [{ lang:"Монгол", title:"Мөнгөн Шөнө"   }, { lang:"English / Latin", title:"Silver Night"      }],
+  "85920374": [{ lang:"Монгол", title:"Хот Дуусгавар" }, { lang:"English / Latin", title:"City's End"        }],
 };
 
 // ── audiobook extras (mock data not in ReleaseData type) ─────────────────────
 type AbExtras = { author: string; narrator: string; language: string; isbn?: string; isAbridged: boolean; ageRating: string };
 const AB_EXTRAS: Record<string, AbExtras> = {
-  "REL-004": { author: "Болд Жаргал", narrator: "Болд Жаргал", language: "Монгол", isAbridged: false, ageRating: "Бүгдэд тохиромжтой" },
-  "REL-007": { author: "Д. Мөнхбат",  narrator: "Д. Мөнхбат",  language: "Монгол", isbn: "978-99929-3-084-7", isAbridged: false, ageRating: "12+" },
-  "REL-011": { author: "Б. Дашдорж",  narrator: "Б. Дашдорж",  language: "Монгол", isAbridged: false, ageRating: "Бүгдэд тохиромжтой" },
+  "57312840": { author: "Болд Жаргал", narrator: "Болд Жаргал", language: "Монгол", isAbridged: false, ageRating: "Бүгдэд тохиромжтой" },
+  "28473910": { author: "Д. Мөнхбат",  narrator: "Д. Мөнхбат",  language: "Монгол", isbn: "978-99929-3-084-7", isAbridged: false, ageRating: "12+" },
+  "42918305": { author: "Б. Дашдорж",  narrator: "Б. Дашдорж",  language: "Монгол", isAbridged: false, ageRating: "Бүгдэд тохиромжтой" },
 };
 const DEFAULT_AB_EXTRAS: AbExtras = { author: "—", narrator: "—", language: "Монгол", isAbridged: false, ageRating: "Бүгдэд тохиромжтой" };
 
@@ -262,66 +265,45 @@ function TrackCard({ t }: { t: TrackItem }) {
         onClick={() => setOpen(v => !v)}>
         <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[11px] font-bold text-muted-foreground flex-shrink-0">{t.no}</span>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm text-foreground">{t.title}</span>
-            {t.explicit && <span className="text-[10px] bg-zinc-800 text-white px-1.5 py-0.5 rounded font-black">E</span>}
-            {hasTrans && extras.titleTranslations.map(tr => (
-              <span key={tr.lang}
-                className="text-[9px] font-bold text-muted-foreground/60 bg-muted px-1.5 py-0.5 rounded border border-border/40 leading-none">
-                {langCode(tr.lang)}
-              </span>
-            ))}
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm text-foreground truncate">{t.title}</span>
+            {t.explicit && <span className="text-[10px] bg-zinc-800 text-white px-1.5 py-0.5 rounded font-black flex-shrink-0">E</span>}
           </div>
-          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+          <div className="mt-0.5">
             <span className="text-xs text-muted-foreground">{t.primaryArtist}{t.featArtists.length ? ` ft. ${t.featArtists.join(", ")}` : ""}</span>
-            {isrc && <span className="text-xs text-zinc-400">{isrc}</span>}
           </div>
         </div>
-        <span className="text-xs text-muted-foreground tabular-nums hidden sm:block flex-shrink-0">{t.duration}</span>
+        <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0 text-xs text-muted-foreground tabular-nums">
+          {isrc && <><span className="font-mono">{isrc}</span><span className="opacity-40">·</span></>}
+          <span>{t.duration}</span>
+        </div>
         <div onClick={e => e.stopPropagation()}><TrackPreview title={t.title} /></div>
         <ChevronDown size={14} className={`text-muted-foreground flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
 
       {/* Expanded detail */}
       {open && (
-        <div className="bg-muted/15 border-t border-border/50 px-5 py-5">
+        <div className="bg-muted/15 border-t border-border/50 px-5 py-5 space-y-5">
 
-          {/* 1. Title translations */}
+          {/* 1. Title language variants */}
           {hasTrans && (
-            <div className="mb-4 pb-4 border-b border-border/30">
-              <SectionHead icon={Globe2} label="Нэрний орчуулга" />
-              <div className="flex flex-wrap gap-4">
+            <div className="pb-4 border-b border-border/30">
+              <SectionHead icon={Globe2} label="Нэрний хэлний хувилбар" />
+              <div className="flex flex-wrap gap-3">
                 {extras.titleTranslations.map(tr => (
-                  <div key={tr.lang} className="flex items-center gap-2">
+                  <div key={tr.lang} className="flex items-center gap-2 bg-white border border-border/50 rounded-lg px-3 py-1.5">
                     <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">
                       {langCode(tr.lang)}
                     </span>
-                    <span className="text-sm text-foreground">{tr.title}</span>
+                    <span className="text-sm font-medium text-foreground">{tr.title}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* 2. Artists + Contributors */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 mb-4 pb-4 border-b border-border/30">
-            <div>
-              <SectionHead icon={Mic2} label="Артистууд" />
-              <KV label="Үндсэн артист"   value={t.primaryArtist} />
-              {t.featArtists.length > 0 && <KV label="Хамтарсан артист" value={t.featArtists.join(", ")} />}
-            </div>
-            {hasContribs && (
-              <div>
-                <SectionHead icon={UserCheck} label="Оролцогчид" />
-                {extras.composers.length > 0 && <KV label="Ая зохиогч"  value={extras.composers.join(", ")} />}
-                {extras.hasLyrics && extras.lyricists.length > 0 && <KV label="Үг зохиогч" value={extras.lyricists.join(", ")} />}
-                {extras.otherCredits.map(c => <KV key={c.role} label={c.role} value={c.name} />)}
-              </div>
-            )}
-          </div>
-
-          {/* 3. Track info — icons match image-17 */}
-          <div className="mb-4 pb-4 border-b border-border/30">
+          {/* 2. Track technical info */}
+          <div className="pb-4 border-b border-border/30">
             <SectionHead icon={Disc3} label="Дууны мэдээлэл" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
               <div>
@@ -338,14 +320,29 @@ function TrackCard({ t }: { t: TrackItem }) {
             </div>
           </div>
 
-          {/* 4. File info — image-19 style */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <SectionHead icon={AudioWaveform} label="Аудио файл" />
-              <span className="text-[10px] text-muted-foreground -mt-3">Source файл ба техникийн мэдээлэл</span>
+          {/* 3. Artists + Contributors */}
+          <div className="pb-4 border-b border-border/30">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
+              <div>
+                <SectionHead icon={Mic2} label="Артистууд" />
+                <KV label="Үндсэн артист"   value={t.primaryArtist} />
+                {t.featArtists.length > 0 && <KV label="Хамтарсан артист" value={t.featArtists.join(", ")} />}
+              </div>
+              {hasContribs && (
+                <div>
+                  <SectionHead icon={UserCheck} label="Оролцогчид" />
+                  {extras.composers.length > 0 && <KV label="Ая зохиогч"  value={extras.composers.join(", ")} />}
+                  {extras.hasLyrics && extras.lyricists.length > 0 && <KV label="Үг зохиогч" value={extras.lyricists.join(", ")} />}
+                  {extras.otherCredits.map(c => <KV key={c.role} label={c.role} value={c.name} />)}
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* 4. Audio file */}
+          <div>
+            <SectionHead icon={AudioWaveform} label="Аудио файл" />
             <div className="rounded-xl border border-border bg-white overflow-hidden">
-              {/* Top row: play + filename + duration + waveform */}
               <div className="flex items-center gap-3 px-4 py-3">
                 <button type="button" onClick={e => e.stopPropagation()}
                   className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center flex-shrink-0 hover:bg-muted/80">
@@ -360,25 +357,13 @@ function TrackCard({ t }: { t: TrackItem }) {
                   <WaveBars seed={t.no * 7} size="sm" />
                 </div>
               </div>
-              {/* Bottom bar: size · bitrate on left, format badges on right */}
               <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 border-t border-border/50">
                 <span className="text-xs text-muted-foreground">{t.fileSize}</span>
-                {t.bitrate && (
-                  <>
-                    <span className="text-border text-xs">·</span>
-                    <span className="text-xs text-muted-foreground">{t.bitrate}</span>
-                  </>
-                )}
+                {t.bitrate && <><span className="text-border text-xs">·</span><span className="text-xs text-muted-foreground">{t.bitrate}</span></>}
                 <div className="flex items-center gap-1.5 ml-auto">
-                  {t.audioFormat && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-white text-foreground">{t.audioFormat}</span>
-                  )}
-                  {t.sampleRate && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-white text-foreground">{t.sampleRate}</span>
-                  )}
-                  {t.bitDepth && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-white text-foreground">{t.bitDepth}</span>
-                  )}
+                  {[t.audioFormat, t.sampleRate, t.bitDepth].filter(Boolean).map(v => (
+                    <span key={v} className="text-[11px] font-bold px-2 py-0.5 rounded border border-border bg-white text-foreground">{v}</span>
+                  ))}
                 </div>
               </div>
             </div>
@@ -412,15 +397,15 @@ function ChapterCard({ t }: { t: TrackItem }) {
       {open && (
         <div className="bg-muted/15 border-t border-border/50 px-5 py-5">
 
-          {/* Title translations */}
+          {/* Title language variants */}
           {chapterTitles.length > 0 && (
             <div className="mb-4 pb-4 border-b border-border/30">
-              <SectionHead icon={Globe2} label="Нэрний орчуулга" />
-              <div className="flex flex-wrap gap-4">
+              <SectionHead icon={Globe2} label="Нэрний хэлний хувилбар" />
+              <div className="flex flex-wrap gap-3">
                 {chapterTitles.map(tr => (
-                  <div key={tr.lang} className="flex items-center gap-2">
+                  <div key={tr.lang} className="flex items-center gap-2 bg-white border border-border/50 rounded-lg px-3 py-1.5">
                     <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">{langCode(tr.lang)}</span>
-                    <span className="text-sm text-foreground">{tr.title}</span>
+                    <span className="text-sm font-medium text-foreground">{tr.title}</span>
                   </div>
                 ))}
               </div>
@@ -477,12 +462,12 @@ function AudiobookDetail({ r }: { r: ReleaseData }) {
 
         {relTitles.length > 0 && (
           <div className="mb-4 pb-4 border-b border-border/30">
-            <p className="text-xs text-muted-foreground mb-2.5 flex items-center gap-1.5">
-              <Globe2 size={11} className="opacity-60" />Нэрний орчуулга
+            <p className="text-[10px] font-bold uppercase text-muted-foreground mb-2.5 flex items-center gap-1.5">
+              <Globe2 size={10} className="opacity-60" />Нэрний хэлний хувилбар
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3">
               {relTitles.map(t => (
-                <div key={t.lang} className="flex items-center gap-2">
+                <div key={t.lang} className="flex items-center gap-2 bg-muted/40 border border-border/40 rounded-lg px-3 py-1.5">
                   <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">{langCode(t.lang)}</span>
                   <span className="text-sm font-medium text-foreground">{t.title}</span>
                 </div>
@@ -571,44 +556,102 @@ function PrbtSongRow({ song, segs }: { song: string; segs: { name: string; code:
 }
 
 // ── film detail section ───────────────────────────────────────────────────────
+const AVATAR_HUE = [258, 217, 189, 158, 38, 12, 280, 330];
+function avatarHue(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) { h = name.charCodeAt(i) + ((h << 5) - h); h |= 0; }
+  return AVATAR_HUE[Math.abs(h) % AVATAR_HUE.length];
+}
+function nameInitials(name: string) {
+  return name.split(" ").map(w => w[0] ?? "").join("").toUpperCase().slice(0, 2) || "?";
+}
+
+// Roles that represent on-screen acting — get circular photo-style avatars
+const ACTOR_ROLE_KEYWORDS = ["дүр", "жүжигч"];
+function isActorRole(role: string) {
+  const lower = role.toLowerCase();
+  return ACTOR_ROLE_KEYWORDS.some(k => lower.includes(k));
+}
+
+function ActorChip({ name }: { name: string }) {
+  const hue = avatarHue(name);
+  return (
+    <div className="flex items-center gap-2 bg-muted/40 border border-border/30 rounded-full px-2 py-1 flex-shrink-0">
+      <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+        style={{ background: `hsl(${hue},16%,85%)`, color: `hsl(${hue},20%,40%)` }}>
+        {nameInitials(name)}
+      </div>
+      <span className="text-xs font-medium text-foreground whitespace-nowrap pr-0.5">{name}</span>
+    </div>
+  );
+}
+
 function FilmDetail({ r }: { r: ReleaseData }) {
   const year = r.releaseDate?.split("-")[0] ?? "—";
-  const roles = ["Найруулагч", "Продюсер", "Зохиолч"];
-  const crew = r.cast?.filter(c => roles.includes(c.role)) ?? [];
-  const cast = r.cast?.filter(c => !roles.includes(c.role)) ?? [];
-  const directorEntry = r.cast?.find(c => c.role === "Найруулагч");
+
+  const directorNames = r.cast?.filter(c => c.role === "Найруулагч").map(c => c.name) ?? [];
+  const producerNames = r.cast?.filter(c => c.role === "Продюсер").map(c => c.name) ?? [];
+  const writerNames   = r.cast?.filter(c => c.role === "Зохиолч").map(c => c.name) ?? [];
+
+  // Split remaining cast into actor groups (with avatars) and crew groups (text only)
+  const MAIN_ROLES = new Set(["Найруулагч", "Продюсер", "Зохиолч"]);
+  const others = r.cast?.filter(c => !MAIN_ROLES.has(c.role)) ?? [];
+
+  const actorGroups = new Map<string, string[]>();
+  const crewGroups  = new Map<string, string[]>();
+  others.forEach(c => {
+    if (isActorRole(c.role)) {
+      if (!actorGroups.has(c.role)) actorGroups.set(c.role, []);
+      actorGroups.get(c.role)!.push(c.name);
+    } else {
+      if (!crewGroups.has(c.role)) crewGroups.set(c.role, []);
+      crewGroups.get(c.role)!.push(c.name);
+    }
+  });
+
+  const mainCrewLine = [
+    ...directorNames.map(n => ({ label: "Найруулагч", name: n })),
+    ...producerNames.map(n => ({ label: "Продюсер",   name: n })),
+    ...writerNames.map(n =>   ({ label: "Зохиолч",    name: n })),
+  ];
 
   return (
     <div className="space-y-4">
       <Card className="p-5">
         <SectionHead icon={Film} label="Киноны мэдээлэл" />
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4 mb-4">
           {[
-            { label:"Гарсан он",         value: year                 },
-            { label:"Үргэлжлэх хугацаа", value: r.filmDuration ?? "—" },
-            { label:"Насны ангилал",      value: r.ageRating ?? "—"   },
-            { label:"Жанр",              value: r.genre              },
+            { label:"Гарсан он",         value: year,                  icon: CalendarDays },
+            { label:"Үргэлжлэх хугацаа", value: r.filmDuration ?? "—", icon: Clock        },
+            { label:"Насны ангилал",      value: r.ageRating ?? "—",    icon: ShieldAlert  },
+            { label:"Жанр",              value: r.genre,               icon: Tags         },
           ].map(m => (
-            <div key={m.label} className="bg-muted/40 rounded-xl px-3 py-3 border border-border/40">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground mb-1">{m.label}</p>
+            <div key={m.label} className="bg-muted/40 rounded-xl px-3 py-2.5 border border-border/40">
+              <div className="flex items-center gap-1 mb-0.5">
+                <m.icon size={10} className="text-muted-foreground flex-shrink-0" />
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">{m.label}</p>
+              </div>
               <p className="text-sm font-semibold text-foreground">{m.value}</p>
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10">
-          <div>
-            <KV icon={Hash}       label="UPC"       value={r.upc || "—"} />
-            <KV icon={LayoutList} label="Дэд жанр"  value={r.subGenre} />
+
+        {mainCrewLine.length > 0 && (
+          <div className="flex bg-muted/30 rounded-xl border border-border/30 divide-x divide-border/30 overflow-hidden mb-4">
+            {mainCrewLine.map(({ label, name }) => (
+              <div key={`${label}-${name}`} className="flex-1 px-3 py-2.5 min-w-0">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground mb-0.5">{label}</p>
+                <p className="text-sm font-semibold text-foreground truncate">{name}</p>
+              </div>
+            ))}
           </div>
-          <div>
-            <KV label="Студи"      value={r.label} />
-            <KV label="Найруулагч" value={directorEntry?.name ?? r.primaryArtist} />
-          </div>
-        </div>
-        <div className="mt-4 pt-4 border-t border-border/40">
+        )}
+
+        <div className="pt-3 border-t border-border/30">
           <a href="#"
-            className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold border border-border text-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors">
-            <Globe size={13} />Киноны холбоос<ExternalLink size={11} className="text-muted-foreground" />
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-semibold border border-border text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors">
+            <Globe size={12} />Киноны холбоос<ExternalLink size={10} />
           </a>
         </div>
       </Card>
@@ -620,50 +663,45 @@ function FilmDetail({ r }: { r: ReleaseData }) {
         </Card>
       )}
 
-      {r.cast && r.cast.length > 0 && (
+      {(actorGroups.size > 0 || crewGroups.size > 0 || r.label) && (
         <Card className="p-5">
-          {/* muted=true → grey icon per image-20 */}
           <SectionHead icon={UsersRound} label="Баг хамт олон" muted />
 
-          {crew.length > 0 && (
-            <div className="mb-4">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Бүтээлч баг</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12">
-                {crew.map(c => (
-                  <div key={c.name} className="flex items-center gap-0 py-2 border-b border-border/20 last:border-0">
-                    <span className="text-xs text-muted-foreground w-[110px] flex-shrink-0">{c.role}</span>
-                    <span className="text-sm font-semibold text-foreground">{c.name}</span>
+          {/* Actor sections — horizontal pills, one row per role group */}
+          {actorGroups.size > 0 && (
+            <div className="mt-3 space-y-3 mb-3">
+              {Array.from(actorGroups.entries()).map(([role, names]) => (
+                <div key={role}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">{role}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {names.map(name => <ActorChip key={name} name={name} />)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Other crew — compact rows */}
+          {crewGroups.size > 0 && (
+            <div className={`${actorGroups.size > 0 ? "pt-3 mt-1 border-t border-border/30" : "mt-3"}`}>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Бусад баг</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+                {Array.from(crewGroups.entries()).map(([role, names]) => (
+                  <div key={role} className="flex items-baseline gap-2 py-1 border-b border-border/15 last:border-0">
+                    <span className="text-[11px] text-muted-foreground w-[120px] flex-shrink-0">{role}</span>
+                    <span className="text-[13px] font-semibold text-foreground">{names.join(", ")}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {cast.length > 0 && (
-            <div>
-              <p className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Жүжигчид</p>
-              <div>
-                {(() => {
-                  const groups = new Map<string, string[]>();
-                  cast.forEach(c => {
-                    if (!groups.has(c.role)) groups.set(c.role, []);
-                    groups.get(c.role)!.push(c.name);
-                  });
-                  return Array.from(groups.entries()).map(([role, names]) => (
-                    <div key={role} className="flex items-baseline gap-0 py-2 border-b border-border/20 last:border-0">
-                      <span className="text-xs text-muted-foreground w-[110px] flex-shrink-0">{role}</span>
-                      <span className="text-sm font-semibold text-foreground">{names.join(", ")}</span>
-                    </div>
-                  ));
-                })()}
-              </div>
-            </div>
-          )}
-
           {r.label && (
-            <div className="mt-4 pt-3 border-t border-border/30 flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Продакшн:</span>
-              <span className="text-xs font-bold text-foreground bg-muted px-2.5 py-1 rounded-lg border border-border/60">{r.label}</span>
+            <div className={`flex items-center gap-2.5 ${(actorGroups.size > 0 || crewGroups.size > 0) ? "mt-3 pt-3 border-t border-border/30" : "mt-3"}`}>
+              <div className="w-7 h-7 rounded-lg bg-muted border border-border/60 flex items-center justify-center flex-shrink-0">
+                <Building2 size={13} className="text-muted-foreground" />
+              </div>
+              <span className="text-sm font-semibold text-foreground">{r.label}</span>
             </div>
           )}
         </Card>
@@ -724,7 +762,7 @@ export default function ReleaseDetailScreen() {
   const [params]   = useSearchParams();
   const { id: pathId } = useParams<{ id?: string }>();
   const id         = pathId ?? params.get("id");
-  const r          = (id ? RELEASES.find(x => x.id === id) : null) ?? RELEASES[0];
+  const r          = (id ? ALL_RELEASES.find(x => x.id === id) : null) ?? ALL_RELEASES[0];
 
   const [tab,           setTab]           = useState<Tab>("info");
   const [prbtTab,       setPrbtTab]       = useState(PRBT_PROVIDERS[0]);
@@ -779,8 +817,10 @@ export default function ReleaseDetailScreen() {
             style={{ background:"radial-gradient(circle,white,transparent 70%)" }} />
 
           <div className="relative px-5 sm:px-7 py-6 flex gap-5 sm:gap-6 items-center">
-            <div className={`w-28 sm:w-32 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center shadow-2xl flex-shrink-0 backdrop-blur-sm self-stretch ${isFilm ? "aspect-[2/3]" : "h-28 sm:h-32"}`}>
-              {isFilm ? <Film size={36} className="text-white/25" />
+            <div className={`w-28 sm:w-32 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center shadow-2xl flex-shrink-0 backdrop-blur-sm self-stretch overflow-hidden relative ${isFilm ? "aspect-[2/3]" : "h-28 sm:h-32"}`}>
+              {r.cover
+                ? <img src={r.cover} alt={r.title} className="absolute inset-0 w-full h-full object-cover" />
+                : isFilm      ? <Film     size={36} className="text-white/25" />
                 : isAudiobook ? <BookOpen size={36} className="text-white/25" />
                 : <Music2 size={36} className="text-white/25" />}
             </div>
@@ -790,9 +830,6 @@ export default function ReleaseDetailScreen() {
                 <div className="flex items-center gap-2 flex-wrap mb-2">
                   <span className="text-[11px] font-bold text-white/50 uppercase bg-white/10 px-2 py-0.5 rounded-md">{typeLabel}</span>
                   <StatusBadge status={r.status} />
-                  {isFilm && r.ageRating && (
-                    <span className="text-[11px] font-bold text-white/50 bg-white/10 px-2 py-0.5 rounded-md">{r.ageRating}</span>
-                  )}
                 </div>
                 <h1 className="text-xl sm:text-2xl font-extrabold text-white leading-tight drop-shadow">{r.title}</h1>
                 <p className="text-sm text-white/55 mt-1">
@@ -873,16 +910,22 @@ export default function ReleaseDetailScreen() {
             ) : (
               <>
                 <Card className="p-5">
-                  <SectionHead icon={Disc3} label="Үндсэн мэдээлэл" />
+                  <div className="flex items-start justify-between mb-3">
+                    <SectionHead icon={Disc3} label="Үндсэн мэдээлэл" />
+                    <a href="#" className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-semibold border border-border text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors flex-shrink-0 -mt-0.5">
+                      <Globe size={12} />Цомгийн холбоос<ExternalLink size={10} />
+                    </a>
+                  </div>
 
+                  {/* Title language variants */}
                   {relTitles.length > 0 && (
                     <div className="mb-4 pb-4 border-b border-border/30">
-                      <p className="text-xs text-muted-foreground mb-2.5 flex items-center gap-1.5">
-                        <Globe2 size={11} className="opacity-60" />Нэрний орчуулга
+                      <p className="text-[10px] font-bold uppercase text-muted-foreground mb-2.5 flex items-center gap-1.5">
+                        <Globe2 size={10} className="opacity-60" />Нэрний хэлний хувилбар
                       </p>
-                      <div className="flex flex-wrap gap-4">
+                      <div className="flex flex-wrap gap-3">
                         {relTitles.map(t => (
-                          <div key={t.lang} className="flex items-center gap-2">
+                          <div key={t.lang} className="flex items-center gap-2 bg-muted/40 border border-border/40 rounded-lg px-3 py-1.5">
                             <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded flex-shrink-0">
                               {langCode(t.lang)}
                             </span>
@@ -914,12 +957,6 @@ export default function ReleaseDetailScreen() {
                       <p className="text-sm text-foreground/80 leading-relaxed">{r.synopsis}</p>
                     </div>
                   )}
-
-                  <div className="mt-4 pt-4 border-t border-border/40">
-                    <a href="#" className="inline-flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-semibold border border-border text-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors">
-                      <Globe size={13} />Цомгийн холбоос<ExternalLink size={11} className="text-muted-foreground" />
-                    </a>
-                  </div>
                 </Card>
 
                 <Card className="p-5">

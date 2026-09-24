@@ -36,28 +36,17 @@ export default function LoginScreen() {
         </div>
         {/* right-edge fade into the white panel */}
         <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-r from-transparent to-white/30" />
-        {/* bottom brand lockup */}
-        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#0f0025]/80 to-transparent pointer-events-none" />
-        <div className="absolute bottom-8 left-8 z-10 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg shadow-violet-900/40" style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
-            <img src={buteelLogo} alt="Buteel" className="w-7 h-7 object-contain" />
-          </div>
-          <div>
-            <p className="text-white font-extrabold text-xl leading-none">Buteel</p>
-            <p className="text-white/55 text-xs mt-0.5">Монгол хөгжимчдийн платформ</p>
-          </div>
-        </div>
       </div>
 
       {/* Right 40% — login form */}
       <div className="flex-1 bg-white flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
-          {/* Mobile logo */}
-          <div className="lg:hidden text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4" style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
+          {/* Logo — centered above form */}
+          <div className="flex flex-col items-center pb-6 mb-6 border-b border-zinc-100">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3 shadow-lg shadow-violet-200" style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
               <img src={buteelLogo} alt="Buteel" className="w-9 h-9 object-contain" />
             </div>
-            <h1 className="text-2xl font-extrabold text-zinc-900">Buteel</h1>
+            <span className="text-xl font-extrabold text-zinc-900 tracking-tight">Buteel Portal</span>
           </div>
 
           <h2 className="text-2xl font-extrabold text-zinc-900 mb-1">Нэвтрэх</h2>
@@ -78,25 +67,7 @@ export default function LoginScreen() {
           </div>
 
           {/* Demo shortcut */}
-          <div className="mt-4 p-3 rounded-xl bg-violet-50 border border-violet-100">
-            <p className="text-xs text-violet-500 font-semibold uppercase mb-1.5">Шинэ аккаунт нээх урсгал</p>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { label: "① Бүртгэл",        path: "/register" },
-                { label: "② Баталгаа",        path: "/verify" },
-                { label: "③ Аккаунт төрөл",  path: "/onboarding/account-type" },
-                { label: "④ Лейбл",           path: "/onboarding/label" },
-                { label: "⑤ Гэрээ",           path: "/onboarding/agreements" },
-                { label: "⑥ Дуусгах",         path: "/onboarding/complete" },
-              ].map(({ label, path }) => (
-                <button type="button" key={path}
-                  onClick={() => navigate(path)}
-                  className="text-xs font-semibold bg-white border border-violet-200 text-violet-700 hover:bg-violet-100 px-2.5 py-1 rounded-lg transition-colors">
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
