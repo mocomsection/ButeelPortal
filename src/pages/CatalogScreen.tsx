@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import {
   Music2, Plus, Search, Check, X, AlertCircle, Disc3, Eye, BookOpen,
   ChevronDown, MoreHorizontal, Filter, LayoutGrid, List, Film, Pencil,
@@ -73,6 +73,12 @@ function artistLabel(r: ReleaseData) {
     : r.primaryArtist;
 }
 
+function detailPath(r: ReleaseData) {
+  if (r.contentType === "film")      return `/catalog/film/film?id=${r.id}`;
+  if (r.contentType === "audiobook") return `/catalog/audiobook/book?id=${r.id}`;
+  return `/catalog/music/release?id=${r.id}`;
+}
+
 function ContentTypeIcon({ ct }: { ct: string }) {
   if (ct === "audiobook") return <BookOpen size={11} className="text-blue-500" />;
   if (ct === "film")      return <Film     size={11} className="text-amber-500" />;
@@ -132,9 +138,10 @@ function SearchDrop({
 // ── Main component ────────────────────────────────────────────────────────────
 export default function CatalogScreen() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const urlType = searchParams.get("type") as "music" | "audiobook" | "film" | null;
-  const ct: "music" | "audiobook" | "film" = urlType ?? "music";
+  const { pathname } = useLocation();
+  const ct: "music" | "audiobook" | "film" =
+    pathname.includes("audiobook") ? "audiobook" :
+    pathname.includes("film") ? "film" : "music";
   const cfg = TYPE_CONFIG[ct];
 
   // ── filter state ──────────────────────────────────────────────────────────
@@ -184,8 +191,8 @@ export default function CatalogScreen() {
   const [musicMode, setMusicMode]           = useState<"single" | "album" | null>(null);
 
   const handleNew = () => {
-    if (ct === "audiobook") { navigate("/submit/audiobook-info"); return; }
-    if (ct === "film")      { navigate("/submit/film-info"); return; }
+    if (ct === "audiobook") { navigate("/submit/audiobook"); return; }
+    if (ct === "film")      { navigate("/submit/film"); return; }
     setMusicMode(null); setShowMusicModal(true);
   };
 
@@ -338,7 +345,7 @@ export default function CatalogScreen() {
               className={`bg-white rounded-xl border-t-2 border border-zinc-100 shadow-sm hover:shadow-[0_4px_20px_0_rgba(108,77,246,0.1)] transition-all overflow-hidden ${statusColor[r.status] || "border-t-zinc-200"}`}>
               {/* Cover */}
               <div className={`${ct === "film" ? "aspect-[2/3]" : "aspect-square"} bg-zinc-900 flex items-center justify-center cursor-pointer group relative`}
-                onClick={() => navigate(`/catalog/release?id=${r.id}`)}>
+                onClick={() => navigate(detailPath(r))}>
                 {r.contentType === "audiobook" ? <BookOpen size={28} className="text-white/30" />
                   : r.contentType === "film"  ? <Film     size={28} className="text-white/30" />
                   : <Music2 size={28} className="text-white/30" />}
@@ -398,12 +405,16 @@ export default function CatalogScreen() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 mt-2.5">
-                  <button type="button" onClick={() => navigate(`/catalog/release?id=${r.id}`)}
+                  <button type="button" onClick={() => navigate(detailPath(r))}
                     className="flex items-center justify-center w-8 h-8 rounded-xl border border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700 transition-colors">
                     <Eye size={14} />
                   </button>
                   {(r.status === "draft" || r.status === "revision") && (
-                    <button type="button" onClick={() => navigate("/submit/release-info")}
+                    <button type="button" onClick={() => navigate(
+                      r.contentType === "film" ? `/submit/film?edit=${r.id}` :
+                      r.contentType === "audiobook" ? `/submit/audiobook?edit=${r.id}` :
+                      `/submit/release?edit=${r.id}&mode=${r.type === "Single" ? "single" : "album"}`
+                    )}
                       className="flex items-center justify-center w-8 h-8 rounded-xl border border-violet-200 text-violet-600 hover:bg-violet-50 transition-colors">
                       <Pencil size={14} />
                     </button>
@@ -455,7 +466,7 @@ export default function CatalogScreen() {
                   </td></tr>
                 ) : filtered.map(r => (
                   <tr key={r.id} className="hover:bg-zinc-100/70 transition-colors">
-                    <td className="px-5 py-3.5 cursor-pointer" onClick={() => navigate(`/catalog/release?id=${r.id}`)}>
+                    <td className="px-5 py-3.5 cursor-pointer" onClick={() => navigate(detailPath(r))}>
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-zinc-900 flex items-center justify-center flex-shrink-0">
                           {r.contentType === "audiobook" ? <BookOpen size={14} className="text-white" />
@@ -484,12 +495,16 @@ export default function CatalogScreen() {
                     <td className="px-4 py-3.5 text-sm text-zinc-400 hidden md:table-cell">{r.releaseDate}</td>
                     <td className="px-4 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <button type="button" onClick={() => navigate(`/catalog/release?id=${r.id}`)}
+                        <button type="button" onClick={() => navigate(detailPath(r))}
                           className="flex items-center justify-center w-8 h-8 rounded-xl border border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700 transition-colors">
                           <Eye size={14} />
                         </button>
                         {(r.status === "draft" || r.status === "revision") && (
-                          <button type="button" onClick={() => navigate("/submit/release-info")}
+                          <button type="button" onClick={() => navigate(
+                      r.contentType === "film" ? `/submit/film?edit=${r.id}` :
+                      r.contentType === "audiobook" ? `/submit/audiobook?edit=${r.id}` :
+                      `/submit/release?edit=${r.id}&mode=${r.type === "Single" ? "single" : "album"}`
+                    )}
                             className="flex items-center justify-center w-8 h-8 rounded-xl border border-violet-200 text-violet-600 hover:bg-violet-50 transition-colors">
                             <Pencil size={14} />
                           </button>
@@ -577,7 +592,7 @@ export default function CatalogScreen() {
                 Болих
               </button>
               <button type="button" disabled={!musicMode}
-                onClick={() => { if (musicMode) { setShowMusicModal(false); navigate(`/submit/music?mode=${musicMode}`); } }}
+                onClick={() => { if (musicMode) { setShowMusicModal(false); navigate(`/submit/release?mode=${musicMode}`); } }}
                 className="h-9 px-5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
                 Үргэлжлүүлэх <ArrowRight size={14} />
               </button>

@@ -21,9 +21,9 @@ function typeLabel(r: ReleaseData) {
 }
 
 const ADD_TYPES = [
-  { id: "music",     label: "Хөгжим",    sub: "Дуу, EP, Цомог",          icon: Music2,   color: "text-primary",   bg: "bg-primary/10",  path: "/submit/music" },
-  { id: "audiobook", label: "Аудио ном", sub: "Бүлэгтэй номын аудио",    icon: BookOpen, color: "text-violet-600", bg: "bg-violet-100",  path: "/submit/audiobook-info" },
-  { id: "film",      label: "Кино",      sub: "Уран сайхны, баримтат",   icon: Film,     color: "text-rose-600",   bg: "bg-rose-100",    path: "/submit/film-info" },
+  { id: "music",     label: "Хөгжим",    sub: "Дуу, EP, Цомог",          icon: Music2,   color: "text-primary",   bg: "bg-primary/10",  path: "/submit/release" },
+  { id: "audiobook", label: "Аудио ном", sub: "Бүлэгтэй номын аудио",    icon: BookOpen, color: "text-violet-600", bg: "bg-violet-100",  path: "/submit/audiobook" },
+  { id: "film",      label: "Кино",      sub: "Уран сайхны, баримтат",   icon: Film,     color: "text-rose-600",   bg: "bg-rose-100",    path: "/submit/film" },
 ];
 
 export default function DashboardScreen() {
@@ -179,7 +179,11 @@ export default function DashboardScreen() {
                 return (
                   <div key={r.id}
                     className="flex items-center gap-4 px-5 py-3.5 hover:bg-muted/30 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/catalog/release?id=${r.id}`)}>
+                    onClick={() => navigate(
+  r.contentType === "film" ? `/catalog/film/film?id=${r.id}` :
+  r.contentType === "audiobook" ? `/catalog/audiobook/book?id=${r.id}` :
+  `/catalog/music/release?id=${r.id}`
+)}>
                     <div className={`w-9 h-9 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
                       <Icon size={14} className="text-white" />
                     </div>

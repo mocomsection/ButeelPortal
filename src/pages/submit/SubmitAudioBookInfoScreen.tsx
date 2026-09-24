@@ -779,7 +779,7 @@ export default function SubmitAudioBookInfoScreen() {
           <p style={{ color: "var(--w-muted)", marginTop: 6 }}>"{titleMn}" аудио ном шалгагдаж байна.</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
-          <button className="wiz-btn" onClick={() => navigate("/catalog?type=audiobook")}>Каталог харах</button>
+          <button className="wiz-btn" onClick={() => navigate("/catalog")}>Каталог харах</button>
           <button className="wiz-btn primary" onClick={() => navigate("/")}>Хяналтын самбар</button>
         </div>
       </div>

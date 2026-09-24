@@ -4,8 +4,9 @@ import { Shell } from "@/components/layout/Shell";
 import {
   Film, ArrowLeft, ArrowRight, Send, Plus, X, Check,
   ChevronDown, UploadCloud, CircleCheckBig, ClipboardCheck,
-  Search, UserRound, ZapIcon, CalendarDays, CalendarClock,
+  Search, UserRound, Users, ZapIcon, CalendarDays, CalendarClock,
   Info, Image as ImageIcon, ImageOff, RadioTower, Link2, Eye, EyeOff, TriangleAlert, AlertCircle,
+  Building2, Clapperboard, Clock,
 } from "lucide-react";
 import "@/styles/wizard.css";
 import { RELEASES } from "@/data/releases";
@@ -19,7 +20,15 @@ const STEPS = ["Үндсэн мэдээлэл","Файл оруулах","Пос
 const FILM_GENRES = ["Уран сайхны","Баримтат","Богино хэрэглэл","Хүүхэлдэйн","Аниме","Комеди","Драм","Экшн","Триллер","Аймшгийн","Романтик","Түүхэн","Хүүхэд","Бусад"];
 const FILM_LANGUAGES = ["Монгол","English / Latin","Орос","Хятад","Солонгос","Японы","Бусад"];
 const FILM_AGE_RATINGS = ["0+","6+","12+","16+","18+"];
-const FILM_ROLES = ["Найруулагч","Продюсер","Зохиолч","Гол дүрийн жүжигчин","Жүжигчид","Зурагчин","Монтажчин","Хөгжмийн зохиолч","Продакшн дизайнер"];
+const FILM_ROLES = ["Зохиолч","Гол дүрийн жүжигчин","Жүжигчид","Зурагчин","Монтажчин","Хөгжмийн зохиолч","Продакшн дизайнер","Хувцас загварч","Арт директор","Дууны найруулагч"];
+const KNOWN_STUDIOS: Person[] = [
+  { id: "ST1", name: "Mongol Content LLC" },
+  { id: "ST2", name: "Nomad Films" },
+  { id: "ST3", name: "Алтай Пикчерс" },
+  { id: "ST4", name: "Монгол Кино" },
+  { id: "ST5", name: "УБ Студи" },
+  { id: "ST6", name: "Steppe Pictures" },
+];
 const FILM_SVCS_DOMESTIC = ["MN TV+","ТВ-8"];
 const FILM_SVCS_VOD = ["Netflix","Apple TV+","Amazon Prime Video","Disney+"];
 const FILM_SVCS_DIGITAL = ["Vimeo","YouTube Premium"];
@@ -105,13 +114,23 @@ export default function SubmitFilmInfoScreen() {
   const [titleLangOpen, setTitleLangOpen] = useState(false);
   const [titleExtras, setTitleExtras] = useState<Record<string, string>>({});
 
-  // Cast — flat list, one entry per person-role pair; same person may appear multiple times with different roles
+  // Directors — separate required field
+  const [directors, setDirectors] = useState<Person[]>([]);
+  const [directorOpen, setDirectorOpen] = useState(false);
+  const [directorQuery, setDirectorQuery] = useState("");
+
+  // Producers — separate optional field
+  const [producers, setProducers] = useState<Person[]>([]);
+  const [producerOpen, setProducerOpen] = useState(false);
+  const [producerQuery, setProducerQuery] = useState("");
+
+  // Other cast/crew — excludes director and producer roles
   const [cast, setCast] = useState<CastMember[]>(
     editRelease?.cast?.map((c, i) => ({ id: String(i), name: c.name, role: c.role })) ?? []
   );
   const [castOpen, setCastOpen] = useState(false);
   const [castQuery, setCastQuery] = useState("");
-  const [castRole, setCastRole] = useState("Найруулагч");
+  const [castRole, setCastRole] = useState("Зохиолч");
 
   // Release metadata
   const [genre, setGenre] = useState(editRelease?.genre ?? "");
@@ -121,14 +140,13 @@ export default function SubmitFilmInfoScreen() {
   const [language, setLanguage] = useState("Монгол");
   const [ageRating, setAgeRating] = useState(editRelease?.ageRating ?? "");
 
-  // Duration — hours / minutes / seconds
-  const [durationH, setDurationH] = useState("0");
-  const [durationM, setDurationM] = useState("0");
-  const [durationS, setDurationS] = useState("0");
+  // Duration — simple text "H:MM:SS" or "MM:SS"
+  const [duration, setDuration] = useState("");
 
-  // Studios — multiple
+  // Studios — multiple, searchable
   const [studios, setStudios] = useState<string[]>(editRelease?.label ? [editRelease.label] : []);
-  const [studioInput, setStudioInput] = useState("");
+  const [studioOpen, setStudioOpen] = useState(false);
+  const [studioQuery, setStudioQuery] = useState("");
 
   const [synopsis, setSynopsis] = useState(editRelease?.synopsis ?? "");
   const [cOwner, setCOwner] = useState("");
@@ -174,25 +192,21 @@ export default function SubmitFilmInfoScreen() {
       } catch {}
     }, 1500);
     return () => clearTimeout(tid);
-  }, [titleMn, titleEn, cast, genre, subGenre, ageRating, studios,
-      durationH, durationM, durationS, filmUrl, filmPassword,
+  }, [titleMn, titleEn, directors, producers, cast, genre, subGenre, ageRating, studios,
+      duration, filmUrl, filmPassword,
       poster, scheduleMode, releaseDate, selectedServices, reviewConfirmed]);
 
   const handleNext = () => { if (stage < 5) setStage((stage + 1) as Stage); else if (reviewConfirmed) setSubmitted(true); };
   const handleBack = () => { if (stage > 1) setStage((stage - 1) as Stage); else navigate(-1); };
-  const closeAll = () => { setCastOpen(false); setGenreOpen(false); setTitleLangOpen(false); };
+  const closeAll = () => { setCastOpen(false); setGenreOpen(false); setTitleLangOpen(false); setDirectorOpen(false); setProducerOpen(false); setStudioOpen(false); };
 
-  const hasDirector = cast.some(c => c.role === "Найруулагч");
-  const durationStr = `${durationH}:${durationM.padStart(2,"0")}:${durationS.padStart(2,"0")}`;
-
-  const s1ok = !!titleMn.trim() && hasDirector && !!genre && !!ageRating;
+  const s1ok = !!titleMn.trim() && directors.length > 0 && !!genre && !!ageRating;
   const s2ok = !!filmUrl.trim();
   const s3ok = !!poster;
   const s4ok = (scheduleMode === "asap" || !!releaseDate) && selectedServices.length > 0;
 
-  const directorName = cast.find(c => c.role === "Найруулагч")?.name ?? "";
   const shellTitle = titleMn.trim() || (editRelease ? "Кино засах" : "Кино нэмэх");
-  const shellSubtitle = directorName ? `Найруулагч: ${directorName}` : "Кино, видео бүтээлийн мэдээлэл";
+  const shellSubtitle = directors.length > 0 ? `Найруулагч: ${directors.map(d => d.name).join(", ")}` : "Кино, видео бүтээлийн мэдээлэл";
   const publishLabel = scheduleMode === "asap" ? "Аль болох хурдан · 2–3 ажлын өдөр" : (releaseDate ? `Нийтлэх огноо · ${releaseDate}` : "Огноо сонгоогүй");
 
   // ─── Stage content — called as function to preserve input focus ─────────────
@@ -206,119 +220,228 @@ export default function SubmitFilmInfoScreen() {
         return acc;
       }, {});
 
-      // CastPicker — inline function called as castPickerJSX() to prevent remount on keystroke
-      function castPickerJSX() {
-        const alreadyInRole = (name: string, role: string) => cast.some(c => c.name === name && c.role === role);
-        const filtered = KNOWN_PEOPLE.filter(p =>
-          (!castQuery || p.name.toLowerCase().includes(castQuery.toLowerCase()))
+      // Reusable person picker builder (directors / producers / cast)
+      function personPickerJSX({
+        label, hint, required, people, setPeople,
+        open, setOpen, query, setQuery, emptyText, accentColor,
+        withRole, role, setRole,
+      }: {
+        label: string; hint: string; required?: boolean;
+        people: Person[]; setPeople: React.Dispatch<React.SetStateAction<Person[]>>;
+        open: boolean; setOpen: (v: boolean) => void; query: string; setQuery: (v: string) => void;
+        emptyText: string; accentColor?: string;
+        withRole?: boolean; role?: string; setRole?: (r: string) => void;
+      }) {
+        const alreadyAdded = (name: string) => people.some(p => p.name === name);
+        const alreadyInRole = (name: string, r: string) => cast.some(c => c.name === name && c.role === r);
+        const filtered = KNOWN_PEOPLE.filter(p => !query || p.name.toLowerCase().includes(query.toLowerCase()));
+        const canCreate = query.trim() && !alreadyAdded(query.trim());
+        const canCreateCast = query.trim() && role && !alreadyInRole(query.trim(), role);
+        const bg = accentColor ?? "var(--w-accent)";
+
+        return (
+          <div className="wiz-artist-section">
+            <div className="wiz-artist-section-head">
+              <div>
+                <h3 style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  {label}{required && <span className="wiz-req">*</span>}
+                </h3>
+                <span>{hint}</span>
+              </div>
+              <button type="button" className="wiz-btn wiz-artist-role-action"
+                onClick={e => { e.stopPropagation(); setOpen(!open); setQuery(""); }}>
+                <Plus size={12} />{people.length > 0 ? "Нэмэх" : "Сонгох"}
+              </button>
+            </div>
+            <div className="wiz-artist-role-box">
+              {people.length > 0 ? (
+                <div className="wiz-artist-selected-list">
+                  {people.map(p => (
+                    <div key={p.id} className="wiz-artist-selected-card">
+                      <span className="wiz-avatar md" style={{ background: bg, color: "#fff" }}>{initials(p.name)}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <b style={{ display: "block", fontSize: 13 }}>{p.name}</b>
+                        <span style={{ fontSize: 12, color: "var(--w-muted)" }}>{label}</span>
+                      </div>
+                      <button type="button" className="wiz-btn icon-btn"
+                        onClick={() => setPeople(prev => prev.filter(x => x.id !== p.id))}>
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="wiz-artist-empty"><UserRound size={15} /><span>{emptyText}</span></div>
+              )}
+              {open && (
+                <div style={{ marginTop: 8, border: "1px solid var(--w-line)", borderRadius: 10, background: "#fff", overflow: "hidden", boxShadow: "0 8px 24px #0002" }}
+                  onClick={e => e.stopPropagation()}>
+                  <div style={{ padding: "6px 8px 4px", position: "relative" }}>
+                    <Search size={13} style={{ position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)", color: "#999" }} />
+                    <input className="wiz-input" style={{ height: 38, paddingLeft: 32 }}
+                      value={query} onChange={e => setQuery(e.target.value)}
+                      placeholder={`${label} хайх эсвэл нэр оруулах...`} autoFocus />
+                  </div>
+                  <div style={{ maxHeight: 180, overflowY: "auto" }}>
+                    {filtered.map(p => {
+                      const added = alreadyAdded(p.name);
+                      return (
+                        <div key={p.id} className="wiz-option"
+                          style={{ display: "flex", alignItems: "center", gap: 9, opacity: added ? 0.45 : 1 }}
+                          onMouseDown={() => {
+                            if (added) return;
+                            setPeople(prev => [...prev, p]);
+                            setQuery(""); setOpen(false);
+                          }}>
+                          <span className="wiz-avatar sm">{initials(p.name)}</span>
+                          <span style={{ flex: 1, fontSize: 13 }}>{p.name}</span>
+                          {added && <span style={{ fontSize: 11, color: "var(--w-muted)" }}>аль байна</span>}
+                        </div>
+                      );
+                    })}
+                    {canCreate && (
+                      <div className="wiz-option" style={{ color: "var(--w-accent)", fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}
+                        onMouseDown={() => {
+                          setPeople(prev => [...prev, { id: "N" + Date.now(), name: query.trim() }]);
+                          setQuery(""); setOpen(false);
+                        }}>
+                        <Plus size={12} />"{query.trim()}" нэмэх
+                      </div>
+                    )}
+                    {filtered.length === 0 && !canCreate && (
+                      <div style={{ padding: "12px 14px", fontSize: 13, color: "var(--w-muted)" }}>Илэрц олдсонгүй</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         );
+      }
+
+      function directorPickerJSX() {
+        return personPickerJSX({
+          label: "Найруулагч", hint: "Киноны найруулагч — шаардлагатай", required: true,
+          people: directors, setPeople: setDirectors,
+          open: directorOpen, setOpen: setDirectorOpen, query: directorQuery, setQuery: setDirectorQuery,
+          emptyText: "Найруулагч нэмэгдээгүй байна.", accentColor: "var(--w-accent)",
+        });
+      }
+
+      function producerPickerJSX() {
+        return personPickerJSX({
+          label: "Продюсер", hint: "Кино бүтээгдэхүүнийг санхүүжүүлж удирдсан хүн",
+          people: producers, setPeople: setProducers,
+          open: producerOpen, setOpen: setProducerOpen, query: producerQuery, setQuery: setProducerQuery,
+          emptyText: "Продюсер нэмэгдээгүй байна.", accentColor: "#7c3aed",
+        });
+      }
+
+      // CastPicker — other crew roles only (no director/producer)
+      function castPickerJSX() {
+        const castByName = cast.reduce<Record<string, CastMember[]>>((acc, c) => {
+          (acc[c.name] ??= []).push(c);
+          return acc;
+        }, {});
+        const alreadyInRole = (name: string, role: string) => cast.some(c => c.name === name && c.role === role);
+        const filteredPeople = KNOWN_PEOPLE.filter(p => !castQuery || p.name.toLowerCase().includes(castQuery.toLowerCase()));
         const canCreateNew = castQuery.trim() && !alreadyInRole(castQuery.trim(), castRole);
 
         return (
-          <div className="wiz-field">
-            <div className="wiz-artist-section">
-              <div className="wiz-artist-section-head">
-                <div>
-                  <h3>Найруулагч, жүжигчид, баг<span className="wiz-req" style={{ marginLeft: 3 }}>*</span></h3>
-                  <span>Найруулагч нэмэх шаардлагатай · Нэг хүн олон үүрэгтэй байж болно</span>
-                </div>
-                <button type="button" className="wiz-btn wiz-artist-role-action"
-                  onClick={e => { e.stopPropagation(); setCastOpen(v => !v); setCastQuery(""); }}>
-                  <Plus size={12} />{cast.length > 0 ? "Нэмэх" : "Нэмэх"}
-                </button>
+          <div className="wiz-artist-section">
+            <div className="wiz-artist-section-head">
+              <div>
+                <h3>Бусад баг</h3>
+                <span>Зохиолч, жүжигчид, зурагчин болон бусад</span>
               </div>
-              <div className="wiz-artist-role-box">
-                {Object.keys(castByName).length > 0 ? (
-                  <div className="wiz-artist-selected-list">
-                    {Object.entries(castByName).map(([name, entries]) => (
-                      <div key={name} className="wiz-artist-selected-card" style={{ alignItems: "flex-start" }}>
-                        <span className="wiz-avatar md" style={{ marginTop: 2 }}>{initials(name)}</span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <b style={{ display: "block", fontSize: 13 }}>{name}</b>
-                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 5 }}>
-                            {entries.map(e => (
-                              <span key={e.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: e.role === "Найруулагч" ? "var(--w-accent)" : "#ebebf4", color: e.role === "Найруулагч" ? "#fff" : "var(--w-text)" }}>
-                                {e.role}
-                                <button type="button"
-                                  style={{ background: "none", border: "none", cursor: "pointer", padding: 0, marginLeft: 1, display: "flex", alignItems: "center", opacity: 0.7, color: "inherit" }}
-                                  onClick={() => setCast(prev => prev.filter(x => x.id !== e.id))}>
-                                  <X size={9} />
-                                </button>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <button type="button" className="wiz-btn icon-btn"
-                          onClick={() => setCast(prev => prev.filter(x => x.name !== name))}>
-                          <X size={13} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="wiz-artist-empty"><UserRound size={15} /><span>Найруулагч, баг нэмэгдээгүй байна.</span></div>
-                )}
-
-                {castOpen && (
-                  <div style={{ marginTop: 10, border: "1px solid var(--w-line)", borderRadius: 10, background: "#fff", overflow: "hidden", boxShadow: "0 8px 24px #0002" }}
-                    onClick={e => e.stopPropagation()}>
-                    {/* Role selector */}
-                    <div style={{ padding: "8px 8px 0", borderBottom: "1px solid var(--w-line)" }}>
-                      <p style={{ fontSize: 10, fontWeight: 800, color: "var(--w-muted)", margin: "0 0 5px 2px" }}>ҮҮРЭГ СОНГОХ</p>
-                      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", paddingBottom: 8 }}>
-                        {FILM_ROLES.map(r => (
-                          <button key={r} type="button"
-                            style={{ padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, border: `1px solid ${castRole === r ? "var(--w-accent)" : "#d8d9e1"}`, background: castRole === r ? "var(--w-soft)" : "#fff", color: castRole === r ? "var(--w-accent)" : "var(--w-text)", cursor: "pointer" }}
-                            onMouseDown={e => { e.preventDefault(); setCastRole(r); }}>
-                            {r}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Search */}
-                    <div style={{ padding: "6px 8px 4px", position: "relative" }}>
-                      <Search size={13} style={{ position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)", color: "#999" }} />
-                      <input className="wiz-input" style={{ height: 38, paddingLeft: 32 }}
-                        value={castQuery} onChange={e => setCastQuery(e.target.value)}
-                        placeholder={`${castRole} хайх эсвэл нэр оруулах...`} autoFocus />
-                    </div>
-                    <div style={{ maxHeight: 180, overflowY: "auto" }}>
-                      {filtered.map(p => {
-                        const alreadyHasRole = alreadyInRole(p.name, castRole);
-                        return (
-                          <div key={p.id} className="wiz-option"
-                            style={{ display: "flex", alignItems: "center", gap: 9, opacity: alreadyHasRole ? 0.45 : 1 }}
-                            onMouseDown={() => {
-                              if (!alreadyHasRole) {
-                                setCast(prev => [...prev, { id: Date.now().toString(), name: p.name, role: castRole }]);
-                                setCastQuery("");
-                                setCastOpen(false);
-                              }
-                            }}>
-                            <span className="wiz-avatar sm">{initials(p.name)}</span>
-                            <span style={{ flex: 1 }}>
-                              <span style={{ display: "block", fontSize: 13 }}>{p.name}</span>
-                              <span style={{ display: "block", fontSize: 11, color: "var(--w-muted)" }}>
-                                ID: {p.id}{alreadyHasRole ? ` · ${castRole} аль байна` : ""}
-                              </span>
+              <button type="button" className="wiz-btn wiz-artist-role-action"
+                onClick={e => { e.stopPropagation(); setCastOpen(v => !v); setCastQuery(""); }}>
+                <Plus size={12} />Нэмэх
+              </button>
+            </div>
+            <div className="wiz-artist-role-box">
+              {Object.keys(castByName).length > 0 ? (
+                <div className="wiz-artist-selected-list">
+                  {Object.entries(castByName).map(([name, entries]) => (
+                    <div key={name} className="wiz-artist-selected-card" style={{ alignItems: "flex-start" }}>
+                      <span className="wiz-avatar md" style={{ marginTop: 2 }}>{initials(name)}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <b style={{ display: "block", fontSize: 13 }}>{name}</b>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 5 }}>
+                          {entries.map(e => (
+                            <span key={e.id} style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "#ebebf4", color: "var(--w-text)" }}>
+                              {e.role}
+                              <button type="button"
+                                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, marginLeft: 1, display: "flex", alignItems: "center", opacity: 0.7, color: "inherit" }}
+                                onClick={() => setCast(prev => prev.filter(x => x.id !== e.id))}>
+                                <X size={9} />
+                              </button>
                             </span>
-                            <span style={{ fontSize: 11, color: "var(--w-muted)" }}>{castRole}</span>
-                          </div>
-                        );
-                      })}
-                      {canCreateNew && (
-                        <div className="wiz-option" style={{ color: "var(--w-accent)", fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}
-                          onMouseDown={() => { setCast(prev => [...prev, { id: Date.now().toString(), name: castQuery.trim(), role: castRole }]); setCastQuery(""); setCastOpen(false); }}>
-                          <Plus size={12} />"{castQuery.trim()}" — {castRole} нэмэх
+                          ))}
                         </div>
-                      )}
-                      {filtered.length === 0 && !canCreateNew && (
-                        <div style={{ padding: "12px 14px", fontSize: 13, color: "var(--w-muted)" }}>Илэрц олдсонгүй</div>
-                      )}
+                      </div>
+                      <button type="button" className="wiz-btn icon-btn"
+                        onClick={() => setCast(prev => prev.filter(x => x.name !== name))}>
+                        <X size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="wiz-artist-empty"><UserRound size={15} /><span>Бусад баг гишүүн нэмэгдээгүй.</span></div>
+              )}
+
+              {castOpen && (
+                <div style={{ marginTop: 8, border: "1px solid var(--w-line)", borderRadius: 10, background: "#fff", overflow: "hidden", boxShadow: "0 8px 24px #0002" }}
+                  onClick={e => e.stopPropagation()}>
+                  <div style={{ padding: "8px 8px 4px", borderBottom: "1px solid var(--w-line)" }}>
+                    <p style={{ fontSize: 10, fontWeight: 800, color: "var(--w-muted)", margin: "0 0 5px 2px" }}>ҮҮРЭГ СОНГОХ</p>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", paddingBottom: 8 }}>
+                      {FILM_ROLES.map(r => (
+                        <button key={r} type="button"
+                          style={{ padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, border: `1px solid ${castRole === r ? "var(--w-accent)" : "#d8d9e1"}`, background: castRole === r ? "var(--w-soft)" : "#fff", color: castRole === r ? "var(--w-accent)" : "var(--w-text)", cursor: "pointer" }}
+                          onMouseDown={e => { e.preventDefault(); setCastRole(r); }}>
+                          {r}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                )}
-              </div>
+                  <div style={{ padding: "6px 8px 4px", position: "relative" }}>
+                    <Search size={13} style={{ position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)", color: "#999" }} />
+                    <input className="wiz-input" style={{ height: 38, paddingLeft: 32 }}
+                      value={castQuery} onChange={e => setCastQuery(e.target.value)}
+                      placeholder={`${castRole} хайх эсвэл нэр оруулах...`} autoFocus />
+                  </div>
+                  <div style={{ maxHeight: 180, overflowY: "auto" }}>
+                    {filteredPeople.map(p => {
+                      const alreadyHasRole = alreadyInRole(p.name, castRole);
+                      return (
+                        <div key={p.id} className="wiz-option"
+                          style={{ display: "flex", alignItems: "center", gap: 9, opacity: alreadyHasRole ? 0.45 : 1 }}
+                          onMouseDown={() => {
+                            if (!alreadyHasRole) {
+                              setCast(prev => [...prev, { id: Date.now().toString(), name: p.name, role: castRole }]);
+                              setCastQuery(""); setCastOpen(false);
+                            }
+                          }}>
+                          <span className="wiz-avatar sm">{initials(p.name)}</span>
+                          <span style={{ flex: 1, fontSize: 13 }}>{p.name}</span>
+                          {alreadyHasRole && <span style={{ fontSize: 11, color: "var(--w-muted)" }}>{castRole} аль байна</span>}
+                        </div>
+                      );
+                    })}
+                    {canCreateNew && (
+                      <div className="wiz-option" style={{ color: "var(--w-accent)", fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}
+                        onMouseDown={() => { setCast(prev => [...prev, { id: Date.now().toString(), name: castQuery.trim(), role: castRole }]); setCastQuery(""); setCastOpen(false); }}>
+                        <Plus size={12} />"{castQuery.trim()}" — {castRole} нэмэх
+                      </div>
+                    )}
+                    {filteredPeople.length === 0 && !canCreateNew && (
+                      <div style={{ padding: "12px 14px", fontSize: 13, color: "var(--w-muted)" }}>Илэрц олдсонгүй</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -396,7 +519,13 @@ export default function SubmitFilmInfoScreen() {
             </div>
           </div>
 
-          {/* Cast */}
+          {/* Director */}
+          <div className="wiz-section">{directorPickerJSX()}</div>
+
+          {/* Producer */}
+          <div className="wiz-section">{producerPickerJSX()}</div>
+
+          {/* Other cast/crew */}
           <div className="wiz-section">{castPickerJSX()}</div>
 
           {/* Film metadata */}
@@ -440,53 +569,55 @@ export default function SubmitFilmInfoScreen() {
                 </div>
               </div>
 
-              {/* Duration — hours / minutes / seconds */}
-              <div className="wiz-field" style={{ gridColumn: "1/-1" }}>
-                <label className="wiz-label">Үргэлжлэх хугацаа<InfoTip text="Киноны нийт урт. Цаг, минут, секундаар оруулна. Боловсруулахад ашиглана." /></label>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 6 }}>
-                  {[
-                    { label: "Цаг", value: durationH, max: 23, set: setDurationH },
-                    { label: "Минут", value: durationM, max: 59, set: setDurationM },
-                    { label: "Секунд", value: durationS, max: 59, set: setDurationS },
-                  ].map(({ label, value, max, set }, i) => (
-                    <React.Fragment key={label}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                        <span style={{ fontSize: 10, fontWeight: 800, color: "var(--w-muted)" }}>{label.toUpperCase()}</span>
-                        <input type="number" min="0" max={max} value={value}
-                          onChange={e => set(String(Math.min(max, Math.max(0, +e.target.value || 0))))}
-                          className="wiz-input"
-                          style={{ width: 68, textAlign: "center", fontSize: 18, fontWeight: 800, padding: "8px 6px" }} />
-                      </div>
-                      {i < 2 && <span style={{ fontSize: 22, fontWeight: 800, color: "var(--w-muted)", paddingBottom: 8, opacity: 0.5 }}>:</span>}
-                    </React.Fragment>
-                  ))}
-                  <span style={{ fontSize: 12, color: "var(--w-muted)", paddingBottom: 10, marginLeft: 4 }}>{durationStr}</span>
-                </div>
+              {/* Duration — simple text */}
+              <div className="wiz-field">
+                <label className="wiz-label">Үргэлжлэх хугацаа<InfoTip text="Киноны нийт урт. Цаг:минут:секунд форматаар бичнэ. Жш: 1:45:30" /></label>
+                <input value={duration} onChange={e => setDuration(e.target.value)}
+                  className="wiz-input" placeholder="1:45:30" style={{ maxWidth: 160 }} />
+                <p className="wiz-hint" style={{ marginTop: 3 }}>Цаг:минут:секунд — жш: 1:45:30</p>
               </div>
 
-              {/* Studios — multiple */}
-              <div className="wiz-field" style={{ gridColumn: "1/-1" }}>
-                <label className="wiz-label">Студи / Продакшн<InfoTip text="Кино бүтээлд оролцсон продакшн компани, студиудын нэр. Олон байвал бүгдийг нэмнэ." /></label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: studios.length > 0 ? 8 : 0 }}>
-                  {studios.map(s => (
-                    <span key={s} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, padding: "4px 10px 4px 12px", borderRadius: 20, background: "var(--w-soft)", color: "var(--w-accent)", border: "1px solid #e4e0ff" }}>
-                      {s}
-                      <button type="button" onClick={() => setStudios(prev => prev.filter(x => x !== s))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", color: "inherit", opacity: 0.7 }}>
-                        <X size={11} />
-                      </button>
-                    </span>
-                  ))}
+              {/* Studios — searchable multiple */}
+              <div className="wiz-field" style={{ gridColumn: "1/-1", position: "relative" }}>
+                <label className="wiz-label">Студи / Продакшн<InfoTip text="Кино бүтээлд оролцсон продакшн компани. Олон байвал бүгдийг нэмнэ." /></label>
+                {studios.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
+                    {studios.map(s => (
+                      <span key={s} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, padding: "4px 10px 4px 12px", borderRadius: 20, background: "var(--w-soft)", color: "var(--w-accent)", border: "1px solid #e4e0ff" }}>
+                        {s}
+                        <button type="button" onClick={() => setStudios(prev => prev.filter(x => x !== s))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", color: "inherit", opacity: 0.7 }}>
+                          <X size={11} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div style={{ position: "relative" }}>
+                  <Search size={13} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#999", pointerEvents: "none" }} />
+                  <input value={studioQuery} onChange={e => { setStudioQuery(e.target.value); setStudioOpen(true); }}
+                    onFocus={() => setStudioOpen(true)}
+                    className="wiz-input" style={{ paddingLeft: 32 }}
+                    placeholder="Студи хайх эсвэл нэр бичих..." />
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input value={studioInput} onChange={e => setStudioInput(e.target.value)}
-                    className="wiz-input" placeholder="Студи нэр оруулах..."
-                    onKeyDown={e => { if (e.key === "Enter" && studioInput.trim()) { setStudios(prev => prev.includes(studioInput.trim()) ? prev : [...prev, studioInput.trim()]); setStudioInput(""); e.preventDefault(); } }} />
-                  <button type="button" className="wiz-btn" style={{ flexShrink: 0 }}
-                    onClick={() => { if (studioInput.trim()) { setStudios(prev => prev.includes(studioInput.trim()) ? prev : [...prev, studioInput.trim()]); setStudioInput(""); } }}>
-                    <Plus size={13} />Нэмэх
-                  </button>
-                </div>
-                <p className="wiz-hint" style={{ marginTop: 4 }}>Enter дарах эсвэл "Нэмэх" дарж студи нэмнэ. Олон студи боломжтой.</p>
+                {studioOpen && (studioQuery.trim() || KNOWN_STUDIOS.length > 0) && (
+                  <div style={{ marginTop: 4, border: "1px solid var(--w-line)", borderRadius: 10, background: "#fff", overflow: "hidden", boxShadow: "0 8px 24px #0002", position: "relative", zIndex: 20 }}
+                    onClick={e => e.stopPropagation()}>
+                    <div style={{ maxHeight: 180, overflowY: "auto" }}>
+                      {KNOWN_STUDIOS.filter(s => !studios.includes(s.name) && (!studioQuery || s.name.toLowerCase().includes(studioQuery.toLowerCase()))).map(s => (
+                        <div key={s.id} className="wiz-option" style={{ display: "flex", alignItems: "center", gap: 9 }}
+                          onMouseDown={() => { setStudios(prev => [...prev, s.name]); setStudioQuery(""); setStudioOpen(false); }}>
+                          <span style={{ fontSize: 13 }}>{s.name}</span>
+                        </div>
+                      ))}
+                      {studioQuery.trim() && !studios.includes(studioQuery.trim()) && !KNOWN_STUDIOS.some(s => s.name === studioQuery.trim()) && (
+                        <div className="wiz-option" style={{ color: "var(--w-accent)", fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}
+                          onMouseDown={() => { setStudios(prev => [...prev, studioQuery.trim()]); setStudioQuery(""); setStudioOpen(false); }}>
+                          <Plus size={12} />"{studioQuery.trim()}" нэмэх
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -767,7 +898,7 @@ export default function SubmitFilmInfoScreen() {
           <p style={{ color: "var(--w-muted)", marginTop: 6 }}>"{titleMn}" кино шалгагдаж байна.</p>
         </div>
         <div style={{ display: "flex", gap: 12 }}>
-          <button className="wiz-btn" onClick={() => navigate("/catalog?type=film")}>Каталог харах</button>
+          <button className="wiz-btn" onClick={() => navigate("/catalog")}>Каталог харах</button>
           <button className="wiz-btn primary" onClick={() => navigate("/")}>Хяналтын самбар</button>
         </div>
       </div>
@@ -777,6 +908,8 @@ export default function SubmitFilmInfoScreen() {
     const castSummary = Object.entries(
       cast.reduce<Record<string, string[]>>((acc, c) => { (acc[c.name] ??= []).push(c.role); return acc; }, {})
     ).map(([name, roles]) => `${name} (${roles.join(", ")})`).join(" · ") || "—";
+    const directorSummary = directors.map(d => d.name).join(", ") || "—";
+    const producerSummary = producers.map(p => p.name).join(", ") || "—";
 
     return (
       <div className="wiz-review-shell">
@@ -800,7 +933,7 @@ export default function SubmitFilmInfoScreen() {
                     ["Жанр", genre || "—"],
                     ["Хэл", language],
                     ["Нас хязгаарлалт", ageRating || "—"],
-                    ["Үргэлжлэх хугацаа", durationStr !== "0:00:00" ? durationStr : "—"],
+                    ["Үргэлжлэх хугацаа", duration.trim() || "—"],
                     ["Студи", studios.join(", ") || "—"],
                   ] as [string, string][]).map(([k, v]) => (
                     <div key={k} className="wiz-review-data-item"><span>{k}</span><b>{v}</b></div>
@@ -810,12 +943,15 @@ export default function SubmitFilmInfoScreen() {
             </div>
             <div className="wiz-review-panel">
               <div className="wiz-review-panel-head">
-                <div className="wiz-review-panel-head-title"><UserRound size={15} /><b>Бүрэлдэхүүн</b></div>
+                <div className="wiz-review-panel-head-title"><Clapperboard size={15} /><b>Бүрэлдэхүүн</b></div>
               </div>
               <div className="wiz-review-panel-body">
-                <div className="wiz-review-data-item">
-                  <span>Найруулагч, баг</span>
-                  <b style={{ lineHeight: 1.6 }}>{castSummary}</b>
+                <div className="wiz-review-data-grid">
+                  <div className="wiz-review-data-item"><span>Найруулагч</span><b>{directorSummary}</b></div>
+                  <div className="wiz-review-data-item"><span>Продюсер</span><b>{producerSummary}</b></div>
+                  {cast.length > 0 && (
+                    <div className="wiz-review-data-item"><span>Бусад баг</span><b style={{ lineHeight: 1.6 }}>{castSummary}</b></div>
+                  )}
                 </div>
               </div>
             </div>
@@ -826,7 +962,7 @@ export default function SubmitFilmInfoScreen() {
               <div className="wiz-review-panel-body">
                 <div className="wiz-review-data-item">
                   <span>Файл холбоос</span>
-                  <b style={{ wordBreak: "break-all", fontSize: 10 }}>{filmUrl || "—"}</b>
+                  <b style={{ wordBreak: "break-all", fontSize: 12 }}>{filmUrl || "—"}</b>
                 </div>
                 {filmPassword && (
                   <div className="wiz-review-data-item" style={{ marginTop: 8 }}>
@@ -904,7 +1040,7 @@ export default function SubmitFilmInfoScreen() {
     const stageData = [
       { num: 1, title: "Үндсэн мэдээлэл", ok: s1ok, items: [
         { label: titleMn.trim() ? `"${titleMn}"` : "Монгол нэр оруулна уу", ok: !!titleMn.trim() },
-        { label: hasDirector ? `Найруулагч: ${cast.find(c => c.role==="Найруулагч")?.name}` : "Найруулагч нэмэх шаардлагатай", ok: hasDirector },
+        { label: directors.length > 0 ? `Найруулагч: ${directors.map(d => d.name).join(", ")}` : "Найруулагч нэмэх шаардлагатай", ok: directors.length > 0 },
         { label: genre || "Жанр сонгоогүй", ok: !!genre },
         { label: ageRating ? `Нас: ${ageRating}` : "Нас хязгаарлалт сонгоогүй", ok: !!ageRating },
       ]},

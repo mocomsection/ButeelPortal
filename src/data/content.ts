@@ -56,7 +56,7 @@ export const CONTENT_TYPES = [
     contractName: "Аудио ном түгээх гэрээ",
     available: true,
     color: "blue",
-    submitPath: "/submit/audiobook-info",
+    submitPath: "/submit/audiobook",
   },
   {
     id: "film",
@@ -66,6 +66,6 @@ export const CONTENT_TYPES = [
     contractName: "Кино видео бүтээл түгээх гэрээ",
     available: true,
     color: "amber",
-    submitPath: "/submit/film-info",
+    submitPath: "/submit/film",
   },
 ];

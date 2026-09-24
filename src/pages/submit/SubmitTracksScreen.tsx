@@ -25,12 +25,34 @@ function initials(name: string) {
   return name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function SectionLabel({ title, sub, required }: { title: string; sub?: string; required?: boolean }) {
+function InfoTip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative inline-flex items-center ml-1">
+      <button type="button"
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        onClick={() => setShow(v => !v)}
+        className="w-4 h-4 rounded-full border border-zinc-300 bg-white text-zinc-400 inline-flex items-center justify-center text-[9px] font-black hover:border-primary hover:text-primary transition-colors leading-none flex-shrink-0"
+      >i</button>
+      {show && (
+        <div className="absolute left-5 top-0 z-50 bg-zinc-900 text-zinc-100 text-xs rounded-lg px-3 py-2 w-52 shadow-lg leading-relaxed pointer-events-none whitespace-normal">
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionLabel({ title, sub, required, info }: { title: string; sub?: string; required?: boolean; info?: string }) {
   return (
     <div className="mb-2">
-      <p className="text-sm font-semibold text-zinc-700">
-        {title}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </p>
+      <div className="flex items-center">
+        <p className="text-sm font-semibold text-zinc-700">
+          {title}{required && <span className="text-red-500 ml-0.5">*</span>}
+        </p>
+        {info && <InfoTip text={info} />}
+      </div>
       {sub && <p className="text-xs text-zinc-400 mt-0.5">{sub}</p>}
     </div>
   );
@@ -162,9 +184,12 @@ export default function SubmitTracksScreen() {
     const [affil, setAffil] = useState("");
     return (
       <div className="mt-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
-        <p className="text-xs font-semibold text-zinc-600">{label}</p>
+        <div>
+          <p className="text-xs font-semibold text-zinc-600">{label}</p>
+          <p className="text-xs text-zinc-400">Хууль ёсны бүтэн нэр оруулна уу</p>
+        </div>
         <div className="grid grid-cols-2 gap-2">
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Бүтэн нэр *"
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="Овог Нэр (Хууль ёсны)"
             className="px-3 py-2 text-sm rounded-lg border border-zinc-200 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" />
           <input value={affil} onChange={e => setAffil(e.target.value)} placeholder="Байгууллага (ASCAP, BMI...)"
             className="px-3 py-2 text-sm rounded-lg border border-zinc-200 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" />
@@ -184,7 +209,7 @@ export default function SubmitTracksScreen() {
     const [role, setRole] = useState("producer");
     return (
       <div className="mt-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
-        <p className="text-xs font-semibold text-zinc-600">Contributor нэмэх</p>
+        <p className="text-xs font-semibold text-zinc-600">Оролцогч нэмэх</p>
         <div className="grid grid-cols-2 gap-2">
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Нэр *"
             className="px-3 py-2 text-sm rounded-lg border border-zinc-200 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" />
@@ -354,7 +379,7 @@ export default function SubmitTracksScreen() {
                 <select value={track.trackGenre} onChange={e => updateTrack(track.id, { trackGenre: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-200 bg-white outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500">
                   <option value="">Жанр сонгох</option>
-                  {GENRES.map(g => <option key={g}>{g}</option>)}
+                  {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
               <div>
@@ -362,7 +387,7 @@ export default function SubmitTracksScreen() {
                 <select value={track.trackSecondaryGenre} onChange={e => updateTrack(track.id, { trackSecondaryGenre: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-200 bg-white outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500">
                   <option value="">Нэмэлт жанр</option>
-                  {GENRES.filter(g => g !== track.trackGenre).map(g => <option key={g}>{g}</option>)}
+                  {GENRES.filter(g => g !== track.trackGenre).map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
             </div>
@@ -484,7 +509,7 @@ export default function SubmitTracksScreen() {
 
           {/* Aya zoiogch — multiple */}
           <div className="mb-4">
-            <SectionLabel title="Ая зохиогч" sub="Хууль ёсны бүтэн нэр" required />
+            <SectionLabel title="Ая зохиогч" sub="Бүтэн овог, нэр" info="Хууль ёсны бүтэн нэрийг эхлээд Овог, дараа нь Нэр гэж бичнэ үү." required />
             {track.composers.length > 0 && (
               <div className="space-y-1.5 mb-2">
                 {track.composers.map(c => (
@@ -512,7 +537,8 @@ export default function SubmitTracksScreen() {
           <div className="mb-5">
             <SectionLabel
               title="Үг зохиогч"
-              sub={lyricistsDisabled ? "Үггүй дуу дээр үг зохиогч нэмэх боломжгүй" : "Хууль ёсны бүтэн нэр"}
+              sub={lyricistsDisabled ? "Үггүй дуу дээр үг зохиогч нэмэх боломжгүй" : "Бүтэн овог, нэр"}
+              info={lyricistsDisabled ? undefined : "Хууль ёсны бүтэн нэрийг эхлээд Овог, дараа нь Нэр гэж бичнэ үү."}
             />
             {lyricistsDisabled ? (
               <div className="flex items-center gap-2 px-3 py-2.5 bg-zinc-50 rounded-xl border border-dashed border-zinc-200">
@@ -549,7 +575,7 @@ export default function SubmitTracksScreen() {
           {/* Бусад contributor */}
           <div className="pt-4 border-t border-zinc-100">
             <p className="text-xs font-bold uppercase text-zinc-300 mb-3">Бусад оролцогчид</p>
-            <SectionLabel title="Бусад contributor" sub="Producer, Mixing, Mastering, Recording" />
+            <SectionLabel title="Бусад оролцогч" sub="Producer, Mixing, Mastering, Recording" />
             {track.otherContribs.length > 0 && (
               <div className="space-y-1.5 mb-2">
                 {track.otherContribs.map((c, ci) => (
@@ -576,7 +602,7 @@ export default function SubmitTracksScreen() {
                 }}
                 onCancel={() => updateTrack(track.id, { showAddOther: false })} />
             ) : (
-              <AddBtn label="Contributor нэмэх" onClick={() => updateTrack(track.id, { showAddOther: true })} />
+              <AddBtn label="Оролцогч нэмэх" onClick={() => updateTrack(track.id, { showAddOther: true })} />
             )}
           </div>
         </div>
@@ -673,7 +699,7 @@ export default function SubmitTracksScreen() {
                         {track.hasLyrics === true && <span className="text-xs bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded">Үгтэй</span>}
                         {track.hasLyrics === false && <span className="text-xs bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded">Үггүй</span>}
                         {track.explicitStatus === "explicit" && <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold">E</span>}
-                        {track.hasAudio && <div className="w-2 h-2 rounded-full bg-green-500" title="Аудио бэлэн" />}
+                        {track.hasAudio && !done && <div className="w-2 h-2 rounded-full bg-green-500" title="Аудио бэлэн" />}
                         {done && <div className="w-2 h-2 rounded-full bg-primary" title="Бэлэн" />}
                       </div>
                       {!isSingle && tracks.length > 1 && (

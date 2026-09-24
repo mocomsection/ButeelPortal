@@ -484,13 +484,20 @@ function FilmDetail({ r }: { r: ReleaseData }) {
           {cast.length > 0 && (
             <div>
               <p className="text-[10px] font-bold uppercase text-muted-foreground mb-3">Жүжигчид</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12">
-                {cast.map(c => (
-                  <div key={c.name} className="flex items-center gap-0 py-2 border-b border-border/20 last:border-0">
-                    <span className="text-xs text-muted-foreground w-[110px] flex-shrink-0">{c.role}</span>
-                    <span className="text-sm font-semibold text-foreground">{c.name}</span>
-                  </div>
-                ))}
+              <div>
+                {(() => {
+                  const groups = new Map<string, string[]>();
+                  cast.forEach(c => {
+                    if (!groups.has(c.role)) groups.set(c.role, []);
+                    groups.get(c.role)!.push(c.name);
+                  });
+                  return Array.from(groups.entries()).map(([role, names]) => (
+                    <div key={role} className="flex items-baseline gap-0 py-2 border-b border-border/20 last:border-0">
+                      <span className="text-xs text-muted-foreground w-[110px] flex-shrink-0">{role}</span>
+                      <span className="text-sm font-semibold text-foreground">{names.join(", ")}</span>
+                    </div>
+                  ));
+                })()}
               </div>
             </div>
           )}
@@ -586,10 +593,13 @@ export default function ReleaseDetailScreen() {
 
   const currentPrbt = prbtData.find(p => p.provider === prbtTab) ?? prbtData[0]!;
 
-  const goEdit = () =>
-    navigate(`/submit/music?edit=${r.id}&mode=${r.type === "Single" ? "single" : "album"}`);
+  const goEdit = () => {
+    if (isFilm) navigate(`/submit/film?edit=${r.id}`);
+    else if (isAudiobook) navigate(`/submit/audiobook?edit=${r.id}`);
+    else navigate(`/submit/release?edit=${r.id}&mode=${r.type === "Single" ? "single" : "album"}`);
+  };
 
-  const catalogPath = isFilm ? "/catalog?type=film" : isAudiobook ? "/catalog?type=audiobook" : "/catalog?type=music";
+  const catalogPath = isFilm ? "/catalog/film" : isAudiobook ? "/catalog/audiobook" : "/catalog/music";
 
   return (
     <Shell title="">

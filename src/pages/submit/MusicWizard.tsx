@@ -1069,7 +1069,7 @@ export default function MusicWizard() {
               </div>
             </div>
             {ArtistRoleBox({ kind: "primary" })}
-            {ArtistRoleBox({ kind: "featured" })}
+            {isSingle && ArtistRoleBox({ kind: "featured" })}
           </div>
           <div className="wiz-grid2" style={{ marginTop: 14 }}>
             {GenrePicker({ kind: "primary", label: "Үндсэн жанр", required: true })}
@@ -1416,9 +1416,14 @@ export default function MusicWizard() {
                     <div key={code} className="wiz-review-data-item"><span>{langName(code)} нэр</span><b>{val || "—"}</b></div>
                   ))}
                   <div className="wiz-review-data-item"><span>Үндсэн артист</span><b>{primary.map(a => a.name).join(", ") || "—"}</b></div>
+                  {isSingle && featured.length > 0 && <div className="wiz-review-data-item"><span>Хамтарсан артист</span><b>{featured.map(a => a.name).join(", ")}</b></div>}
                   <div className="wiz-review-data-item"><span>Жанр</span><b>{primaryGenre || "—"}</b></div>
+                  {secondaryGenre && <div className="wiz-review-data-item"><span>Secondary жанр</span><b>{secondaryGenre}</b></div>}
                   <div className="wiz-review-data-item"><span>Label</span><b>MOCO Records</b></div>
-                  <div className="wiz-review-data-item"><span>UPC</span><b>{previous ? (prevUPC || "—") : "Автоматаар үүснэ"}</b></div>
+                  {previous && <div className="wiz-review-data-item"><span>Өмнөх UPC</span><b>{prevUPC || "—"}</b></div>}
+                  {!previous && <div className="wiz-review-data-item"><span>UPC</span><b>Автоматаар үүснэ</b></div>}
+                  {cOwner && <div className="wiz-review-data-item"><span>© Эрх</span><b>{cOwner} {cYear}</b></div>}
+                  {pOwner && <div className="wiz-review-data-item"><span>℗ Эрх</span><b>{pOwner} {pYear}</b></div>}
                 </div>
               </div>
             </section>
@@ -1436,7 +1441,7 @@ export default function MusicWizard() {
                       <div key={t.assetId} className="wiz-review-track-row">
                         <span className="wiz-review-track-no">{i + 1}</span>
                         <span className="wiz-review-track-info"><b>{trackTitle || "—"}</b><span>{artistsText}</span></span>
-                        <span className="wiz-review-track-meta"><b>{t.duration || "—"}</b><span style={{ fontFamily: "ui-monospace,monospace", fontSize: 11 }}>{t.isrc ? displayISRC(t.isrc) : "ISRC үүснэ"}</span></span>
+                        <span className="wiz-review-track-meta"><b>{t.duration || "—"}</b><span style={{ fontSize: 11 }}>{t.isrc ? displayISRC(t.isrc) : "ISRC үүснэ"}</span></span>
                       </div>
                     );
                   })}
@@ -1721,7 +1726,7 @@ export default function MusicWizard() {
     if (!contribModal?.open) return null;
     const { trackIdx, role } = contribModal;
     const isOther = role === "other";
-    const label = role === "composer" ? "Ая зохиогч" : role === "lyricist" ? "Үг зохиогч" : "Contributor";
+    const label = role === "composer" ? "Ая зохиогч" : role === "lyricist" ? "Үг зохиогч" : "Оролцогч";
     const usedSet = new Set(
       isOther ? tracks[trackIdx].credits.other.filter(x => x.role === otherRole).map(x => x.id)
         : (tracks[trackIdx].credits[role as "composer" | "lyricist"] || []).map(x => x.id)
@@ -1774,12 +1779,12 @@ export default function MusicWizard() {
   function CreateContribModal() {
     if (!createContribModal?.open) return null;
     const { role, isOther } = createContribModal;
-    const lbl = !isOther ? (role === "composer" ? "Ая зохиогч" : "Үг зохиогч") : (OTHER_ROLES[role] || "Contributor");
+    const lbl = !isOther ? (role === "composer" ? "Ая зохиогч" : "Үг зохиогч") : (OTHER_ROLES[role] || "Оролцогч");
     return (
       <div className="wiz-modal-back">
         <div className="wiz-modal">
           <div className="wiz-modal-head">
-            <div><h3>{lbl} үүсгэх</h3><div className="wiz-hint">Contributor жагсаалтад хадгалагдана.</div></div>
+            <div><h3>{lbl} үүсгэх</h3><div className="wiz-hint">Оролцогчдийн жагсаалтад хадгалагдана.</div></div>
             <button className="wiz-btn icon-btn" onClick={() => setCreateContribModal(null)}><X size={16} /></button>
           </div>
           <div className="wiz-field">
@@ -1923,7 +1928,7 @@ export default function MusicWizard() {
     ? (isSingle ? "Дуу засах" : "Цомог засах")
     : mode ? (isSingle ? "Дуу үүсгэх" : "Цомог үүсгэх") : "Контент нэмэх");
   const shellSubtitle = primary.length > 0
-    ? primary.map(a => a.name).join(", ") + (featured.length > 0 ? ` feat. ${featured.map(a => a.name).join(", ")}` : "")
+    ? primary.map(a => a.name).join(", ") + (isSingle && featured.length > 0 ? ` feat. ${featured.map(a => a.name).join(", ")}` : "")
     : "Дуу, цомгийн мэдээлэл";
 
   return (
