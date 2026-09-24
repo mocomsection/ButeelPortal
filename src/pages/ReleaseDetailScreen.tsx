@@ -261,7 +261,7 @@ function TrackCard({ t }: { t: TrackItem }) {
   return (
     <div className={`rounded-2xl border transition-all overflow-hidden ${open ? "border-primary/25 shadow-sm" : "border-border hover:border-border/80"}`}>
       {/* Row header */}
-      <button type="button" className="w-full flex items-center gap-3 px-5 py-3.5 text-left bg-white"
+      <div className="w-full flex items-center gap-3 px-5 py-3.5 text-left bg-white cursor-pointer select-none"
         onClick={() => setOpen(v => !v)}>
         <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[11px] font-bold text-muted-foreground flex-shrink-0">{t.no}</span>
         <div className="flex-1 min-w-0">
@@ -279,7 +279,7 @@ function TrackCard({ t }: { t: TrackItem }) {
         </div>
         <div onClick={e => e.stopPropagation()}><TrackPreview title={t.title} /></div>
         <ChevronDown size={14} className={`text-muted-foreground flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-      </button>
+      </div>
 
       {/* Expanded detail */}
       {open && (
@@ -382,7 +382,7 @@ function ChapterCard({ t }: { t: TrackItem }) {
 
   return (
     <div className={`rounded-2xl border transition-all overflow-hidden ${open ? "border-primary/25 shadow-sm" : "border-border hover:border-border/80"}`}>
-      <button type="button" className="w-full flex items-center gap-3 px-5 py-3.5 text-left bg-white"
+      <div className="w-full flex items-center gap-3 px-5 py-3.5 text-left bg-white cursor-pointer select-none"
         onClick={() => setOpen(v => !v)}>
         <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[11px] font-bold text-muted-foreground flex-shrink-0">{t.no}</span>
         <div className="flex-1 min-w-0">
@@ -392,7 +392,7 @@ function ChapterCard({ t }: { t: TrackItem }) {
         <span className="text-xs text-muted-foreground tabular-nums hidden sm:block flex-shrink-0">{t.duration}</span>
         <div onClick={e => e.stopPropagation()}><TrackPreview title={t.title} /></div>
         <ChevronDown size={14} className={`text-muted-foreground flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
-      </button>
+      </div>
 
       {open && (
         <div className="bg-muted/15 border-t border-border/50 px-5 py-5">

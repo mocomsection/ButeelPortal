@@ -69,10 +69,10 @@ export function RevenueChart({ revenueContentType, onShowMonthly }: RevenueChart
             <Area
               dataKey="amount" stroke={PRIMARY} strokeWidth={2} fill="url(#liftimeGrad)"
               dot={(props: any) => {
-                const { cx, cy, payload } = props;
-                if (!payload.isCurrent) return <g key={payload.key} />;
+                const { cx, cy, payload, index } = props;
+                if (!payload.isCurrent) return <g key={`dot-${index}`} />;
                 return (
-                  <g key={payload.key}>
+                  <g key={`dot-${index}`}>
                     <circle cx={cx} cy={cy} r={6} fill={PRIMARY} stroke="var(--card)" strokeWidth={2} />
                   </g>
                 );
