@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router";
 import buteelLogo from "@/imports/Artboard_1.png";
-import { TrendingUp, User, HelpCircle, X, FileText, LogOut, Disc3, BookOpen, Film, Users, BarChart2, Wallet, Settings } from "lucide-react";
+import { TrendingUp, User, HelpCircle, X, LogOut, Disc3, BookOpen, Film, Users, BarChart2, Wallet, Settings } from "lucide-react";
 
 const NAV_GROUPS = [
   {
@@ -102,14 +102,10 @@ export function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () =>
 
         <div className="mx-4 h-px bg-white/[0.06] flex-shrink-0" />
 
-        {/* Bottom: screen map + logout */}
-        <div className="px-3 py-3 flex flex-col gap-0.5 flex-shrink-0">
-          <button type="button" onClick={() => { navigate("/screen-map"); onClose?.(); }}
-            className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[11px] transition-all ${pathname === "/screen-map" ? "text-white/65 font-semibold" : "text-white/22 hover:bg-white/[0.05] hover:text-white/45"}`}>
-            <FileText size={12} className="flex-shrink-0" />Screen Map
-          </button>
+        {/* Bottom: logout */}
+        <div className="px-3 py-3 flex-shrink-0">
           <button type="button" onClick={() => navigate("/login")}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/32 hover:bg-white/[0.05] hover:text-white/60 transition-all">
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/32 hover:bg-white/[0.05] hover:text-white/60 transition-all">
             <LogOut size={15} className="flex-shrink-0" />Гарах
           </button>
         </div>

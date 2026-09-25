@@ -455,13 +455,13 @@
   display: flex; align-items: center;
   min-width: 90px; padding: 0 12px;
   border-right: 1px solid var(--w-line);
-  font-size: 11px; font-weight: 800; color: #9ca3af;
-  background: #f7f7fb; white-space: nowrap; flex-shrink: 0;
+  font-size: 11px; font-weight: 800; color: var(--w-accent);
+  background: var(--w-soft); white-space: nowrap; flex-shrink: 0;
 }
 .wiz-title-en-row:last-child .wiz-title-en-label { border-radius: 0 0 0 calc(11px - 1.5px); }
 .wiz-title-en-row input {
   font-size: 14px !important; font-weight: 500 !important;
-  background: #f7f7fb !important; padding: 10px 14px !important;
+  background: #fff !important; padding: 10px 14px !important;
 }
 .wiz-title-en-row:last-child input { border-radius: 0 0 calc(11px - 1.5px) 0 !important; }
 /* Extra translation rows */
@@ -803,7 +803,7 @@
 .wiz-track {
   border: 1.5px solid var(--w-line);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   margin-top: 8px;
   background: #fff;
   transition: border-color .18s, box-shadow .18s;
@@ -820,10 +820,12 @@
   cursor: pointer;
   transition: background .12s;
   user-select: none;
+  border-radius: 10px;
 }
 .wiz-track-head:hover { background: #faf9ff; }
-.wiz-track.open .wiz-track-head { background: #f7f5ff; }
+.wiz-track.open .wiz-track-head { background: #f7f5ff; border-radius: 10px 10px 0 0; }
 .wiz-track-head.single { grid-template-columns: 36px minmax(0,1fr) 20px; }
+.wiz-track-body { border-radius: 0 0 10px 10px; overflow: visible; }
 
 /* Track body entrance animation */
 @keyframes wiz-body-in {
@@ -1249,13 +1251,68 @@
   padding: 4px 7px; border-radius: 999px;
   border: 1px solid #e2e2e9; background: #fafafd; font-size: 11px; color: #555868;
 }
-.wiz-review-confirm-simple {
-  display: flex; align-items: flex-start; gap: 9px;
-  padding: 8px 2px 2px; font-size: 12px; color: #555866;
+/* Legacy — kept for safety, overridden by wiz-confirm-block */
+.wiz-review-confirm-simple { display: none; }
+
+/* ── Confirm block ──────────────────────────────────────── */
+.wiz-confirm-block {
+  margin-top: 20px;
+  border: 1.5px solid #ddd8f8;
+  border-radius: 12px;
+  background: #faf8ff;
+  overflow: hidden;
 }
-.wiz-review-confirm-simple input { margin-top: 2px; accent-color: var(--w-accent); }
-.wiz-review-confirm-simple b { font-size: 12px; }
-.wiz-review-confirm-simple span { display: block; color: var(--w-muted); font-size: 11px; margin-top: 2px; line-height: 1.4; }
+.wiz-confirm-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .12s;
+  border-top: 1px solid #ede9fb;
+}
+.wiz-confirm-item:first-child { border-top: 0; }
+.wiz-confirm-item:hover { background: #f3effb; }
+.wiz-confirm-item.checked { background: #f0fdf4; border-top-color: #d1fae5; }
+.wiz-confirm-item.checked + .wiz-confirm-item { border-top-color: #d1fae5; }
+.wiz-confirm-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border: 2px solid #c4bde8;
+  border-radius: 5px;
+  background: #fff;
+  flex-shrink: 0;
+  margin-top: 1px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+  display: grid; place-items: center;
+}
+.wiz-confirm-item.checked input[type="checkbox"] {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+.wiz-confirm-item.checked input[type="checkbox"]::after {
+  content: "";
+  width: 10px; height: 10px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.wiz-confirm-item-body { flex: 1; min-width: 0; }
+.wiz-confirm-item-title {
+  display: block;
+  font-size: 13px; font-weight: 700;
+  color: var(--w-text);
+  line-height: 1.3;
+}
+.wiz-confirm-item.checked .wiz-confirm-item-title { color: #15803d; }
+.wiz-confirm-item-desc {
+  display: block;
+  font-size: 11px;
+  color: var(--w-muted);
+  margin-top: 3px;
+  line-height: 1.45;
+}
 .wiz-success-card { text-align: center; padding: 34px 18px; }
 .wiz-success-card svg { width: 42px; color: var(--w-ok); }
 .wiz-success-card h2 { margin: 10px 0 5px; }

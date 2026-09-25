@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  Plus, User, CreditCard, AlertCircle, Clock, CheckCircle2,
+  User, CreditCard, AlertCircle, Clock, CheckCircle2,
   Building2, Shield, Tag, BadgeCheck, Lock, FileText,
   ChevronRight, Receipt, Pencil, ArrowUpRight, MessageSquare, Send,
-  Music2, Film, BookOpen,
+  Music2, Film, BookOpen, X, Download, Eye,
 } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
-import { Btn } from "@/components/ui/Btn";
 import { OB_CONTRACTS } from "@/data/agreements";
+import { CMS_AGREEMENTS } from "@/data/cms-agreements";
 import { getAccountState } from "@/data/ob-state";
 
 type AccountTab = "info" | "agreements" | "bank" | "security";
@@ -35,9 +35,8 @@ export default function AccountStatusScreen() {
   const accState = getAccountState();
 
   const [demoAccType, setDemoAccType] = useState<"individual" | "org">("individual");
-  const [mongoVerified, setMongoVerified]           = useState(false);
-  const [accountInfoSubmitted, setAccountInfoSubmitted] = useState(false);
-  const [showLabelRequest, setShowLabelRequest]     = useState(false);
+  const [mongoVerified, setMongoVerified]       = useState(false);
+  const [showLabelRequest, setShowLabelRequest] = useState(false);
   const [tab, setTab] = useState<AccountTab>("info");
   const [vatPayer, setVatPayer] = useState(false);
 
@@ -50,14 +49,23 @@ export default function AccountStatusScreen() {
   const [supportReason, setSupportReason]       = useState("");
   const [supportSent, setSupportSent]           = useState(false);
 
+  const [showPdfModal, setShowPdfModal]     = useState(false);
+  const [pdfContractId, setPdfContractId]   = useState<string | null>(null);
+  const [labelReqType, setLabelReqType]     = useState("");
+  const [labelReqName, setLabelReqName]     = useState("");
+  const [labelReqSent, setLabelReqSent]     = useState(false);
+
+  const [signedCmsIds] = useState<string[]>(() =>
+    JSON.parse(sessionStorage.getItem("signedCms") || "[]")
+  );
+
   const isOrg = demoAccType === "org";
   const accInfo = isOrg
     ? { initials: "SR", name: "Steppe Records ХХК", register: "1234567",    taxNo: "7711223344" }
     : { initials: "БЖ", name: "Болд Жаргал",        register: "УН12345678", taxNo: "9900112233" };
 
   const bankNameMismatch = bankHolderName.trim() !== "" && bankHolderName.trim() !== accInfo.name;
-  const completionItems = [accountInfoSubmitted, mongoVerified, true, bankSubmitted];
-  const completionPct   = Math.round((completionItems.filter(Boolean).length / completionItems.length) * 100);
+  const completionPct = Math.round(((mongoVerified ? 1 : 0) + (mongoVerified ? 1 : 0) + 1 + (bankSubmitted ? 1 : 0)) / 4 * 100);
 
   const tabStatus: Record<AccountTab, "ok" | "warn" | "none"> = {
     info:       mongoVerified ? "ok" : "warn",
@@ -138,35 +146,152 @@ export default function AccountStatusScreen() {
         </div>
       )}
 
-      {/* Label request modal */}
-      {showLabelRequest && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowLabelRequest(false)}>
-          <div className="bg-white rounded-2xl shadow-xl border border-border max-w-sm w-full p-6"
-            onClick={e => e.stopPropagation()}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-                <Tag size={18} className="text-violet-700" />
-              </div>
-              <div>
-                <h3 className="font-bold text-zinc-900 text-sm">Нэмэлт Лейбл Нэмэх</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">Хүсэлтийг 1–3 ажлын өдрийн дотор хянана</p>
-              </div>
-            </div>
-            <div className="flex gap-3 mt-5">
-              <button type="button" onClick={() => setShowLabelRequest(false)}
-                className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors">
-                Болих
-              </button>
-              <button type="button" onClick={() => setShowLabelRequest(false)}
-                className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
-                style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #000))" }}>
-                Илгээх
-              </button>
+      {/* Label / Production / Publisher request modal */}
+      {showLabelRequest && (() => {
+        const opts = [
+          ...(signedIds.includes("music")     ? [{ id: "music",     label: "Хөгжмийн лейбл",    icon: Music2,   color: "text-primary",    bg: "bg-primary/5",    border: "border-primary/30" }] : []),
+          ...(signedIds.includes("film")      ? [{ id: "film",      label: "Продакшн",           icon: Film,     color: "text-rose-600",   bg: "bg-rose-50",      border: "border-rose-200"   }] : []),
+          ...(signedIds.includes("audiobook") ? [{ id: "audiobook", label: "Нийтлэгч",           icon: BookOpen, color: "text-violet-600", bg: "bg-violet-50",    border: "border-violet-200" }] : []),
+        ];
+        const canSend = !!labelReqType && labelReqName.trim().length > 0;
+        return (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => { if (!labelReqSent) setShowLabelRequest(false); }}>
+            <div className="bg-white rounded-2xl shadow-xl border border-border max-w-sm w-full p-6"
+              onClick={e => e.stopPropagation()}>
+              {labelReqSent ? (
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 size={22} className="text-green-600" />
+                  </div>
+                  <p className="font-bold text-zinc-900 text-sm mb-1">Хүсэлт илгээгдлээ</p>
+                  <p className="text-xs text-zinc-500 leading-relaxed">1–3 ажлын өдрийн дотор шалгаж баталгаажуулна.</p>
+                  <button type="button"
+                    onClick={() => { setShowLabelRequest(false); setLabelReqSent(false); setLabelReqType(""); setLabelReqName(""); }}
+                    className="mt-5 w-full py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
+                    style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #000))" }}>
+                    Хаах
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Tag size={16} className="text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-zinc-900 text-sm">Лейбл нэмэх</h3>
+                      <p className="text-xs text-zinc-500 mt-0.5">1–3 ажлын өдрийн дотор баталгаажна</p>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <p className="text-xs font-bold text-zinc-500 uppercase mb-2">Төрөл сонгох</p>
+                    <div className="space-y-2">
+                      {opts.map(o => {
+                        const OIcon = o.icon;
+                        const selected = labelReqType === o.id;
+                        return (
+                          <button key={o.id} type="button"
+                            onClick={() => setLabelReqType(o.id)}
+                            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border transition-colors text-left ${
+                              selected ? `${o.bg} ${o.border}` : "bg-white border-border hover:border-zinc-300"
+                            }`}>
+                            <OIcon size={15} className={selected ? o.color : "text-muted-foreground"} />
+                            <span className={`text-sm font-semibold ${selected ? o.color : "text-zinc-700"}`}>{o.label}</span>
+                            {selected && <CheckCircle2 size={13} className={`ml-auto flex-shrink-0 ${o.color}`} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="mb-5">
+                    <label className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">
+                      Нэр <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      value={labelReqName}
+                      onChange={e => setLabelReqName(e.target.value)}
+                      placeholder="Жишээ нь: Steppe Records, Nomad Films..."
+                      className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-background"
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="button"
+                      onClick={() => { setShowLabelRequest(false); setLabelReqType(""); setLabelReqName(""); }}
+                      className="flex-1 py-2.5 rounded-xl border border-border text-sm font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors">
+                      Болих
+                    </button>
+                    <button type="button" disabled={!canSend}
+                      onClick={() => { if (canSend) setLabelReqSent(true); }}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #000))" }}>
+                      Илгээх
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
+
+      {/* PDF Viewer Modal */}
+      {showPdfModal && (() => {
+        const ob  = OB_CONTRACTS.find(c => c.id === pdfContractId);
+        const cms = CMS_AGREEMENTS.find(c => c.id === pdfContractId);
+        const title = ob?.name ?? cms?.name ?? "";
+        const text  = ob?.contractText ?? cms?.contractText ?? "";
+        const icon  = ob?.icon ?? FileText;
+        const iconBg = ob?.iconBg ?? "bg-blue-600";
+        const signedDate = (ob ? accState.signedDates?.[ob.id] ?? "2026-07-01" : "2026-08-20");
+        const Icon = icon;
+        return (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center"
+            onClick={() => setShowPdfModal(false)}>
+            <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-border w-full sm:max-w-lg max-h-[88vh] flex flex-col"
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center gap-3 px-5 py-4 border-b border-border flex-shrink-0">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${iconBg}`}>
+                  <Icon size={15} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-sm text-foreground truncate">{title}</p>
+                  <p className="text-xs text-green-600 flex items-center gap-1 mt-0.5">
+                    <CheckCircle2 size={9} />Зурагдсан · {signedDate}
+                  </p>
+                </div>
+                <button type="button" onClick={() => setShowPdfModal(false)}
+                  className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center hover:bg-muted transition-colors flex-shrink-0">
+                  <X size={14} className="text-muted-foreground" />
+                </button>
+              </div>
+              <div className="mx-5 mt-4 mb-2 bg-green-50 border border-green-200 rounded-xl px-3.5 py-2.5 flex items-start gap-2.5 flex-shrink-0">
+                <CheckCircle2 size={13} className="text-green-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-semibold text-green-800">Гэрээ баталгаажсан</p>
+                  <p className="text-xs text-green-600 mt-0.5">{accInfo.name} · Buteel Platform</p>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto mx-5 mb-4 mt-2">
+                <div className="bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-4 text-[11px] text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                  {text}
+                </div>
+              </div>
+              <div className="flex gap-3 px-5 pb-5 flex-shrink-0 border-t border-border pt-4">
+                <button type="button"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
+                  <Download size={14} />PDF татах
+                </button>
+                <button type="button" onClick={() => setShowPdfModal(false)}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
+                  style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #000))" }}>
+                  Хаах
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="max-w-2xl space-y-5">
         {/* Profile summary card */}
@@ -237,188 +362,246 @@ export default function AccountStatusScreen() {
         {tab === "info" && (
           <div className="space-y-4">
             <Card className="p-5">
-              <div className="flex items-start justify-between mb-4">
+              {/* Header row */}
+              <div className="flex items-center justify-between mb-5">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-sm text-foreground">Аккаунтын мэдээлэл</p>
+                  <p className="font-bold text-sm text-foreground">Аккаунтын мэдээлэл</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {mongoVerified
-                      ? <button type="button" onClick={() => setShowSupportModal(true)}
-                          className="flex items-center gap-1 text-xs font-semibold text-amber-600 hover:underline">
-                          <MessageSquare size={11} />Support
-                        </button>
-                      : <button type="button" onClick={() => navigate(`/account/tax?type=${isOrg ? "org" : "individual"}`)}
-                          className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
-                          <Pencil size={11} />Засах
-                        </button>
-                    }
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">Татварын болон бүртгэлийн мэдээлэл</p>
-                  {mongoVerified && (
-                    <p className="text-[11px] text-amber-600 flex items-center gap-1 mt-1">
-                      <Lock size={9} />E-Mongolia баталгаажсан тул засах боломжгүй
-                    </p>
-                  )}
+                      ? <span className="flex items-center gap-1 text-green-600"><CheckCircle2 size={10} />E-Mongolia баталгаажсан</span>
+                      : "Татварын болон бүртгэлийн мэдээлэл"}
+                  </p>
                 </div>
+                {mongoVerified
+                  ? <button type="button" onClick={() => setShowSupportModal(true)}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 border border-amber-200 bg-amber-50 px-3 h-8 rounded-xl hover:bg-amber-100 transition-colors">
+                      <MessageSquare size={11} />Өөрчлөх хүсэлт
+                    </button>
+                  : <button type="button" onClick={() => navigate(`/account/tax?type=${isOrg ? "org" : "individual"}`)}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/20 bg-primary/5 px-3 h-8 rounded-xl hover:bg-primary/10 transition-colors">
+                      <Pencil size={11} />Засах
+                    </button>
+                }
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
-                {(isOrg
-                  ? [["Байгууллагын нэр", accInfo.name], ["Регистр", accInfo.register], ["ТТД", accInfo.taxNo]]
-                  : [["Овог нэр", accInfo.name], ["Регистр", accInfo.register], ["ТТД", accInfo.taxNo]]
-                ).map(([k, v]) => (
-                  <div key={k} className="bg-muted/40 rounded-xl px-3.5 py-2.5 border border-border/60">
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground">{k}</p>
-                    <p className="text-sm font-semibold mt-0.5 truncate text-foreground">{v}</p>
+
+              {/* Fields grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-3">
+                {[
+                  [isOrg ? "Байгууллагын нэр" : "Овог нэр", accInfo.name, "col-span-2 sm:col-span-1"],
+                  ["Регистр дугаар", accInfo.register, ""],
+                  ["ТТД дугаар",     accInfo.taxNo,    ""],
+                ].map(([k, v, span]) => (
+                  <div key={k} className={`bg-muted/40 rounded-xl px-3.5 py-2.5 border border-border/50 ${span}`}>
+                    <p className="text-[10px] font-bold uppercase text-muted-foreground tracking-wide mb-1">{k}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{v}</p>
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-border/60 bg-muted/30">
-                <span className="text-sm text-foreground">НӨАТ төлөгч:</span>
-                <span className={`text-sm font-semibold ${vatPayer ? "text-green-600" : "text-muted-foreground"}`}>
+
+              {/* VAT toggle row — locked once E-Mongolia verified */}
+              <div className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border mb-5 ${mongoVerified ? "bg-zinc-50 border-border/40 opacity-70" : "bg-muted/30 border-border/50"}`}>
+                <Receipt size={12} className="text-muted-foreground flex-shrink-0" />
+                <span className="text-xs text-foreground flex-1">НӨАТ төлөгч эсэх</span>
+                {mongoVerified && <Lock size={10} className="text-zinc-400 flex-shrink-0" />}
+                <span className={`text-xs font-semibold ${vatPayer ? "text-primary" : "text-muted-foreground"}`}>
                   {vatPayer ? "Тийм" : "Үгүй"}
                 </span>
+                <button type="button"
+                  disabled={mongoVerified}
+                  onClick={() => setVatPayer(v => !v)}
+                  className={`relative inline-flex w-9 h-5 rounded-full transition-colors duration-200 ${vatPayer ? "bg-primary" : "bg-border"} ${mongoVerified ? "cursor-not-allowed" : "cursor-pointer"}`}>
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${vatPayer ? "translate-x-4" : ""}`} />
+                </button>
+              </div>
+
+              {/* E-Mongolia section (inlined) */}
+              <div className="border-t border-border/60 pt-4">
+                <div className={`rounded-xl border p-4 transition-colors ${mongoVerified ? "bg-green-50 border-green-200" : "bg-blue-50/60 border-blue-200"}`}>
+                  {mongoVerified ? (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <CheckCircle2 size={18} className="text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-green-800">E-Mongolia баталгаажсан</p>
+                        <p className="text-xs text-green-600 mt-0.5 truncate">{accInfo.name} · {accInfo.register}</p>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-green-200/80 text-green-800 flex-shrink-0">БАТАЛГААЖСАН</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-[#1155CC] flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <BadgeCheck size={15} className="text-white" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-zinc-800">E-Mongolia баталгаажуулах</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">Орлого авах болон банкны данс нэмэхийн өмнө шаардлагатай</p>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 leading-relaxed">
+                        Аккаунтын мэдээлэл E-Mongolia-тай таарахгүй бол баталгаажуулалт амжилтгүй болж болно.
+                      </p>
+                      <button type="button" onClick={() => setMongoVerified(true)}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
+                        style={{ background: "linear-gradient(135deg,#1565C0,#0D47A1)" }}>
+                        <Shield size={13} />E-Mongolia-аар Баталгаажуулах
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </Card>
 
-            {/* E-Mongolia */}
-            <Card className="p-5">
-              <div className={`rounded-xl border p-4 transition-colors ${mongoVerified ? "bg-green-50 border-green-200" : "bg-blue-50/60 border-blue-200"}`}>
-                {mongoVerified ? (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-                      <CheckCircle2 size={18} className="text-white" />
+            {/* Гэрээний тохиргоо - shown only when at least one contract is signed */}
+            {(signedIds.includes("music") || signedIds.includes("film") || signedIds.includes("audiobook")) && (() => {
+              const activeSetups = [
+                signedIds.includes("music") && musicSetup?.name ? { name: musicSetup.name, label: "Хөгжмийн лейбл", Icon: Music2, iconBg: "bg-primary", rowBg: "bg-primary/5", rowBorder: "border-primary/20" } : null,
+                signedIds.includes("film")  && filmSetup?.name  ? { name: filmSetup.name,  label: "Продакшн",       Icon: Film,   iconBg: "bg-rose-600",  rowBg: "bg-rose-50",   rowBorder: "border-rose-100"  } : null,
+                signedIds.includes("audiobook") && abSetup?.name ? { name: abSetup.name,   label: "Нийтлэгч",       Icon: BookOpen, iconBg: "bg-violet-600", rowBg: "bg-violet-50", rowBorder: "border-violet-100" } : null,
+              ].filter(Boolean) as { name: string; label: string; Icon: React.ElementType; iconBg: string; rowBg: string; rowBorder: string }[];
+              return (
+                <Card className="p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <p className="font-bold text-sm text-foreground">Гэрээний тохиргоо</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Зурсан гэрээний дагуу лейбл болон продакшн үүсгэх</p>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-green-800">E-Mongolia-аар баталгаажсан</p>
-                      <p className="text-xs text-green-600 mt-0.5">{accInfo.name} · {accInfo.register}</p>
-                    </div>
-                    <button type="button" onClick={() => setShowSupportModal(true)}
-                      className="text-xs font-semibold text-amber-600 hover:underline flex-shrink-0 flex items-center gap-1">
-                      <Lock size={10} />Засах хүсэлт
+                    <button type="button" onClick={() => setTab("agreements")}
+                      className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 flex-shrink-0">
+                      Гэрээнүүд <ChevronRight size={11} />
                     </button>
                   </div>
-                ) : (
-                  <div>
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#1155CC] flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <BadgeCheck size={16} className="text-white" />
+                  <div className="space-y-2">
+                    {activeSetups.length === 0 ? (
+                      <div className="py-5 text-center">
+                        <p className="text-sm text-muted-foreground">Тохиргоо үүсгэгдээгүй байна</p>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold text-zinc-800">E-Mongolia-аар баталгаажуулах</p>
-                        <p className="text-xs text-zinc-500 mt-1 leading-relaxed">Орлого авах болон банкны данс нэмэхийн өмнө шаардлагатай</p>
+                    ) : activeSetups.map((s, i) => (
+                      <div key={i} className={`flex items-center gap-3 px-4 py-3 ${s.rowBg} border ${s.rowBorder} rounded-xl`}>
+                        <div className={`w-9 h-9 rounded-xl ${s.iconBg} flex items-center justify-center flex-shrink-0`}>
+                          <s.Icon size={14} className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground truncate">{s.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
+                        </div>
+                        <span className="text-[11px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg flex-shrink-0">Идэвхтэй</span>
                       </div>
-                    </div>
-                    <button type="button" onClick={() => { setAccountInfoSubmitted(true); setMongoVerified(true); }}
-                      className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
-                      style={{ background: "linear-gradient(135deg,#1565C0,#0D47A1)" }}>
-                      <Shield size={14} />E-Mongolia-аар Баталгаажуулах
+                    ))}
+                    <button type="button"
+                      onClick={() => { setLabelReqType(""); setShowLabelRequest(true); }}
+                      className="w-full py-2.5 rounded-xl text-sm font-semibold text-primary border border-primary/25 bg-primary/5 hover:bg-primary/10 transition-colors mt-1">
+                      + Үүсгэх хүсэлт
                     </button>
                   </div>
-                )}
-              </div>
-            </Card>
-
-            {/* Label/Setup info from signed contracts */}
-            {(signedIds.includes("music") || signedIds.includes("film") || signedIds.includes("audiobook")) && (
-              <Card className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="font-bold text-sm text-foreground">Гэрээний тохиргоо</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Зурсан гэрээнүүдийн лейбл болон байгууллагын нэрс</p>
-                  </div>
-                  <Btn variant="ghost" size="sm" onClick={() => setTab("agreements")}>Гэрээнүүд</Btn>
-                </div>
-                <div className="space-y-2">
-                  {signedIds.includes("music") && musicSetup && (
-                    <div className="flex items-center gap-3 px-4 py-3 bg-primary/5 border border-primary/20 rounded-xl">
-                      <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
-                        <Music2 size={14} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{musicSetup.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Хөгжмийн лейбл</p>
-                      </div>
-                      <span className="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg flex-shrink-0">Идэвхтэй</span>
-                    </div>
-                  )}
-                  {signedIds.includes("film") && filmSetup && (
-                    <div className="flex items-center gap-3 px-4 py-3 bg-rose-50 border border-rose-100 rounded-xl">
-                      <div className="w-9 h-9 rounded-xl bg-rose-600 flex items-center justify-center flex-shrink-0">
-                        <Film size={14} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{filmSetup.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Продакшн компани</p>
-                      </div>
-                      <span className="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg flex-shrink-0">Идэвхтэй</span>
-                    </div>
-                  )}
-                  {signedIds.includes("audiobook") && abSetup && (
-                    <div className="flex items-center gap-3 px-4 py-3 bg-violet-50 border border-violet-100 rounded-xl">
-                      <div className="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center flex-shrink-0">
-                        <BookOpen size={14} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{abSetup.name}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">Нийтлэгч</p>
-                      </div>
-                      <span className="text-xs bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-lg flex-shrink-0">Идэвхтэй</span>
-                    </div>
-                  )}
-                  <button type="button" onClick={() => setShowLabelRequest(true)}
-                    className="w-full flex items-center gap-1.5 text-xs font-semibold text-muted-foreground border border-dashed border-border px-3 py-2 rounded-xl hover:border-primary/50 hover:text-primary transition-colors justify-center mt-1">
-                    <Plus size={12} />Нэмэлт тохиргоо хүсэх
-                  </button>
-                </div>
-              </Card>
-            )}
+                </Card>
+              );
+            })()}
           </div>
         )}
 
         {/* ══ ГЭРЭЭ ══ */}
         {tab === "agreements" && (
-          <Card className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
+          <div className="space-y-4">
+            {/* Status summary */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
                 <p className="font-bold text-sm text-foreground">Гэрээнүүд</p>
-                <p className={`text-xs flex items-center gap-1 mt-0.5 ${signedIds.length > 0 ? "text-green-600" : "text-amber-600"}`}>
-                  {signedIds.length > 0
-                    ? <><CheckCircle2 size={10} />{signedIds.length} идэвхтэй гэрээ</>
-                    : "Гэрээ байгуулаагүй байна"
-                  }
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {signedIds.length + signedCmsIds.length} гэрээ зурагдсан
                 </p>
               </div>
-              <Btn variant="ghost" size="sm" onClick={() => navigate("/account/agreement")}>Бүгдийг харах</Btn>
+              {(signedIds.length + signedCmsIds.length) >= (OB_CONTRACTS.length + CMS_AGREEMENTS.length) && (
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700">
+                  Бүгд зурагдсан
+                </span>
+              )}
             </div>
-            <div className="space-y-2">
+
+            {/* All agreements — OB contracts + CMS mixed in one list */}
+            <Card className="divide-y divide-border/60 overflow-hidden p-0">
               {OB_CONTRACTS.map(c => {
                 const isSigned = signedIds.includes(c.id);
-                const setup = accState.setups?.[c.id];
-                const signedDate = accState.signedDates?.[c.id];
+                const setup    = accState.setups?.[c.id];
+                const signDate = accState.signedDates?.[c.id] ?? (isSigned ? "2026-07-01" : null);
                 return (
-                  <button key={c.id} type="button"
-                    onClick={() => navigate("/account/agreement")}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-colors hover:shadow-sm ${
-                      isSigned ? "bg-green-50/50 border-green-100 hover:bg-green-50" : "bg-muted/30 border-border hover:bg-muted/60"
-                    }`}>
+                  <div key={c.id} className={`flex items-center gap-3 px-5 py-4 ${isSigned ? "bg-green-50/40" : "bg-white"}`}>
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white ${c.iconBg}`}>
                       <c.icon size={15} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{c.name}</p>
-                      {isSigned && setup?.name && (
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">{setup.name}{signedDate ? ` · ${signedDate}` : ""}</p>
-                      )}
+                      <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
+                      {isSigned
+                        ? <p className="text-xs text-green-700 mt-0.5 truncate flex items-center gap-1">
+                            <CheckCircle2 size={9} className="flex-shrink-0" />
+                            {setup?.name ? `${setup.name} · ` : ""}{signDate}
+                          </p>
+                        : <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{c.desc}</p>
+                      }
                     </div>
-                    {isSigned
-                      ? <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-lg font-bold flex-shrink-0 flex items-center gap-1"><CheckCircle2 size={10} />Зурагдсан</span>
-                      : <span className="text-xs bg-amber-100 text-amber-600 px-2.5 py-1 rounded-lg font-bold flex-shrink-0">Гэрээ хийх</span>
-                    }
-                    <ChevronRight size={14} className="text-muted-foreground flex-shrink-0" />
-                  </button>
+                    {isSigned ? (
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button type="button"
+                          onClick={() => { setPdfContractId(c.id); setShowPdfModal(true); }}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/20 bg-primary/5 px-2.5 h-7 rounded-lg hover:bg-primary/10 transition-colors">
+                          <Eye size={11} />Харах
+                        </button>
+                        <button type="button"
+                          className="flex items-center gap-1.5 text-xs font-semibold text-zinc-600 border border-border bg-white px-2.5 h-7 rounded-lg hover:bg-muted/60 transition-colors">
+                          <Download size={11} />PDF
+                        </button>
+                      </div>
+                    ) : (
+                      <button type="button"
+                        onClick={() => navigate(`/account/agreement?contract=${c.id}`)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-amber-700 border border-amber-200 bg-amber-50 px-3 h-7 rounded-lg hover:bg-amber-100 transition-colors flex-shrink-0">
+                        Гэрээ байгуулах
+                      </button>
+                    )}
+                  </div>
                 );
               })}
-            </div>
-          </Card>
+              {CMS_AGREEMENTS.map(c => {
+                const isSigned = signedCmsIds.includes(c.id);
+                return (
+                  <div key={c.id} className={`flex items-center gap-3 px-5 py-4 ${isSigned ? "bg-green-50/40" : "bg-white"}`}>
+                    <div className="w-9 h-9 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
+                      <FileText size={15} className="text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
+                      {isSigned
+                        ? <p className="text-xs text-green-700 mt-0.5 flex items-center gap-1">
+                            <CheckCircle2 size={9} className="flex-shrink-0" />Зурагдсан
+                          </p>
+                        : <p className="text-xs text-muted-foreground mt-0.5">{c.createdAt}-нд илгээгдсэн</p>
+                      }
+                    </div>
+                    {isSigned ? (
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <button type="button"
+                          onClick={() => { setPdfContractId(c.id); setShowPdfModal(true); }}
+                          className="flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary/20 bg-primary/5 px-2.5 h-7 rounded-lg hover:bg-primary/10 transition-colors">
+                          <Eye size={11} />Харах
+                        </button>
+                        <button type="button"
+                          className="flex items-center gap-1.5 text-xs font-semibold text-zinc-600 border border-border bg-white px-2.5 h-7 rounded-lg hover:bg-muted/60 transition-colors">
+                          <Download size={11} />PDF
+                        </button>
+                      </div>
+                    ) : (
+                      <button type="button"
+                        onClick={() => navigate(`/account/agreement?contract=${c.id}`)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-zinc-700 border border-border bg-white px-3 h-7 rounded-lg hover:bg-muted/60 transition-colors flex-shrink-0">
+                        Гэрээ байгуулах
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </Card>
+          </div>
         )}
 
         {/* ══ БАНК ══ */}
@@ -503,7 +686,7 @@ export default function AccountStatusScreen() {
                       <label className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">Дансны дугаар <span className="text-red-500">*</span></label>
                       <input value={bankNumber} onChange={e => setBankNumber(e.target.value)}
                         placeholder="0000000000"
-                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border font-mono outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-background" />
+                        className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-background" />
                     </div>
                   </div>
                   <button type="button"

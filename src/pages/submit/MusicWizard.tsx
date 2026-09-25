@@ -81,6 +81,63 @@ const ACCOUNT_CONTRIBS: ContribRef[] = [
   { id: "CON-004", name: "Anu", affiliation: "BMI" },
 ];
 const GENRES = ["Alternative","Blues","Classical","Country","Electronic","Folk","Hip-Hop / Rap","Jazz","Metal","Pop","R&B / Soul","Reggae","Rock","Singer / Songwriter","Soundtrack","World"];
+
+function GenreSelect({ value, otherValue, onChange, label, required, small }: {
+  value: string; otherValue?: string; onChange: (v: string) => void;
+  label: string; required?: boolean; small?: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const triggerRef = React.useRef<HTMLDivElement>(null);
+  const [menuStyle, setMenuStyle] = React.useState<React.CSSProperties>({});
+
+  React.useEffect(() => {
+    if (!open || !triggerRef.current) return;
+    const r = triggerRef.current.getBoundingClientRect();
+    setMenuStyle({ position: "fixed", top: r.bottom + 4, left: r.left, width: r.width, zIndex: 9999 });
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (triggerRef.current && !triggerRef.current.closest(".wiz-select-picker")?.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", close);
+    return () => window.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const filtered = GENRES.filter(g =>
+    g.toLowerCase().includes(search.toLowerCase()) && g !== otherValue
+  );
+
+  return (
+    <div className="wiz-field">
+      <label className="wiz-label" style={small ? { fontSize: 12 } : undefined}>{label}{required && <span className="wiz-req">*</span>}</label>
+      <div className="wiz-select-picker">
+        <div ref={triggerRef} className="wiz-select-value" onClick={() => { setOpen(v => !v); setSearch(""); }}>
+          <span style={{ color: value ? "var(--w-text)" : "var(--w-muted)", fontSize: 13 }}>{value || "Жанр хайж сонгох"}</span>
+          <ChevronDown size={small ? 14 : 15} />
+        </div>
+        {open && (
+          <div className="wiz-select-menu" style={{ ...menuStyle, position: "fixed" }}>
+            <div className="wiz-select-search">
+              <Search size={13} />
+              <input className="wiz-input" style={{ height: 34, paddingLeft: 30 }}
+                value={search} onChange={e => setSearch(e.target.value)} placeholder="Жанр хайх" autoFocus />
+            </div>
+            {filtered.map(g => (
+              <div key={g} className={`wiz-option ${g === value ? "selected" : ""}`}
+                onMouseDown={() => { onChange(g); setOpen(false); setSearch(""); }}>{g}</div>
+            ))}
+            {filtered.length === 0 && <div style={{ padding: "10px 12px", fontSize: 13, color: "#999" }}>Олдсонгүй</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 const LANGUAGES: { code: string; name: string }[] = [
   { code: "mn", name: "Монгол" },
   { code: "en", name: "English / Latin" },
@@ -315,10 +372,6 @@ export default function MusicWizard() {
   const [addSongSel, setAddSongSel] = useState(new Set<string>());
   const [addSongSearch, setAddSongSearch] = useState("");
   const [pendingUploads, setPendingUploads] = useState<Track[]>([]);
-  const [genreOpen, setGenreOpen] = useState<{ kind: "primary" | "secondary" } | null>(null);
-  const [genreSearch, setGenreSearch] = useState("");
-  const [trackGenreOpen, setTrackGenreOpen] = useState<{ trackIdx: number; field: "genre" | "secondaryGenre" } | null>(null);
-  const [trackGenreSearch, setTrackGenreSearch] = useState("");
   const [relLangOpen, setRelLangOpen] = useState(false);
   const [trackLangOpenIdx, setTrackLangOpenIdx] = useState<number | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
@@ -413,16 +466,6 @@ export default function MusicWizard() {
       else setFeatured(f => [...f, a]);
     }
     setArtistModal(null); setShowCreate(false); setCreateName("");
-  }
-
-  // ─── genre helpers
-  function toggleGenre(kind: "primary" | "secondary") {
-    setGenreOpen(prev => prev?.kind === kind ? null : { kind });
-    setGenreSearch("");
-  }
-  function selectGenre(kind: "primary" | "secondary", value: string) {
-    if (kind === "primary") setPrimaryGenre(value); else setSecondaryGenre(value);
-    setGenreOpen(null);
   }
 
   // ─── cover helpers
@@ -603,7 +646,7 @@ export default function MusicWizard() {
           </div>
           {titleLang !== "en" && (
             <div className="wiz-title-row wiz-title-en-row">
-              <span className="wiz-title-en-label">EN · заавал</span>
+              <span className="wiz-title-en-label">EN · Заавал</span>
               <input value={titlesEn} onChange={e => setTitlesEn(e.target.value)}
                 placeholder="English / Latin гарчиг" />
             </div>
@@ -678,31 +721,6 @@ export default function MusicWizard() {
     );
   }
 
-  function GenrePicker({ kind, label, required }: { kind: "primary" | "secondary"; label: string; required?: boolean }) {
-    const value = kind === "primary" ? primaryGenre : secondaryGenre;
-    const otherVal = kind === "primary" ? secondaryGenre : primaryGenre;
-    const open = genreOpen?.kind === kind;
-    const filtered = GENRES.filter(g => g.toLowerCase().includes(genreSearch.toLowerCase()) && g !== otherVal);
-    return (
-      <div className="wiz-field">
-        <label className="wiz-label">{label}{required && <span className="wiz-req">*</span>}{kind === "primary" && <InfoTip text="Үндсэн жанр нь Spotify, Apple Music зэрэг платформд хайлт болон санал болгоход нөлөөлнө." />}</label>
-        <div className="wiz-select-picker">
-          <div className="wiz-select-value" onClick={() => toggleGenre(kind)}>
-            <span style={{ color: value ? "var(--w-text)" : "var(--w-muted)", fontSize: 13 }}>{value || "Жанр хайж сонгох"}</span>
-            <ChevronDown size={15} />
-          </div>
-          {open && (
-            <div className="wiz-select-menu">
-              <div className="wiz-select-search"><Search size={13} /><input className="wiz-input" style={{ height: 34, paddingLeft: 30 }} value={genreSearch} onChange={e => setGenreSearch(e.target.value)} placeholder="Жанр хайх" /></div>
-              {filtered.map(g => (
-                <div key={g} className={`wiz-option ${g === value ? "selected" : ""}`} onMouseDown={() => selectGenre(kind, g)}>{g}</div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   function TrackTitleEditor({ t, idx }: { t: Track; idx: number }) {
     const active = t.activeLang || "mn";
@@ -736,7 +754,7 @@ export default function MusicWizard() {
           </div>
           {active !== "en" && (
             <div className="wiz-title-row wiz-title-en-row">
-              <span className="wiz-title-en-label">EN · заавал</span>
+              <span className="wiz-title-en-label">EN · Заавал</span>
               <input value={t.titles.en || ""}
                 onChange={e => updateTrack(idx, { titles: { ...t.titles, en: e.target.value } })}
                 placeholder="English / Latin гарчиг" />
@@ -813,31 +831,6 @@ export default function MusicWizard() {
     );
   }
 
-  function TrackGenrePicker({ idx, field, label, required }: { idx: number; field: "genre" | "secondaryGenre"; label: string; required?: boolean }) {
-    const value = tracks[idx][field] || "";
-    const open = trackGenreOpen?.trackIdx === idx && trackGenreOpen?.field === field;
-    const other = field === "genre" ? tracks[idx].secondaryGenre : tracks[idx].genre;
-    const filtered = GENRES.filter(g => g.toLowerCase().includes(trackGenreSearch.toLowerCase()) && g !== other);
-    return (
-      <div className="wiz-field">
-        <label className="wiz-label" style={{ fontSize: 12 }}>{label}{required && <span className="wiz-req">*</span>}</label>
-        <div className="wiz-select-picker">
-          <div className="wiz-select-value" onClick={() => { setTrackGenreOpen(prev => prev?.trackIdx === idx && prev?.field === field ? null : { trackIdx: idx, field }); setTrackGenreSearch(""); }}>
-            <span style={{ color: value ? "var(--w-text)" : "var(--w-muted)", fontSize: 13 }}>{value || "Жанр хайж сонгох"}</span>
-            <ChevronDown size={14} />
-          </div>
-          {open && (
-            <div className="wiz-select-menu">
-              <div className="wiz-select-search"><Search size={13} /><input className="wiz-input" style={{ height: 32, paddingLeft: 28 }} value={trackGenreSearch} onChange={e => setTrackGenreSearch(e.target.value)} placeholder="Жанр хайх" /></div>
-              {filtered.map(g => (
-                <div key={g} className={`wiz-option ${g === value ? "selected" : ""}`} onMouseDown={() => { updateTrack(idx, { [field]: g }); setTrackGenreOpen(null); }}>{g}</div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   function AudioSourceCard({ t, idx }: { t: Track; idx: number }) {
     const isLinked = t.source === "existing";
@@ -1023,8 +1016,8 @@ export default function MusicWizard() {
                 {TrackArtistRole({ idx, kind: "featured" })}
               </div>
               <div className="wiz-track-meta-row">
-                {TrackGenrePicker({ idx, field: "genre", label: "Үндсэн жанр", required: true })}
-                {TrackGenrePicker({ idx, field: "secondaryGenre", label: "Secondary genre" })}
+                <GenreSelect value={tracks[idx].genre} otherValue={tracks[idx].secondaryGenre} onChange={v => updateTrack(idx, { genre: v })} label="Үндсэн жанр" required small />
+                <GenreSelect value={tracks[idx].secondaryGenre} otherValue={tracks[idx].genre} onChange={v => updateTrack(idx, { secondaryGenre: v })} label="Дэд жанр" small />
               </div>
             </div>
           </div>
@@ -1157,8 +1150,8 @@ export default function MusicWizard() {
             {isSingle && ArtistRoleBox({ kind: "featured" })}
           </div>
           <div className="wiz-grid2" style={{ marginTop: 14 }}>
-            {GenrePicker({ kind: "primary", label: "Үндсэн жанр", required: true })}
-            {GenrePicker({ kind: "secondary", label: "Secondary genre" })}
+            <GenreSelect value={primaryGenre} otherValue={secondaryGenre} onChange={setPrimaryGenre} label="Үндсэн жанр" required />
+            <GenreSelect value={secondaryGenre} otherValue={primaryGenre} onChange={setSecondaryGenre} label="Дэд жанр" />
           </div>
           <div className="wiz-field">
             <label className="wiz-label">Label<InfoTip text="Хэвлэл болон хуваарилалтын компани. Байхгүй бол хоосон орхино — артистын нэр ашиглагдана." /></label>
@@ -1200,32 +1193,36 @@ export default function MusicWizard() {
 
         {/* Copyright & phonogram rights */}
         <div className="wiz-section">
-          <div className="wiz-field">
-            <label className="wiz-label">
-              Зохиогчийн эрх <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>©</span>
-            </label>
-            <div className="wiz-rights-row">
-              <input className="wiz-input" value={cOwner} onChange={e => setCOwner(e.target.value)} placeholder="Эрх эзэмшигчийн нэр эсвэл байгууллага" />
-              <select className="wiz-select wiz-rights-year" value={cYear} onChange={e => setCYear(e.target.value)}>
-                {Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
-                  const y = new Date().getFullYear() - i;
-                  return <option key={y} value={String(y)}>{y}</option>;
-                })}
-              </select>
+          <div className="wiz-grid2">
+            <div className="wiz-field">
+              <label className="wiz-label">
+                Зохиогчийн эрх <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>©</span>
+                <InfoTip text="© Зохиогчийн эрх — дуу, үг, хөгжмийн зохиогч эсвэл хэвлэгчийн нэр. Ихэвчлэн дуучин эсвэл лейбл байна." />
+              </label>
+              <div className="wiz-rights-row">
+                <input className="wiz-input" value={cOwner} onChange={e => setCOwner(e.target.value)} placeholder="Эрх эзэмшигчийн нэр" />
+                <select className="wiz-select wiz-rights-year" value={cYear} onChange={e => setCYear(e.target.value)}>
+                  {Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
+                    const y = new Date().getFullYear() - i;
+                    return <option key={y} value={String(y)}>{y}</option>;
+                  })}
+                </select>
+              </div>
             </div>
-          </div>
-          <div className="wiz-field">
-            <label className="wiz-label">
-              Бичлэгийн эрх <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>℗</span>
-            </label>
-            <div className="wiz-rights-row">
-              <input className="wiz-input" value={pOwner} onChange={e => setPOwner(e.target.value)} placeholder="Эрх эзэмшигчийн нэр эсвэл байгууллага" />
-              <select className="wiz-select wiz-rights-year" value={pYear} onChange={e => setPYear(e.target.value)}>
-                {Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
-                  const y = new Date().getFullYear() - i;
-                  return <option key={y} value={String(y)}>{y}</option>;
-                })}
-              </select>
+            <div className="wiz-field">
+              <label className="wiz-label">
+                Бичлэгийн эрх <span style={{ fontWeight: 400, color: "var(--muted-foreground)" }}>℗</span>
+                <InfoTip text="℗ Бичлэгийн эрх (master rights) — дуу бичлэгийг санхүүжүүлж, дуусгасан этгээд. Ихэвчлэн лейбл эсвэл артист өөрөө байна." />
+              </label>
+              <div className="wiz-rights-row">
+                <input className="wiz-input" value={pOwner} onChange={e => setPOwner(e.target.value)} placeholder="Эрх эзэмшигчийн нэр" />
+                <select className="wiz-select wiz-rights-year" value={pYear} onChange={e => setPYear(e.target.value)}>
+                  {Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
+                    const y = new Date().getFullYear() - i;
+                    return <option key={y} value={String(y)}>{y}</option>;
+                  })}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -1288,9 +1285,14 @@ export default function MusicWizard() {
                       {t.isrc
                         ? <span className="wiz-status-pill isrc">{displayISRC(t.isrc)}</span>
                         : <span className="wiz-status-pill">ISRC үүснэ</span>}
-                      <span className="wiz-status-pill">{t.hasLyrics === true ? "Үгтэй" : t.hasLyrics === false ? "Үггүй" : "Үг сонгоогүй"}</span>
                       {t.explicitStatus === "explicit" && <span className="wiz-status-pill" style={{ background: "#fff5f6", color: "#cf4b5e", borderColor: "#f5c2c7" }}>E</span>}
                       {(t.sourceName || t.source === "existing") && <span className="wiz-status-pill ok">{t.source === "existing" ? "Audio холбогдсон" : "Audio ✓"}</span>}
+                      {!isSingle && tracks.length > 1 && (
+                        <button type="button" className="wiz-btn icon-btn"
+                          onClick={e => { e.stopPropagation(); setTracks(ts => ts.filter((_, idx2) => idx2 !== i)); if (openTrack === i) setOpenTrack(-1); else if (openTrack > i) setOpenTrack(openTrack - 1); }}>
+                          <Trash2 size={14} />
+                        </button>
+                      )}
                     </div>
                   </div>
                   {!isSingle && (opened ? <ChevronUp size={16} style={{ color: "#999", flexShrink: 0 }} /> : <ChevronDown size={16} style={{ color: "#999", flexShrink: 0 }} />)}
@@ -1502,7 +1504,7 @@ export default function MusicWizard() {
                   <div className="wiz-review-data-item"><span>Үндсэн артист</span><b>{primary.map(a => a.name).join(", ") || "—"}</b></div>
                   {isSingle && featured.length > 0 && <div className="wiz-review-data-item"><span>Хамтарсан артист</span><b>{featured.map(a => a.name).join(", ")}</b></div>}
                   <div className="wiz-review-data-item"><span>Жанр</span><b>{primaryGenre || "—"}</b></div>
-                  {secondaryGenre && <div className="wiz-review-data-item"><span>Secondary жанр</span><b>{secondaryGenre}</b></div>}
+                  {secondaryGenre && <div className="wiz-review-data-item"><span>Дэд жанр</span><b>{secondaryGenre}</b></div>}
                   <div className="wiz-review-data-item"><span>Label</span><b>MOCO Records</b></div>
                   {previous && <div className="wiz-review-data-item"><span>Өмнөх UPC</span><b>{prevUPC || "—"}</b></div>}
                   {!previous && <div className="wiz-review-data-item"><span>UPC</span><b>Автоматаар үүснэ</b></div>}
@@ -1575,10 +1577,15 @@ export default function MusicWizard() {
             </section>
           </div>
         </div>
-        <label className="wiz-review-confirm-simple">
-          <input type="checkbox" checked={reviewConfirmed} onChange={e => setReviewConfirmed(e.target.checked)} />
-          <span><b>Мэдээллээ шалгасан</b><span>Оруулсан мэдээлэл зөв болохыг баталгаажуулна.</span></span>
-        </label>
+        <div className="wiz-confirm-block">
+          <label className={`wiz-confirm-item ${reviewConfirmed ? "checked" : ""}`}>
+            <input type="checkbox" checked={reviewConfirmed} onChange={e => setReviewConfirmed(e.target.checked)} />
+            <div className="wiz-confirm-item-body">
+              <span className="wiz-confirm-item-title">Мэдээллээ шалгасан</span>
+              <span className="wiz-confirm-item-desc">Оруулсан бүх мэдээлэл зөв бөгөөд нийтлэхэд бэлэн болохыг баталгаажуулна.</span>
+            </div>
+          </label>
+        </div>
       </div>
     );
   }
@@ -2075,7 +2082,7 @@ export default function MusicWizard() {
 
       {/* Wizard content — rendered inside Shell */}
       {mode && (
-        <div className="wiz-in-shell" onClick={() => { setGenreOpen(null); setTrackGenreOpen(null); setRelLangOpen(false); setTrackLangOpenIdx(null); }}>
+        <div className="wiz-in-shell" onClick={() => { setRelLangOpen(false); setTrackLangOpenIdx(null); }}>
           {isRevisionEdit && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-2xl px-4 py-3 flex items-start gap-3">
               <div className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">

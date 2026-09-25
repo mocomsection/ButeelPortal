@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { Plus, ChevronRight, ChevronDown, ArrowLeft, UploadCloud, Fingerprint, Mic2, Users, Activity, Music2, RefreshCw, Trash2, Sparkles, Lock, X, GripVertical, Check } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
@@ -160,7 +160,7 @@ export default function SubmitTracksScreen() {
                 <div className="w-7 h-7 rounded-lg bg-zinc-100 flex items-center justify-center text-xs font-bold flex-shrink-0">{initials(a.name)}</div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-zinc-900">{a.name}</p>
-                  <p className="text-xs text-zinc-400 font-mono">{a.id}</p>
+                  <p className="text-xs text-zinc-400">{a.id}</p>
                 </div>
                 <Plus size={12} className="text-zinc-400" />
               </button>
@@ -428,7 +428,7 @@ export default function SubmitTracksScreen() {
             <div>
               <label className="text-sm font-semibold text-zinc-700 block mb-1.5">Өмнөх ISRC код <span className="text-red-500">*</span></label>
               <input value={track.isrc} onChange={e => updateTrack(track.id, { isrc: e.target.value })}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-200 font-mono outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
                 placeholder="CC-XXX-YY-NNNNN" />
             </div>
           )}
@@ -691,7 +691,7 @@ export default function SubmitTracksScreen() {
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {track.isrcMode === "existing" && track.isrc && (
-                          <span className="text-xs font-mono bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">{track.isrc.replace(/-/g, "")}</span>
+                          <span className="text-xs bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded">{track.isrc.replace(/-/g, "")}</span>
                         )}
                         {track.isrcMode === "generate" && track.hasAudio && (
                           <span className="text-xs bg-violet-100 text-violet-600 px-1.5 py-0.5 rounded font-semibold">ISRC↗</span>

@@ -126,8 +126,8 @@ export const AUDIOBOOKS: ReleaseData[] = [
     contentType: "audiobook",
     services: ["Audible"],
     tracks: [
-      { no:1, title:"Нэгдүгээр хэсэг: Гарал үүсэл",       isrc:"", primaryArtist:"Э. Гантулга", featArtists:[], explicit:false, duration:"22:10", fileName:"part1.wav", fileSize:"527 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
-      { no:2, title:"Хоёрдугаар хэсэг: Дайн ба тулаан",    isrc:"", primaryArtist:"Э. Гантулга", featArtists:[], explicit:false, duration:"25:35", fileName:"part2.wav", fileSize:"608 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
+      { no:1, title:"Нэгдүгээр хэсэг: Гарал үүсэл",    isrc:"MNNOM2600001", primaryArtist:"Э. Гантулга", featArtists:[], explicit:false, duration:"22:10", fileName:"part1.wav", fileSize:"527 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
+      { no:2, title:"Хоёрдугаар хэсэг: Дайн ба тулаан", isrc:"MNNOM2600002", primaryArtist:"Э. Гантулга", featArtists:[], explicit:false, duration:"25:35", fileName:"part2.wav", fileSize:"608 MB", audioFormat:"WAV", bitrate:"1411kbps", sampleRate:"44.1 kHz", bitDepth:"16-bit" },
     ],
   },
 ] satisfies ReleaseData[];

@@ -112,7 +112,6 @@ export default function AccountTaxScreen() {
                   value={regNumber}
                   onChange={v => setRegNumber(v.toUpperCase())}
                   placeholder="УН12345678"
-                  className="font-mono"
                 />
               </Field>
               <Field label="ТТД" required helper="Татвар төлөгчийн дугаар">
@@ -120,7 +119,6 @@ export default function AccountTaxScreen() {
                   value={taxId}
                   onChange={setTaxId}
                   placeholder="0000000000"
-                  className="font-mono"
                 />
               </Field>
             </div>
@@ -141,7 +139,6 @@ export default function AccountTaxScreen() {
                     value={orgReg}
                     onChange={setOrgReg}
                     placeholder="1234567"
-                    className="font-mono"
                   />
                 </Field>
                 <Field label="ТТД" required helper="Татвар төлөгчийн дугаар">
@@ -149,7 +146,6 @@ export default function AccountTaxScreen() {
                     value={orgTaxId}
                     onChange={setOrgTaxId}
                     placeholder="0000000000"
-                    className="font-mono"
                   />
                 </Field>
               </div>
@@ -176,7 +172,6 @@ export default function AccountTaxScreen() {
                   value={vatRegNum}
                   onChange={setVatRegNum}
                   placeholder="0000000000"
-                  className="font-mono"
                 />
               </Field>
             </div>

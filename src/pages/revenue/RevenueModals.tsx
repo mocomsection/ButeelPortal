@@ -214,7 +214,7 @@ export function WithdrawalDetailModal({ withdrawal, onClose }: WithdrawalDetailM
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
             <h3 className="font-bold text-zinc-900">Таталтын дэлгэрэнгүй</h3>
-            <p className="text-xs text-zinc-400 mt-0.5 font-mono">{withdrawal.id}</p>
+            <p className="text-xs text-zinc-400 mt-0.5">{withdrawal.id}</p>
           </div>
           <button type="button" onClick={onClose}
             className="p-1.5 rounded-xl hover:bg-zinc-100 text-zinc-400 transition-colors"><X size={18} /></button>

@@ -498,7 +498,7 @@ export default function SubmitFilmInfoScreen() {
                 </div>
                 {titleLang !== "en" && (
                   <div className="wiz-title-row wiz-title-en-row">
-                    <span className="wiz-title-en-label">EN · заавал</span>
+                    <span className="wiz-title-en-label">EN · Заавал</span>
                     <input value={titleEn} onChange={e => setTitleEn(e.target.value)}
                       placeholder="English / Latin гарчиг" />
                   </div>
@@ -1039,14 +1039,16 @@ export default function SubmitFilmInfoScreen() {
                 )}
               </div>
             </div>
-            <div className="wiz-review-confirm-simple">
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", fontSize: 13 }}>
-                <input type="checkbox" checked={reviewConfirmed} onChange={e => setReviewConfirmed(e.target.checked)}
-                  style={{ width: 16, height: 16, marginTop: 1, accentColor: "#f43f5e", flexShrink: 0 }} />
-                <span>Дээрх мэдээлэл зөв болохыг баталгаажуулж, нийтлэхийг зөвшөөрч байна.</span>
-              </label>
-            </div>
           </div>
+        </div>
+        <div className="wiz-confirm-block">
+          <label className={`wiz-confirm-item ${reviewConfirmed ? "checked" : ""}`}>
+            <input type="checkbox" checked={reviewConfirmed} onChange={e => setReviewConfirmed(e.target.checked)} />
+            <div className="wiz-confirm-item-body">
+              <span className="wiz-confirm-item-title">Мэдээллээ шалгасан</span>
+              <span className="wiz-confirm-item-desc">Оруулсан бүх мэдээлэл зөв бөгөөд нийтлэхэд бэлэн болохыг баталгаажуулна.</span>
+            </div>
+          </label>
         </div>
       </div>
     );

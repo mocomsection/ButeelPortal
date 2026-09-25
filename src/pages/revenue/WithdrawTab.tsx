@@ -1,19 +1,86 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowDownToLine, Settings, Check, X, AlertCircle, RefreshCw, Clock } from "lucide-react";
+import { ArrowDownToLine, Settings, Check, X, AlertCircle, RefreshCw, Clock, ShieldAlert, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { WITHDRAWALS_DATA, WITHDRAW_STATUS, STATUS_ORDER } from "@/data/revenue";
+import { WITHDRAWALS_DATA, WITHDRAW_STATUS } from "@/data/revenue";
 import { AVAILABLE_BALANCE, fmtMoney, thCls, thRCls, tdBoldR, tdRCls } from "./revenueUtils";
+
+// Demo: KYC not completed yet
+const KYC_VERIFIED = false;
 
 interface WithdrawTabProps {
   onWithdrawRequest: () => void;
   onDetailClick: (w: typeof WITHDRAWALS_DATA[0]) => void;
 }
 
+function KycModal({ onClose, onGoAccount }: { onClose: () => void; onGoAccount: () => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl border border-border max-w-sm w-full p-6"
+        onClick={e => e.stopPropagation()}>
+        <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-4">
+          <ShieldAlert size={26} className="text-amber-600" />
+        </div>
+        <h3 className="text-lg font-extrabold text-center text-zinc-900 mb-2">
+          KYC баталгаажуулалт шаардлагатай
+        </h3>
+        <p className="text-sm text-zinc-500 text-center leading-relaxed mb-6">
+          Татах хүсэлт гаргахын тулд эхлээд аккаунтын мэдээлэл болон
+          баталгаажуулалтаа дуусгана уу.
+        </p>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5">
+          <p className="text-xs font-bold text-amber-700 mb-1.5">Дуусгах шаардлагатай:</p>
+          <ul className="space-y-1">
+            {[
+              "E-Mongolia баталгаажуулалт",
+              "Хувийн мэдээлэл бөглөх",
+              "Банкны данс холбох",
+            ].map(item => (
+              <li key={item} className="flex items-center gap-2 text-xs text-amber-700">
+                <AlertCircle size={10} className="flex-shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="space-y-2">
+          <button type="button" onClick={onGoAccount}
+            className="w-full h-10 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #000))" }}>
+            Аккаунт тохиргоо руу очих<ArrowRight size={14} />
+          </button>
+          <button type="button" onClick={onClose}
+            className="w-full h-10 rounded-xl text-sm font-semibold text-zinc-600 border border-border hover:bg-zinc-50 transition-colors">
+            Болих
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabProps) {
   const navigate = useNavigate();
+  const [showKycModal, setShowKycModal] = useState(false);
+
+  const handleWithdrawClick = () => {
+    if (AVAILABLE_BALANCE < 100000) return;
+    if (!KYC_VERIFIED) {
+      setShowKycModal(true);
+    } else {
+      onWithdrawRequest();
+    }
+  };
 
   return (
     <div className="space-y-5">
+      {showKycModal && (
+        <KycModal
+          onClose={() => setShowKycModal(false)}
+          onGoAccount={() => { navigate("/account"); setShowKycModal(false); }}
+        />
+      )}
 
       {/* Withdrawal summary card */}
       <Card className="p-6">
@@ -43,10 +110,10 @@ export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabPro
               <Settings size={14} />Тохиргоо
             </button>
             <button type="button"
-              onClick={() => AVAILABLE_BALANCE >= 100000 && onWithdrawRequest()}
+              onClick={handleWithdrawClick}
               disabled={AVAILABLE_BALANCE < 100000}
               className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-bold text-white transition-all shadow-[0_2px_8px_0_rgba(108,77,246,0.35)] disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{ background:"linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #000))" }}>
+              style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, #000))" }}>
               <ArrowDownToLine size={14} />Татах хүсэлт
             </button>
           </div>
@@ -76,14 +143,13 @@ export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabPro
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {WITHDRAWALS_DATA.map(w => {
-                const st = WITHDRAW_STATUS[w.status] || { label:w.status, cls:"bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200" };
-                const statusIdx = STATUS_ORDER[w.status] ?? 0;
+                const st = WITHDRAW_STATUS[w.status] || { label: w.status, cls: "bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200" };
                 const receiveAmt = w.amount * 0.9;
                 return (
-                  <tr key={w.id} className="hover:bg-muted/40/40 transition-colors">
+                  <tr key={w.id} className="hover:bg-muted/40 transition-colors">
                     <td className="px-5 py-3.5">
                       <p className="text-sm font-semibold text-zinc-900">{w.requestedDate}</p>
-                      <p className="text-xs text-zinc-300 font-mono mt-0.5">{w.id}</p>
+                      <p className="text-xs text-zinc-300 mt-0.5">{w.id}</p>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${st.cls}`}>

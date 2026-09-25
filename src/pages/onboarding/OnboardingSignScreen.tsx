@@ -170,7 +170,7 @@ export default function OnboardingSignScreen() {
               <div
                 ref={scrollRef}
                 onScroll={handleScroll}
-                className="h-[380px] overflow-y-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-700 leading-relaxed font-mono whitespace-pre-wrap select-text"
+                className="h-[380px] overflow-y-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-700 leading-relaxed whitespace-pre-wrap select-text"
               >
                 {contract.contractText}
               </div>

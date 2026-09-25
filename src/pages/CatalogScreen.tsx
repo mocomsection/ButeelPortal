@@ -399,7 +399,7 @@ export default function CatalogScreen() {
                   {ct === "music" && (
                     <>
                       {r.label && <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Лейбл:</span> {r.label}</p>}
-                      <p className="text-xs text-zinc-400 font-mono truncate"><span className="font-semibold text-zinc-500 font-sans">UPC:</span> {r.upc || "—"}</p>
+                      <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500 font-sans">UPC:</span> {r.upc || "—"}</p>
                     </>
                   )}
                   {ct === "audiobook" && (
@@ -493,7 +493,7 @@ export default function CatalogScreen() {
                     <td className="px-4 py-3.5 text-sm text-zinc-500 hidden sm:table-cell">{artistLabel(r)}</td>
                     <td className="px-4 py-3.5 text-sm text-zinc-500 hidden lg:table-cell">{r.label || "—"}</td>
                     {ct === "music" && (
-                      <td className="px-4 py-3.5 text-xs text-zinc-400 font-mono hidden xl:table-cell">{r.upc || "—"}</td>
+                      <td className="px-4 py-3.5 text-xs text-zinc-400 hidden xl:table-cell">{r.upc || "—"}</td>
                     )}
                     {ct === "audiobook" && (
                       <td className="px-4 py-3.5 text-xs text-zinc-500 hidden xl:table-cell">{r.tracks.length} бүлэг</td>

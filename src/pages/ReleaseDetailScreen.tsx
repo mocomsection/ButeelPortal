@@ -274,7 +274,7 @@ function TrackCard({ t }: { t: TrackItem }) {
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0 text-xs text-muted-foreground tabular-nums">
-          {isrc && <><span className="font-mono">{isrc}</span><span className="opacity-40">·</span></>}
+          {isrc && <><span>{isrc}</span><span className="opacity-40">·</span></>}
           <span>{t.duration}</span>
         </div>
         <div onClick={e => e.stopPropagation()}><TrackPreview title={t.title} /></div>
@@ -376,9 +376,10 @@ function TrackCard({ t }: { t: TrackItem }) {
 }
 
 // ── chapter card (audiobook — no music-specific sections) ────────────────────
-function ChapterCard({ t }: { t: TrackItem }) {
+function ChapterCard({ t, releaseId }: { t: TrackItem; releaseId: string }) {
   const [open, setOpen] = useState(false);
   const chapterTitles = RELEASE_TITLES[`CH-${t.no}`] ?? [];
+  const isrc = t.isrc || generateISRC(releaseId, t.no);
 
   return (
     <div className={`rounded-2xl border transition-all overflow-hidden ${open ? "border-primary/25 shadow-sm" : "border-border hover:border-border/80"}`}>
@@ -389,7 +390,11 @@ function ChapterCard({ t }: { t: TrackItem }) {
           <span className="font-semibold text-sm text-foreground block truncate">{t.title}</span>
           <span className="text-xs text-muted-foreground">{t.primaryArtist}</span>
         </div>
-        <span className="text-xs text-muted-foreground tabular-nums hidden sm:block flex-shrink-0">{t.duration}</span>
+        <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0 text-xs text-muted-foreground tabular-nums">
+          <span>{isrc}</span>
+          <span className="opacity-40">·</span>
+          <span>{t.duration}</span>
+        </div>
         <div onClick={e => e.stopPropagation()}><TrackPreview title={t.title} /></div>
         <ChevronDown size={14} className={`text-muted-foreground flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </div>
@@ -411,6 +416,20 @@ function ChapterCard({ t }: { t: TrackItem }) {
               </div>
             </div>
           )}
+
+          {/* ISRC */}
+          <div className="mb-4 pb-4 border-b border-border/30 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Hash size={13} className="text-muted-foreground" />
+              <span className="text-xs font-bold uppercase text-muted-foreground">ISRC</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-foreground tracking-wide">{isrc}</span>
+              {!t.isrc && (
+                <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded">Системээс оноосон</span>
+              )}
+            </div>
+          </div>
 
           {/* Audio file */}
           <div>
@@ -517,7 +536,7 @@ function AudiobookDetail({ r }: { r: ReleaseData }) {
           <span className="text-[11px] font-bold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-md">{r.tracks.length}</span>
         </div>
         <div className="space-y-2">
-          {r.tracks.map(t => <ChapterCard key={t.no} t={t} />)}
+          {r.tracks.map(t => <ChapterCard key={t.no} t={t} releaseId={r.id} />)}
         </div>
       </Card>
     </>
@@ -564,6 +583,18 @@ function avatarHue(name: string) {
 }
 function nameInitials(name: string) {
   return name.split(" ").map(w => w[0] ?? "").join("").toUpperCase().slice(0, 2) || "?";
+}
+
+// Auto-generate ISRC for a chapter when none is stored yet.
+// Format: MN + 3-char label code from releaseId hash + 2-digit year + 5-digit chapter seq.
+function generateISRC(releaseId: string, chapterNo: number): string {
+  const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let h = 0;
+  for (let i = 0; i < releaseId.length; i++) { h = releaseId.charCodeAt(i) + ((h << 5) - h); h |= 0; }
+  const reg = [0, 1, 2].map(i => CHARS[Math.abs((h >> (i * 5)) & 0x1f) % CHARS.length]).join("");
+  const year = new Date().getFullYear().toString().slice(2);
+  const seq  = String(chapterNo).padStart(5, "0");
+  return `MN${reg}${year}${seq}`;
 }
 
 // Roles that represent on-screen acting — get circular photo-style avatars
@@ -910,11 +941,8 @@ export default function ReleaseDetailScreen() {
             ) : (
               <>
                 <Card className="p-5">
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="mb-3">
                     <SectionHead icon={Disc3} label="Үндсэн мэдээлэл" />
-                    <a href="#" className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-semibold border border-border text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors flex-shrink-0 -mt-0.5">
-                      <Globe size={12} />Цомгийн холбоос<ExternalLink size={10} />
-                    </a>
                   </div>
 
                   {/* Title language variants */}
@@ -957,6 +985,12 @@ export default function ReleaseDetailScreen() {
                       <p className="text-sm text-foreground/80 leading-relaxed">{r.synopsis}</p>
                     </div>
                   )}
+
+                  <div className="mt-4 pt-3 border-t border-border/30">
+                    <a href="#" className="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-semibold border border-border text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-colors">
+                      <Globe size={12} />Цомгийн холбоос<ExternalLink size={10} />
+                    </a>
+                  </div>
                 </Card>
 
                 <Card className="p-5">

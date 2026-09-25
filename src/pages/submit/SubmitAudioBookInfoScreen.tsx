@@ -6,7 +6,7 @@ import {
   ChevronDown, ChevronUp, Play, RefreshCw, Trash2, UploadCloud, FileAudio,
   AudioWaveform, TriangleAlert, CircleCheckBig, ClipboardCheck,
   Search, UserRound, ZapIcon, CalendarDays, CalendarClock,
-  Info, Fingerprint, Image as ImageIcon, ImageOff, AlertCircle,
+  Info, Fingerprint, Sparkles, Image as ImageIcon, ImageOff, AlertCircle,
   GripVertical, Building2, Lock,
 } from "lucide-react";
 import "@/styles/wizard.css";
@@ -21,6 +21,8 @@ type Chapter = {
   duration: string;
   sourceName: string; fileFormat: string; sampleRate: string; bitDepth: string;
   uploading: boolean; uploadProgress: number;
+  isrcMode: "generate" | "existing";
+  isrc: string;
 };
 type Cover = { name: string; dataUrl: string; width: number; height: number; size: number };
 
@@ -93,6 +95,7 @@ function makeChapter(idx: number): Chapter {
     activeLang: "mn",
     duration: "", sourceName: "", fileFormat: "", sampleRate: "", bitDepth: "",
     uploading: false, uploadProgress: 0,
+    isrcMode: "generate", isrc: "",
   };
 }
 
@@ -340,7 +343,7 @@ export default function SubmitAudioBookInfoScreen() {
           </div>
           {active !== "en" && (
             <div className="wiz-title-row wiz-title-en-row">
-              <span className="wiz-title-en-label">EN · заавал</span>
+              <span className="wiz-title-en-label">EN · Заавал</span>
               <input value={ch.titles.en || ""}
                 onChange={e => updateChapter(ch.id, { titles: { ...ch.titles, en: e.target.value } })}
                 placeholder="English / Latin гарчиг" />
@@ -423,7 +426,7 @@ export default function SubmitAudioBookInfoScreen() {
               </div>
               {titleLang !== "en" && (
                 <div className="wiz-title-row wiz-title-en-row">
-                  <span className="wiz-title-en-label">EN · заавал</span>
+                  <span className="wiz-title-en-label">EN · Заавал</span>
                   <input value={titleEn} onChange={e => setTitleEn(e.target.value)}
                     placeholder="English / Latin гарчиг" />
                 </div>
@@ -466,8 +469,8 @@ export default function SubmitAudioBookInfoScreen() {
           <div className="wiz-id-auto">
             <Fingerprint size={17} />
             <div>
-              <b>UPC & ISRC автоматаар үүсгэгдэнэ</b>
-              <span>Аудио номын UPC болон бүлэг тус бүрийн ISRC кодыг нийтлэх үед систем автоматаар үүсгэнэ — гараар оруулах шаардлагагүй.</span>
+              <b>UPC автоматаар үүсгэгдэнэ</b>
+              <span>Аудио номын UPC кодыг нийтлэх үед систем автоматаар үүсгэнэ — гараар оруулах шаардлагагүй.</span>
             </div>
           </div>
         </div>
@@ -683,8 +686,9 @@ export default function SubmitAudioBookInfoScreen() {
                       </span>
                     </div>
                     <div className="wiz-track-summary">
+                      <span className="wiz-status-pill isrc">ISRC↗</span>
                       {hasFile && !ch.uploading && <>
-                        {ch.fileFormat && <span className="wiz-status-pill isrc">{ch.fileFormat}</span>}
+                        {ch.fileFormat && <span className="wiz-status-pill">{ch.fileFormat}</span>}
                         {ch.sampleRate && <span className="wiz-status-pill">{ch.sampleRate}</span>}
                         {ch.bitDepth && <span className="wiz-status-pill">{ch.bitDepth}</span>}
                       </>}
@@ -699,6 +703,19 @@ export default function SubmitAudioBookInfoScreen() {
                   <div className="wiz-track-body">
                     <div className="wiz-track-panel">
                       {ChapterTitleEditor({ ch, idx })}
+
+                      {/* ISRC */}
+                      <div className="wiz-track-panel-head" style={{ marginTop: 14 }}>
+                        <div className="wiz-track-panel-title"><Fingerprint size={16} /><b>ISRC</b></div>
+                      </div>
+                      <div className="flex items-center gap-2.5 p-3 bg-violet-50 rounded-xl border border-violet-200 mb-1">
+                        <Sparkles size={14} className="text-violet-500 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-semibold text-violet-700">ISRC автоматаар үүснэ</p>
+                          <p className="text-xs text-violet-500">Илгээхийн өмнө энэ бүлэгт ISRC код онооно.</p>
+                        </div>
+                      </div>
+
                       <div className="wiz-track-panel-head" style={{ marginTop: 14 }}>
                         <div className="wiz-track-panel-title"><AudioWaveform size={16} /><b>Аудио файл</b></div>
                         <span>WAV · FLAC · MP3</span>
@@ -987,14 +1004,16 @@ export default function SubmitAudioBookInfoScreen() {
                 )}
               </div>
             </div>
-            <div className="wiz-review-confirm-simple">
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", fontSize: 13 }}>
-                <input type="checkbox" checked={reviewConfirmed} onChange={e => setReviewConfirmed(e.target.checked)}
-                  style={{ width: 16, height: 16, marginTop: 1, accentColor: "var(--w-accent)", flexShrink: 0 }} />
-                <span>Дээрх мэдээлэл зөв болохыг баталгаажуулж, нийтлэхийг зөвшөөрч байна.</span>
-              </label>
-            </div>
           </div>
+        </div>
+        <div className="wiz-confirm-block">
+          <label className={`wiz-confirm-item ${reviewConfirmed ? "checked" : ""}`}>
+            <input type="checkbox" checked={reviewConfirmed} onChange={e => setReviewConfirmed(e.target.checked)} />
+            <div className="wiz-confirm-item-body">
+              <span className="wiz-confirm-item-title">Мэдээллээ шалгасан</span>
+              <span className="wiz-confirm-item-desc">Оруулсан бүх мэдээлэл зөв бөгөөд нийтлэхэд бэлэн болохыг баталгаажуулна.</span>
+            </div>
+          </label>
         </div>
       </div>
     );

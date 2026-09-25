@@ -23,7 +23,6 @@ import ReportsScreen from "@/pages/ReportsScreen";
 import ProfileScreen from "@/pages/ProfileScreen";
 import StatementDetailScreen from "@/pages/StatementDetailScreen";
 import HelpScreen from "@/pages/HelpScreen";
-import ScreenMapScreen from "@/pages/ScreenMapScreen";
 import UsersScreen from "@/pages/UsersScreen";
 import NotFoundScreen from "@/pages/NotFoundScreen";
 
@@ -97,6 +96,5 @@ export const routes = [
   { path: "/account/payment",         element: <PaymentInfoScreen /> },
   { path: "/users",                   element: <UsersScreen /> },
   { path: "/help",                    element: <HelpScreen /> },
-  { path: "/screen-map",              element: <ScreenMapScreen /> },
   { path: "*",                        element: <NotFoundScreen /> },
 ];
