@@ -104,7 +104,7 @@ export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabPro
           </div>
           {/* right: actions */}
           <div className="sm:ml-auto flex flex-col gap-2 self-center">
-            <button type="button" onClick={() => navigate("/account/payment")}
+            <button type="button" onClick={() => navigate("/account?tab=bank")}
               className="flex items-center gap-2 h-9 px-4 rounded-xl border border-border text-sm font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors">
               <Settings size={14} />Тохиргоо
             </button>
@@ -133,22 +133,20 @@ export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabPro
             <thead>
               <tr className="bg-zinc-50/60 border-b border-border">
                 <th className={thCls}>Хүсэлт</th>
-                <th className="text-left text-xs font-bold text-zinc-400 uppercase px-5 py-3">Статус</th>
+                <th className={thCls}>Статус</th>
                 <th className={thRCls + " hidden sm:table-cell"}>Татах дүн</th>
-                <th className={thRCls + " hidden md:table-cell"}>Хүлээн авах</th>
-                <th className="text-left text-[11px] font-bold text-zinc-400 uppercase px-5 py-3 hidden lg:table-cell">Шинэчлэгдсэн</th>
-                <th className="px-5 py-3 text-[11px] font-bold text-zinc-400 uppercase">Үйлдэл</th>
+                <th className={thCls + " hidden lg:table-cell"}>Шинэчлэгдсэн</th>
+                <th className={thCls}>Үйлдэл</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {WITHDRAWALS_DATA.map(w => {
                 const st = WITHDRAW_STATUS[w.status] || { label: w.status, cls: "bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200" };
-                const receiveAmt = w.amount * 0.9;
                 return (
                   <tr key={w.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="px-5 py-3.5">
+                    <td className="px-5 py-3.5 whitespace-nowrap">
                       <p className="text-sm font-semibold text-zinc-900">{w.requestedDate}</p>
-                      <p className="text-xs text-zinc-300 mt-0.5">{w.id}</p>
+                      <p className="text-[11px] text-zinc-400 mt-0.5 font-medium">{w.id}</p>
                     </td>
                     <td className="px-5 py-3.5">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${st.cls}`}>
@@ -161,11 +159,10 @@ export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabPro
                       </span>
                     </td>
                     <td className={tdBoldR + " hidden sm:table-cell"}>{fmtMoney(w.amount)}</td>
-                    <td className={tdRCls + " hidden md:table-cell"}>{fmtMoney(receiveAmt)}</td>
-                    <td className="px-5 py-3.5 text-xs text-zinc-400 hidden lg:table-cell">{w.modifiedAt}</td>
-                    <td className="px-5 py-3.5 text-center">
+                    <td className="px-5 py-3.5 text-xs text-zinc-400 hidden lg:table-cell whitespace-nowrap">{w.modifiedAt}</td>
+                    <td className="px-5 py-3.5">
                       <button type="button" onClick={() => onDetailClick(w)}
-                        className="text-xs font-semibold text-primary hover:text-[#5B3FE0] bg-violet-50 hover:bg-violet-100 px-2.5 h-7 rounded-lg transition-colors">
+                        className="text-xs font-semibold text-primary hover:text-[#5B3FE0] bg-violet-50 hover:bg-violet-100 px-2.5 h-7 rounded-lg transition-colors whitespace-nowrap">
                         Дэлгэрэнгүй
                       </button>
                     </td>

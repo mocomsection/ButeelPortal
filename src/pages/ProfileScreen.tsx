@@ -6,6 +6,7 @@ import {
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { PasswordModal } from "@/components/ui/PasswordModal";
+import { patchAccountState } from "@/data/ob-state";
 
 const ORIGINAL_EMAIL = "bold@example.com";
 const ORIGINAL_PHONE = "+976 9900 1122";
@@ -231,6 +232,7 @@ export default function ProfileScreen() {
       setSavedFirstName(firstName);
       setSavedEmail(email);
       setSavedPhone(phone);
+      patchAccountState({ firstName: firstName.trim(), lastName: lastName.trim() });
       setSaving(false);
       setSaved(true);
       setEditing(false);

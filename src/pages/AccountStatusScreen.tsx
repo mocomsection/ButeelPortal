@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import {
   User, CreditCard, AlertCircle, Clock, CheckCircle2,
   Building2, Shield, Tag, BadgeCheck, Lock, FileText,
@@ -32,13 +32,17 @@ const ACCOUNT_LOG = [
 
 export default function AccountStatusScreen() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const accState = getAccountState();
 
   const [demoAccType, setDemoAccType] = useState<"individual" | "org">("individual");
   const [mongoVerified, setMongoVerified]       = useState(() => getAccountState().kycVerified);
   const [showLabelRequest, setShowLabelRequest] = useState(false);
-  const [tab, setTab] = useState<AccountTab>("info");
-  const [vatPayer, setVatPayer] = useState(false);
+  const initialTab = (searchParams.get("tab") as AccountTab | null) ?? "info";
+  const [tab, setTab] = useState<AccountTab>(
+    TABS.some(t => t.id === initialTab) ? initialTab : "info"
+  );
+  const [vatPayer, setVatPayer] = useState(() => getAccountState().vatPayer);
 
   const [bankHolderName, setBankHolderName] = useState("");
   const [bankNumber, setBankNumber]         = useState("");
@@ -78,6 +82,36 @@ export default function AccountStatusScreen() {
   const signedIds: string[] = accState.signedContracts.length > 0
     ? accState.signedContracts
     : ["music"]; // demo fallback
+
+  const printContract = (title: string, text: string, signedDate: string) => {
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; font-size: 11px; color: #1a1a1a; margin: 40px; line-height: 1.7; }
+  h1 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+  .meta { font-size: 10px; color: #666; margin-bottom: 24px; }
+  .party { background: #f8f8f8; border: 1px solid #ddd; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; }
+  .party-label { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #999; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .party-name { font-size: 13px; font-weight: 700; }
+  .party-reg { font-size: 10px; color: #555; margin-top: 2px; }
+  pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: 11px; line-height: 1.7; }
+  .footer { margin-top: 40px; border-top: 1px solid #ddd; padding-top: 16px; font-size: 10px; color: #888; }
+  @media print { body { margin: 20px; } }
+</style></head><body>
+<h1>${title}</h1>
+<div class="meta">Зурагдсан огноо: ${signedDate} &nbsp;·&nbsp; Buteel Platform</div>
+<div class="party">
+  <div class="party-label">Гэрээ байгуулах этгээд</div>
+  <div class="party-name">${accInfo.name}</div>
+  <div class="party-reg">Регистр / ТТД: ${accInfo.register}</div>
+</div>
+<pre>${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+<div class="footer">© Buteel Platform · ${new Date().getFullYear()} · Хэвлэгдсэн: ${new Date().toLocaleString("mn-MN")}</div>
+</body></html>`);
+    win.document.close();
+    setTimeout(() => { win.print(); }, 400);
+  };
 
   // Setup data from account state
   const musicSetup = accState.setups?.["music"] ?? { name: "Steppe Records" };
@@ -279,8 +313,9 @@ export default function AccountStatusScreen() {
               </div>
               <div className="flex gap-3 px-5 pb-5 flex-shrink-0 border-t border-border pt-4">
                 <button type="button"
+                  onClick={() => printContract(title, text, signedDate)}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors">
-                  <Download size={14} />PDF татах
+                  <Download size={14} />Хэвлэх / PDF
                 </button>
                 <button type="button" onClick={() => setShowPdfModal(false)}
                   className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90 transition-opacity"
@@ -293,13 +328,10 @@ export default function AccountStatusScreen() {
         );
       })()}
 
-      <div className="max-w-2xl space-y-5">
+      <div className="max-w-3xl space-y-5">
         {/* Profile summary card */}
-        <div className="relative overflow-hidden rounded-2xl border border-violet-100 shadow-sm"
-          style={{ background: "linear-gradient(135deg,#F5F3FF 0%,#EEF2FF 100%)" }}>
-          <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full opacity-[0.07] pointer-events-none"
-            style={{ background: "var(--primary)" }} />
-          <div className="px-5 py-4 flex items-center gap-4 relative">
+        <div className="relative overflow-hidden rounded-2xl border border-border shadow-sm bg-card">
+          <div className="px-5 py-6 flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-md"
               style={{ background: "linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 72%, #000))" }}>
               {accInfo.initials}
@@ -320,16 +352,16 @@ export default function AccountStatusScreen() {
             </div>
             <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-24 h-1.5 bg-white/70 rounded-full overflow-hidden border border-violet-200">
+                <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-500"
                     style={{ width: `${completionPct}%`, background: "linear-gradient(90deg, var(--primary), #818CF8)" }} />
                 </div>
                 <span className="text-xs font-bold text-violet-600">{completionPct}%</span>
               </div>
-              <span className="text-[11px] text-zinc-400">Профайл бэлэн</span>
+              <span className="text-[11px] text-zinc-400">Аккаунтын явц</span>
             </div>
           </div>
-          <div className="px-5 pb-3 flex items-center gap-2 border-t border-violet-100/60 pt-2.5">
+          <div className="px-5 pb-3 flex items-center gap-2 border-t border-border pt-2.5">
             <span className="text-[10px] font-bold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded">DEMO</span>
             <button type="button" onClick={() => setDemoAccType(t => t === "individual" ? "org" : "individual")}
               className="text-xs font-semibold text-primary hover:underline">
@@ -400,7 +432,6 @@ export default function AccountStatusScreen() {
 
               {/* VAT toggle row — locked once E-Mongolia verified */}
               <div className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border mb-5 ${mongoVerified ? "bg-zinc-50 border-border/40 opacity-70" : "bg-muted/30 border-border/50"}`}>
-                <Receipt size={12} className="text-muted-foreground flex-shrink-0" />
                 <span className="text-xs text-foreground flex-1">НӨАТ төлөгч эсэх</span>
                 {mongoVerified && <Lock size={10} className="text-zinc-400 flex-shrink-0" />}
                 <span className={`text-xs font-semibold ${vatPayer ? "text-primary" : "text-muted-foreground"}`}>
@@ -408,7 +439,7 @@ export default function AccountStatusScreen() {
                 </span>
                 <button type="button"
                   disabled={mongoVerified}
-                  onClick={() => setVatPayer(v => !v)}
+                  onClick={() => setVatPayer(v => { const next = !v; patchAccountState({ vatPayer: next }); return next; })}
                   className={`relative inline-flex w-9 h-5 rounded-full transition-colors duration-200 ${vatPayer ? "bg-primary" : "bg-border"} ${mongoVerified ? "cursor-not-allowed" : "cursor-pointer"}`}>
                   <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${vatPayer ? "translate-x-4" : ""}`} />
                 </button>

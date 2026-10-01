@@ -170,10 +170,8 @@ export default function DashboardScreen() {
         {/* Recent content */}
         <div className="lg:col-span-2">
           <Card>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+            <div className="px-5 py-4 border-b border-border">
               <h3 className="font-bold text-foreground text-sm">Сүүлийн контент</h3>
-              <button type="button" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => navigate("/releases")}>Бүгдийг харах</button>
             </div>
             <div className="divide-y divide-border/40">
               {recentContent.map(r => {

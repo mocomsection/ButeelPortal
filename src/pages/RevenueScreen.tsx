@@ -25,10 +25,12 @@ export default function RevenueScreen() {
         copiedField={copiedField}
         onCopy={copyText}
       />
+      <div className="max-w-[1100px]">
       <WithdrawTab
         onWithdrawRequest={() => setWdStep("form")}
         onDetailClick={setWdModal}
       />
+      </div>
     </Shell>
   );
 }

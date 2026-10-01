@@ -261,17 +261,15 @@ function TrackCard({ t }: { t: TrackItem }) {
   return (
     <div className={`rounded-2xl border transition-all overflow-hidden ${open ? "border-primary/25 shadow-sm" : "border-border hover:border-border/80"}`}>
       {/* Row header */}
-      <div className="w-full flex items-center gap-3 px-5 py-3.5 text-left bg-white cursor-pointer select-none"
+      <div className="w-full flex items-center gap-3 px-4 py-3 text-left bg-white cursor-pointer select-none"
         onClick={() => setOpen(v => !v)}>
         <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[11px] font-bold text-muted-foreground flex-shrink-0">{t.no}</span>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm text-foreground truncate">{t.title}</span>
+          <div className="flex items-center gap-1.5 leading-tight">
+            <span className="font-semibold text-sm text-foreground truncate leading-[1.2]">{t.title}</span>
             {t.explicit && <span className="text-[10px] bg-zinc-800 text-white px-1.5 py-0.5 rounded font-black flex-shrink-0">E</span>}
           </div>
-          <div className="mt-0.5">
-            <span className="text-xs text-muted-foreground">{t.primaryArtist}{t.featArtists.length ? ` ft. ${t.featArtists.join(", ")}` : ""}</span>
-          </div>
+          <span className="text-xs text-muted-foreground leading-[1.2]">{t.primaryArtist}{t.featArtists.length ? ` ft. ${t.featArtists.join(", ")}` : ""}</span>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0 text-xs text-muted-foreground tabular-nums">
           {isrc && <><span>{isrc}</span><span className="opacity-40">·</span></>}
@@ -383,12 +381,12 @@ function ChapterCard({ t, releaseId }: { t: TrackItem; releaseId: string }) {
 
   return (
     <div className={`rounded-2xl border transition-all overflow-hidden ${open ? "border-primary/25 shadow-sm" : "border-border hover:border-border/80"}`}>
-      <div className="w-full flex items-center gap-3 px-5 py-3.5 text-left bg-white cursor-pointer select-none"
+      <div className="w-full flex items-center gap-3 px-4 py-3 text-left bg-white cursor-pointer select-none"
         onClick={() => setOpen(v => !v)}>
         <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[11px] font-bold text-muted-foreground flex-shrink-0">{t.no}</span>
         <div className="flex-1 min-w-0">
-          <span className="font-semibold text-sm text-foreground block truncate">{t.title}</span>
-          <span className="text-xs text-muted-foreground">{t.primaryArtist}</span>
+          <span className="font-semibold text-sm text-foreground block truncate leading-[1.2]">{t.title}</span>
+          <span className="text-xs text-muted-foreground leading-[1.2]">{t.primaryArtist}</span>
         </div>
         <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0 text-xs text-muted-foreground tabular-nums">
           <span>{isrc}</span>

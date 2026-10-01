@@ -1,4 +1,6 @@
-import { X, Clock, Check, AlertCircle, ExternalLink, CheckCircle2, Download } from "lucide-react";
+import { X, Clock, Check, AlertCircle, ExternalLink, CheckCircle2, Download, Info } from "lucide-react";
+import { useState as useLocalState, useRef } from "react";
+import { getAccountState } from "@/data/ob-state";
 import { ALL_MONTHLY, SERVICE_ROWS, WITHDRAW_STATUS, TIMELINE_STAGES, STATUS_ORDER } from "@/data/revenue";
 import type { TRACK_ROWS, ALBUM_ROWS, WITHDRAWALS_DATA } from "@/data/revenue";
 import { CURRENT_MONTH_KEY, AVAILABLE_BALANCE, LIFETIME_TOTAL, fmtMoney, formatMonthFull, thCls, thRCls } from "./revenueUtils";
@@ -73,51 +75,65 @@ interface SongDetailModalProps {
 
 export function SongDetailModal({ song, onClose, periodLabel }: SongDetailModalProps) {
   if (!song) return null;
+  const totalStreams = song.stores.reduce((n, s) => n + s.streams, 0);
+  const totalDownloads = song.stores.reduce((n, s) => n + s.downloads, 0);
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}>
-      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[80vh] flex flex-col"
+      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[85vh] flex flex-col"
         onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <div>
-            <h3 className="font-bold text-zinc-900">Дууны орлогын дэлгэрэнгүй</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">{song.title}</p>
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-4 border-b border-border gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase text-zinc-400 tracking-wide mb-0.5">Орлогын дэлгэрэнгүй</p>
+            <h3 className="font-extrabold text-zinc-900 text-base leading-snug truncate">{song.title}</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">{song.artist} · {song.label}</p>
           </div>
           <button type="button" onClick={onClose}
-            className="p-1.5 rounded-xl hover:bg-zinc-100 text-zinc-400 transition-colors"><X size={18} /></button>
+            className="w-8 h-8 rounded-xl hover:bg-zinc-100 text-zinc-400 transition-colors flex items-center justify-center flex-shrink-0">
+            <X size={16} />
+          </button>
         </div>
-        <div className="px-6 py-3 bg-zinc-50/60 border-b border-border flex flex-wrap gap-x-6 gap-y-1.5">
-          {[["Артист", song.artist], ["Лейбл", song.label], ["Хугацаа", periodLabel]].map(([k,v]) => (
-            <div key={k}>
-              <p className="text-xs font-bold uppercase text-zinc-400">{k}</p>
-              <p className="text-xs font-semibold text-zinc-700">{v}</p>
-            </div>
-          ))}
+        {/* Stats bar */}
+        <div className="px-6 py-3 bg-zinc-50/60 border-b border-border grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-zinc-400">Хугацаа</p>
+            <p className="text-xs font-semibold text-zinc-700 mt-0.5">{periodLabel}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase text-zinc-400">Нийт сонсолт</p>
+            <p className="text-xs font-semibold text-zinc-700 mt-0.5">{totalStreams.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase text-zinc-400">Нийт таталт</p>
+            <p className="text-xs font-semibold text-zinc-700 mt-0.5">{totalDownloads.toLocaleString()}</p>
+          </div>
         </div>
+        {/* Table */}
         <div className="overflow-y-auto flex-1">
           <table className="w-full">
-            <thead className="sticky top-0 bg-white">
-              <tr className="border-b border-border bg-zinc-50/60">
+            <thead className="sticky top-0">
+              <tr className="border-b border-border bg-zinc-50/90">
                 <th className={thCls}>Үйлчилгээ</th>
                 <th className={thRCls}>Сонсолт</th>
                 <th className={thRCls}>Таталт</th>
                 <th className={thRCls}>Орлого</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-50">
+            <tbody className="divide-y divide-zinc-100">
               {song.stores.map(s => (
-                <tr key={s.name} className="hover:bg-background/40 transition-colors">
+                <tr key={s.name} className="hover:bg-zinc-50/60 transition-colors">
                   <td className="px-5 py-3 text-sm font-semibold text-zinc-900">{s.name}</td>
                   <td className="px-5 py-3 text-right text-sm tabular-nums text-zinc-500">{s.streams.toLocaleString()}</td>
                   <td className="px-5 py-3 text-right text-sm tabular-nums text-zinc-500">{s.downloads.toLocaleString()}</td>
-                  <td className="px-5 py-3 text-right text-sm tabular-nums font-bold text-primary">{fmtMoney(s.amount)}</td>
+                  <td className="px-5 py-3 text-right text-sm tabular-nums font-bold text-zinc-900">{fmtMoney(s.amount)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="border-t border-border bg-zinc-50/60">
-                <td colSpan={3} className="px-5 py-3 text-xs font-bold text-zinc-400">Нийт</td>
-                <td className="px-5 py-3 text-right text-sm font-extrabold text-zinc-900 tabular-nums">{fmtMoney(song.amount)}</td>
+              <tr className="border-t-2 border-border bg-zinc-50/80">
+                <td colSpan={3} className="px-5 py-3.5 text-xs font-bold text-zinc-500">Нийт</td>
+                <td className="px-5 py-3.5 text-right text-sm font-extrabold text-zinc-900 tabular-nums">{fmtMoney(song.amount)}</td>
               </tr>
             </tfoot>
           </table>
@@ -137,57 +153,71 @@ interface AlbumDetailModalProps {
 
 export function AlbumDetailModal({ album, onClose, periodLabel }: AlbumDetailModalProps) {
   if (!album) return null;
+  const ratio = album.amount / LIFETIME_TOTAL;
+  const totalStreams = Math.round(SERVICE_ROWS.slice(0,5).reduce((n,s) => n + s.streams, 0) * ratio);
+  const totalDownloads = Math.round(SERVICE_ROWS.slice(0,5).reduce((n,s) => n + s.downloads, 0) * ratio);
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}>
-      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[80vh] flex flex-col"
+      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[85vh] flex flex-col"
         onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <div>
-            <h3 className="font-bold text-zinc-900">Цомгийн орлогын дэлгэрэнгүй</h3>
-            <p className="text-xs text-zinc-500 mt-0.5">{album.title}</p>
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-4 border-b border-border gap-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase text-zinc-400 tracking-wide mb-0.5">Орлогын дэлгэрэнгүй</p>
+            <h3 className="font-extrabold text-zinc-900 text-base leading-snug truncate">{album.title}</h3>
+            <p className="text-xs text-zinc-500 mt-0.5">{album.artist} · {album.trackCount} дуу</p>
           </div>
           <button type="button" onClick={onClose}
-            className="p-1.5 rounded-xl hover:bg-zinc-100 text-zinc-400 transition-colors"><X size={18} /></button>
+            className="w-8 h-8 rounded-xl hover:bg-zinc-100 text-zinc-400 transition-colors flex items-center justify-center flex-shrink-0">
+            <X size={16} />
+          </button>
         </div>
-        <div className="px-6 py-3 bg-zinc-50/60 border-b border-border flex flex-wrap gap-x-6 gap-y-1.5">
-          {[["Артист", album.artist], ["Дууны тоо", String(album.trackCount)], ["Хугацаа", periodLabel]].map(([k,v]) => (
-            <div key={k}>
-              <p className="text-xs font-bold uppercase text-zinc-400">{k}</p>
-              <p className="text-xs font-semibold text-zinc-700">{v}</p>
-            </div>
-          ))}
+        {/* Stats bar */}
+        <div className="px-6 py-3 bg-zinc-50/60 border-b border-border grid grid-cols-3 gap-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-zinc-400">Хугацаа</p>
+            <p className="text-xs font-semibold text-zinc-700 mt-0.5">{periodLabel}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase text-zinc-400">Нийт сонсолт</p>
+            <p className="text-xs font-semibold text-zinc-700 mt-0.5">{totalStreams.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase text-zinc-400">Нийт таталт</p>
+            <p className="text-xs font-semibold text-zinc-700 mt-0.5">{totalDownloads.toLocaleString()}</p>
+          </div>
         </div>
+        {/* Table */}
         <div className="overflow-y-auto flex-1">
           <table className="w-full">
-            <thead className="sticky top-0 bg-white">
-              <tr className="border-b border-border bg-zinc-50/60">
+            <thead className="sticky top-0">
+              <tr className="border-b border-border bg-zinc-50/90">
                 <th className={thCls}>Үйлчилгээ</th>
                 <th className={thRCls}>Сонсолт</th>
                 <th className={thRCls}>Таталт</th>
                 <th className={thRCls}>Орлого</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-50">
+            <tbody className="divide-y divide-zinc-100">
               {SERVICE_ROWS.slice(0,5).map(s => {
-                const ratio = album.amount / LIFETIME_TOTAL;
                 const sAmt = s.amount * ratio;
                 const sSt  = Math.round(s.streams * ratio);
                 const sDl  = Math.round(s.downloads * ratio);
                 return (
-                  <tr key={s.name} className="hover:bg-background/40 transition-colors">
+                  <tr key={s.name} className="hover:bg-zinc-50/60 transition-colors">
                     <td className="px-5 py-3 text-sm font-semibold text-zinc-900">{s.name}</td>
                     <td className="px-5 py-3 text-right text-sm tabular-nums text-zinc-500">{sSt.toLocaleString()}</td>
                     <td className="px-5 py-3 text-right text-sm tabular-nums text-zinc-500">{sDl.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-right text-sm tabular-nums font-bold text-primary">{fmtMoney(sAmt)}</td>
+                    <td className="px-5 py-3 text-right text-sm tabular-nums font-bold text-zinc-900">{fmtMoney(sAmt)}</td>
                   </tr>
                 );
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t border-border bg-zinc-50/60">
-                <td colSpan={3} className="px-5 py-3 text-xs font-bold text-zinc-400">Нийт</td>
-                <td className="px-5 py-3 text-right text-sm font-extrabold text-zinc-900 tabular-nums">{fmtMoney(album.amount)}</td>
+              <tr className="border-t-2 border-border bg-zinc-50/80">
+                <td colSpan={3} className="px-5 py-3.5 text-xs font-bold text-zinc-500">Нийт</td>
+                <td className="px-5 py-3.5 text-right text-sm font-extrabold text-zinc-900 tabular-nums">{fmtMoney(album.amount)}</td>
               </tr>
             </tfoot>
           </table>
@@ -301,6 +331,19 @@ interface WithdrawalRequestModalProps {
 }
 
 export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, onCopy }: WithdrawalRequestModalProps) {
+  const [showInfo, setShowInfo] = useLocalState(false);
+  const [demoVat, setDemoVat] = useLocalState(false);
+  const [demoOrg, setDemoOrg] = useLocalState(false);
+  const infoRef = useRef<HTMLButtonElement>(null);
+  const [infoPos, setInfoPos] = useLocalState({ top: 0, left: 0 });
+  const vatPayer = demoVat;
+
+  const BASE        = AVAILABLE_BALANCE;
+  const ROYALTY     = Math.round(BASE * 0.10);
+  const TRANSFER    = BASE - ROYALTY;
+  const EBARIMT     = BASE;
+  const BASE_NO_VAT = Math.round(BASE / 1.10);
+
   if (!step) return null;
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4"
@@ -313,45 +356,96 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <h3 className="font-bold text-zinc-900 text-lg">Татах хүсэлт</h3>
               <button type="button" onClick={onClose}
-                className="p-1.5 rounded-xl hover:bg-zinc-100 text-zinc-400 transition-colors"><X size={18} /></button>
+                className="w-8 h-8 rounded-xl hover:bg-zinc-100 text-zinc-400 flex items-center justify-center transition-colors"><X size={16} /></button>
             </div>
             <div className="px-6 py-5 space-y-4">
               {/* balance banner */}
-              <div className="rounded-xl p-4" style={{ background:"linear-gradient(135deg,#0f0825,#2d1060,var(--primary))" }}>
+              <div className="rounded-xl px-5 py-5 relative overflow-hidden" style={{ background:"linear-gradient(135deg,#0f0825,#2d1060,var(--primary))" }}>
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-white/60 text-xs font-semibold">Боломжтой үлдэгдэл</p>
-                    <p className="text-2xl font-extrabold text-white mt-0.5">{fmtMoney(AVAILABLE_BALANCE)}</p>
-                    <p className="text-white/40 text-xs mt-1">Хамгийн бага ₮100,000.00</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                      <p className="text-white/60 text-xs font-semibold uppercase tracking-wide">Боломжтой үлдэгдэл</p>
+                    </div>
+                    <p className="text-2xl font-extrabold text-white mt-1 tabular-nums">{fmtMoney(AVAILABLE_BALANCE)}</p>
                   </div>
-                  <span className="text-xs bg-white/15 text-white/80 font-semibold px-2.5 py-1 rounded-full">Хувь хүн</span>
+                  <div className="flex flex-col gap-1 items-end">
+                    <button type="button" onClick={() => setDemoOrg(v => !v)}
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors"
+                      style={{ background: demoOrg ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)", color: demoOrg ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.35)" }}>
+                      {demoOrg ? "Байгууллага" : "Хувь хүн"}
+                    </button>
+                    <button type="button" onClick={() => setDemoVat(v => !v)}
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-md transition-colors"
+                      style={{ background: demoVat ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)", color: demoVat ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.35)" }}>
+                      НӨАТ • {demoVat ? "Тийм" : "Үгүй"}
+                    </button>
+                  </div>
+                </div>
+                <div className="border-t border-white/15 mt-3 pt-2.5">
+                  <p className="text-white/35 text-[11px]">Татварын тооцоо болон шилжүүлгийн мэдээлэл</p>
                 </div>
               </div>
+
               {/* calculation */}
-              <div className="bg-zinc-50 rounded-xl p-4 border border-border space-y-2.5">
-                {[
-                  ["Хүсэлтийн дүн",     fmtMoney(AVAILABLE_BALANCE)],
-                  ["ХХОАТ (Эрхийн шимтгэл) ⓘ", "Тооцоолж байна"],
-                ].map(([k,v]) => (
-                  <div key={k} className="flex items-center justify-between">
-                    <p className="text-sm text-zinc-500">{k}</p>
-                    <p className="text-sm font-semibold text-zinc-700">{v}</p>
+              <div className="rounded-xl border border-border overflow-visible">
+                {/* Үлдэгдэл дүн */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                  <p className="text-xs text-zinc-500">Үлдэгдэл дүн</p>
+                  <p className="text-sm font-semibold text-zinc-800 tabular-nums">{fmtMoney(BASE)}</p>
+                </div>
+
+                {/* НӨАТ-гүй дүн — зөвхөн НӨАТ төлөгчид */}
+                {vatPayer && (
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                    <p className="text-xs text-zinc-500">НӨАТ-гүй дүн</p>
+                    <p className="text-sm font-semibold text-zinc-800 tabular-nums">{fmtMoney(BASE_NO_VAT)}</p>
                   </div>
-                ))}
-                <div className="border-t border-border pt-2.5 flex items-center justify-between">
-                  <p className="text-sm font-bold text-zinc-900">Хүлээн авах дүн</p>
-                  <p className="text-sm font-extrabold text-primary">~{fmtMoney(AVAILABLE_BALANCE * 0.9)}</p>
+                )}
+
+                {/* Эрхийн шимтгэл */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs text-zinc-500">Эрхийн шимтгэл</p>
+                    <div className="relative">
+                      <button ref={infoRef} type="button"
+                        onMouseEnter={() => {
+                          const r = infoRef.current?.getBoundingClientRect();
+                          if (r) setInfoPos({ top: r.top - 8, left: r.left });
+                          setShowInfo(true);
+                        }}
+                        onMouseLeave={() => setShowInfo(false)}
+                        className="text-zinc-400 hover:text-zinc-600 transition-colors flex items-center">
+                        <Info size={13} />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-sm font-semibold text-zinc-800 tabular-nums">− {fmtMoney(ROYALTY)}</p>
+                </div>
+
+                {/* Шилжүүлэх дүн */}
+                <div className="flex items-center justify-between px-4 py-3.5 bg-violet-50/60 border-b border-border">
+                  <p className="text-sm font-bold text-zinc-900">Шилжүүлэх дүн</p>
+                  <p className="text-sm font-extrabold text-primary tabular-nums">{fmtMoney(TRANSFER)}</p>
+                </div>
+
+                {/* И-Баримт шивэх дүн */}
+                <div className="flex items-center justify-between px-4 py-3 bg-zinc-50/60 rounded-b-xl">
+                  <p className="text-sm text-zinc-500">И-Баримт шивэх дүн</p>
+                  <p className="text-sm font-semibold text-zinc-700 tabular-nums">{fmtMoney(EBARIMT)}</p>
                 </div>
               </div>
+
               {/* account info */}
-              <div className="space-y-2">
+              <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
                 {[["Шилжүүлэх данс","Хаан Банк ••••4521"],["Хүлээн авагч","Болд Жаргал"]].map(([k,v]) => (
-                  <div key={k} className="flex items-center justify-between bg-zinc-50 rounded-xl px-4 py-3 border border-border">
+                  <div key={k} className="flex items-center justify-between px-4 py-3">
                     <p className="text-xs font-semibold text-zinc-400">{k}</p>
                     <p className="text-sm font-semibold text-zinc-800">{v}</p>
                   </div>
                 ))}
               </div>
+
               <div className="flex gap-3 pt-1">
                 <button type="button" onClick={onClose}
                   className="flex-1 h-10 rounded-xl border border-border text-sm font-semibold text-zinc-600 hover:bg-zinc-50 transition-colors">Болих</button>
@@ -361,6 +455,22 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
               </div>
             </div>
           </>
+        )}
+
+        {/* Info tooltip — fixed, outside all overflow containers */}
+        {showInfo && step === "form" && (
+          <div className="fixed z-[300] w-60 bg-zinc-900 text-white text-xs rounded-xl px-3 py-2.5 leading-relaxed shadow-2xl pointer-events-none"
+            style={{ top: infoPos.top, left: infoPos.left, transform: "translateY(-100%) translateX(-8px)" }}>
+            {vatPayer
+              ? (demoOrg
+                  ? "ААНОАТ хуулийн 24.1-д зааснаар эрхийн шимтгэлийг НӨАТ-гүй дүнгээс хасаж тооцоолж суутгана."
+                  : "ХХОАТ хуулийн 25.1-д зааснаар суутган төлөгч эрхийн шимтгэлийг НӨАТ-гүй дүнгээс хасаж суутгаж төсөвт шилжүүлнэ.")
+              : (demoOrg
+                  ? "ААНОАТ хуулийн 24.1-д зааснаар эрхийн шимтгэлийн орлогыг тооцоолж суутгана."
+                  : "ХХОАТ хуулийн 25.1-д зааснаар суутган төлөгч эрхийн шимтгэлийн орлогыг суутгаж төсөвт шилжүүлнэ. Хуулийг баримтлан тооцоолно.")
+            }
+            <div className="absolute left-4 bottom-0 w-2 h-2 bg-zinc-900 rotate-45 translate-y-1" />
+          </div>
         )}
 
         {step === "success" && (
@@ -384,8 +494,8 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
                 <p className="text-xs text-zinc-500 leading-relaxed mb-3">Доорх регистр, төлбөрийн утга, дүнг ашиглаад баримтаа манай байгууллага руу илгээнэ.</p>
                 {[
                   { key:"РЕГИСТР",          val:"2030957",           field:"reg" },
-                  { key:"ТӨЛБӨРИЙН УТГА",   val:`W-${Date.now().toString().slice(-6)}`, field:"ref" },
-                  { key:"БАРИМТЫН ДҮН",     val:fmtMoney(AVAILABLE_BALANCE * 0.9), field:"amt" },
+                  { key:"ТӨЛБӨРИЙН УТГА",   val:"Эрхийн шимтгэлийн орлого", field:"ref" },
+                  { key:"И-БАРИМТ ШИВЭХ ДҮН",        val:fmtMoney(EBARIMT), field:"amt" },
                 ].map(row => (
                   <div key={row.key} className="flex items-center justify-between py-2.5 border-b border-zinc-200/60 last:border-0">
                     <div>

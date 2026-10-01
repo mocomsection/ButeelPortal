@@ -82,9 +82,6 @@ export function RevenueDetailTable({
               <span>{PERIOD_LABEL[detailPeriod]}</span>
               <ChevronDown size={13} className={`transition-transform ${showPeriodDrop ? "rotate-180" : ""}`} />
             </button>
-            <p className="text-xs text-zinc-400 text-right mt-1 font-medium">
-              {computeDateRange(detailPeriod, customStart, customEnd)}
-            </p>
             {showPeriodDrop && (
               <div className="absolute top-11 right-0 z-20 bg-white rounded-2xl shadow-xl border border-border py-1.5 min-w-[210px]">
                 {(["1m","3m","1y","custom"] as const).map(p => (

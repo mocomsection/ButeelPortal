@@ -3,7 +3,7 @@ import type { ContractId } from "@/data/ob-state";
 
 export { type ContractId };
 
-export const OB_STEPS = ["Аккаунт", "Гэрээ", "Гарын үсэг", "Тохиргоо", "Дуусгах"];
+export const OB_STEPS = ["Аккаунт", "Гэрээ сонгох", "Гэрээ байгуулах", "Тохиргоо"];
 
 export interface ContractDef {
   id: ContractId;

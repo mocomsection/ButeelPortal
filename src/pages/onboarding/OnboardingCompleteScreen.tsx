@@ -3,7 +3,6 @@ import buteelLogo from "@/imports/Artboard_1.png";
 import { Check, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
-import { OnboardingProgress } from "@/pages/onboarding/OnboardingProgress";
 import { OB_CONTRACTS } from "@/data/agreements";
 import { getObState, completeOnboarding } from "@/data/ob-state";
 
@@ -14,7 +13,7 @@ export default function OnboardingCompleteScreen() {
 
   const handleStart = () => {
     completeOnboarding();
-    navigate("/dashboard");
+    navigate("/account");
   };
 
   return (
@@ -26,8 +25,6 @@ export default function OnboardingCompleteScreen() {
             <img src={buteelLogo} alt="Buteel" className="w-8 h-8 object-contain" />
           </div>
         </div>
-
-        <OnboardingProgress step={4} />
 
         <Card className="p-8 text-center">
           <div className="w-16 h-16 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-5">
@@ -56,10 +53,7 @@ export default function OnboardingCompleteScreen() {
             })}
           </div>
 
-          <div className="flex gap-3">
-            <Btn variant="secondary" full onClick={() => navigate("/account/payment")}>Төлбөрийн мэдээлэл</Btn>
-            <Btn full onClick={handleStart}>Эхлэх</Btn>
-          </div>
+          <Btn full size="lg" onClick={handleStart}>Аккаунтын тохиргоо руу →</Btn>
         </Card>
       </div>
     </div>

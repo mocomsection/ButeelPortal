@@ -15,7 +15,6 @@ import DashboardScreen from "@/pages/DashboardScreen";
 import AccountStatusScreen from "@/pages/AccountStatusScreen";
 import AccountTaxScreen from "@/pages/AccountTaxScreen";
 import DistributionAgreementScreen from "@/pages/DistributionAgreementScreen";
-import PaymentInfoScreen from "@/pages/PaymentInfoScreen";
 import CatalogScreen from "@/pages/CatalogScreen";
 import ReleaseDetailScreen from "@/pages/ReleaseDetailScreen";
 import RevenueScreen from "@/pages/RevenueScreen";
@@ -93,7 +92,6 @@ export const routes = [
   { path: "/account",                 element: <AccountStatusScreen /> },
   { path: "/account/tax",             element: <AccountTaxScreen /> },
   { path: "/account/agreement",       element: <DistributionAgreementScreen /> },
-  { path: "/account/payment",         element: <PaymentInfoScreen /> },
   { path: "/users",                   element: <UsersScreen /> },
   { path: "/help",                    element: <HelpScreen /> },
   { path: "*",                        element: <NotFoundScreen /> },

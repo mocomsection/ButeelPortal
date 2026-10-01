@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import buteelLogo from "@/imports/Artboard_1.png";
-import { Check, Upload, Pencil, RotateCcw, ChevronDown } from "lucide-react";
+import { Check, Upload, Pencil, RotateCcw, ChevronDown, User } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
 import { OnboardingProgress } from "@/pages/onboarding/OnboardingProgress";
@@ -164,6 +164,25 @@ export default function OnboardingSignScreen() {
           </div>
 
           <div className="p-6">
+            {/* Party info */}
+            {(state.partyName || state.partyRegister) && (
+              <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white border border-zinc-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <User size={14} className="text-zinc-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide mb-1">Гэрээ байгуулах этгээд</p>
+                  {state.partyName && <p className="text-sm font-bold text-zinc-900 leading-tight">{state.partyName}</p>}
+                  {state.partyRegister && (
+                    <p className="text-xs text-zinc-500 mt-0.5">
+                      {state.accountType === "org" ? "Байгууллагын регистр: " : "Регистр: "}
+                      <span className="font-semibold text-zinc-700">{state.partyRegister}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Contract text */}
             <p className="text-xs font-bold uppercase text-zinc-400 mb-2 tracking-wide">Гэрээний агуулга</p>
             <div className="relative mb-4">
@@ -210,11 +229,11 @@ export default function OnboardingSignScreen() {
                     <canvas
                       ref={canvasRef}
                       width={800}
-                      height={160}
+                      height={240}
                       className={`w-full rounded-lg border-2 cursor-crosshair transition-colors select-none ${
                         signature ? "border-primary bg-white" : "border-dashed border-zinc-300 bg-zinc-50"
                       }`}
-                      style={{ height: 108, touchAction: "none" }}
+                      style={{ height: 160, touchAction: "none" }}
                       onMouseDown={startDraw}
                       onMouseMove={draw}
                       onMouseUp={stopDraw}
@@ -240,7 +259,7 @@ export default function OnboardingSignScreen() {
                   <div>
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
                     {uploadPreview ? (
-                      <div className="relative rounded-lg border-2 border-primary overflow-hidden bg-white" style={{ height: 108 }}>
+                      <div className="relative rounded-lg border-2 border-primary overflow-hidden bg-white" style={{ height: 160 }}>
                         <img src={uploadPreview} alt="signature" className="w-full h-full object-contain" />
                         <button onClick={() => { setUploadPreview(""); setSignature(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}
                           className="absolute top-2 right-2 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-800 bg-white border border-zinc-200 rounded-lg px-2 py-1">
@@ -250,7 +269,7 @@ export default function OnboardingSignScreen() {
                     ) : (
                       <button onClick={() => fileInputRef.current?.click()}
                         className="w-full flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 hover:border-primary hover:bg-primary/5 transition-colors"
-                        style={{ height: 108 }}>
+                        style={{ height: 160 }}>
                         <Upload size={18} className="text-zinc-400" />
                         <div className="text-center">
                           <p className="text-sm font-semibold text-zinc-700">Гарын үсгийн зураг оруулах</p>
@@ -295,7 +314,7 @@ export default function OnboardingSignScreen() {
                 Буцах
               </Btn>
               <Btn full size="lg" disabled={!canSubmit} onClick={handleNext}>
-                {idx < total - 1 ? "Дараагийн гэрээ →" : "Тохиргоо руу →"}
+                {idx < total - 1 ? "Дараагийн гэрээ →" : "Баталгаажуулах →"}
               </Btn>
             </div>
           </div>

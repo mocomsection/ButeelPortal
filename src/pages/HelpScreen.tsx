@@ -113,7 +113,7 @@ export default function HelpScreen() {
 
   return (
     <Shell title="Тусламж">
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-3xl space-y-6">
 
         {/* Quick actions */}
         <div className="grid grid-cols-3 gap-3">

@@ -75,7 +75,6 @@ export default function OnboardingSetupScreen() {
 
             <div className="mb-6">
               <Input
-                label={contract.setupLabel}
                 placeholder={contract.setupPlaceholder}
                 value={name}
                 onChange={setName}

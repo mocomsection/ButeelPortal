@@ -6,6 +6,8 @@ export interface ObState {
   contracts: ContractId[];
   signed: Partial<Record<ContractId, string>>;
   setups: Partial<Record<ContractId, { name: string }>>;
+  partyName: string;
+  partyRegister: string;
 }
 
 export interface AccountState {
@@ -14,13 +16,16 @@ export interface AccountState {
   setups: Partial<Record<ContractId, { name: string }>>;
   signedDates: Partial<Record<ContractId, string>>;
   kycVerified: boolean;
+  firstName: string;
+  lastName: string;
+  vatPayer: boolean;
 }
 
 const OB_KEY = "buteel_ob";
 const ACC_KEY = "buteel_account";
 
-const EMPTY_OB: ObState = { accountType: null, contracts: [], signed: {}, setups: {} };
-const EMPTY_ACC: AccountState = { accountType: null, signedContracts: [], setups: {}, signedDates: {}, kycVerified: false };
+const EMPTY_OB: ObState = { accountType: null, contracts: [], signed: {}, setups: {}, partyName: "", partyRegister: "" };
+const EMPTY_ACC: AccountState = { accountType: null, signedContracts: [], setups: {}, signedDates: {}, kycVerified: false, firstName: "", lastName: "", vatPayer: false };
 
 export function getObState(): ObState {
   try {

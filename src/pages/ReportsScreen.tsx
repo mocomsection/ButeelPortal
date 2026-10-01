@@ -32,7 +32,7 @@ export default function ReportsScreen() {
       <SongDetailModal song={songModal} onClose={() => setSongModal(null)} periodLabel={PERIOD_LABEL[detailPeriod]} />
       <AlbumDetailModal album={albumModal} onClose={() => setAlbumModal(null)} periodLabel={PERIOD_LABEL[detailPeriod]} />
 
-      <div className="space-y-5">
+      <div className="space-y-5 max-w-[1100px]">
         <RevenueSummaryCard
           revenueContentType={revenueContentType}
           setRevenueContentType={setRevenueContentType}
