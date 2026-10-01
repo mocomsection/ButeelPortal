@@ -10,7 +10,7 @@ import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { OB_CONTRACTS } from "@/data/agreements";
 import { CMS_AGREEMENTS } from "@/data/cms-agreements";
-import { getAccountState } from "@/data/ob-state";
+import { getAccountState, patchAccountState } from "@/data/ob-state";
 
 type AccountTab = "info" | "agreements" | "bank" | "security";
 
@@ -35,7 +35,7 @@ export default function AccountStatusScreen() {
   const accState = getAccountState();
 
   const [demoAccType, setDemoAccType] = useState<"individual" | "org">("individual");
-  const [mongoVerified, setMongoVerified]       = useState(false);
+  const [mongoVerified, setMongoVerified]       = useState(() => getAccountState().kycVerified);
   const [showLabelRequest, setShowLabelRequest] = useState(false);
   const [tab, setTab] = useState<AccountTab>("info");
   const [vatPayer, setVatPayer] = useState(false);
@@ -442,7 +442,7 @@ export default function AccountStatusScreen() {
                       <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 leading-relaxed">
                         Аккаунтын мэдээлэл E-Mongolia-тай таарахгүй бол баталгаажуулалт амжилтгүй болж болно.
                       </p>
-                      <button type="button" onClick={() => setMongoVerified(true)}
+                      <button type="button" onClick={() => { setMongoVerified(true); patchAccountState({ kycVerified: true }); }}
                         className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-sm font-bold text-white transition-opacity hover:opacity-90"
                         style={{ background: "linear-gradient(135deg,#1565C0,#0D47A1)" }}>
                         <Shield size={13} />E-Mongolia-аар Баталгаажуулах

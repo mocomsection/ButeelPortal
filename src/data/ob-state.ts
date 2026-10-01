@@ -13,13 +13,14 @@ export interface AccountState {
   signedContracts: ContractId[];
   setups: Partial<Record<ContractId, { name: string }>>;
   signedDates: Partial<Record<ContractId, string>>;
+  kycVerified: boolean;
 }
 
 const OB_KEY = "buteel_ob";
 const ACC_KEY = "buteel_account";
 
 const EMPTY_OB: ObState = { accountType: null, contracts: [], signed: {}, setups: {} };
-const EMPTY_ACC: AccountState = { accountType: null, signedContracts: [], setups: {}, signedDates: {} };
+const EMPTY_ACC: AccountState = { accountType: null, signedContracts: [], setups: {}, signedDates: {}, kycVerified: false };
 
 export function getObState(): ObState {
   try {

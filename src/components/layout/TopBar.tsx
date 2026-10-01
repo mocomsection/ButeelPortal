@@ -103,7 +103,7 @@ export function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () 
                     { label: "Нууц Үг Солих",          icon: Shield,    action: () => { setShowProfile(false); setShowPassModal(true); } },
                   ].map(item => (
                     <button key={item.label} type="button" onClick={item.action}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-muted/40 transition-colors">
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-foreground hover:bg-muted/40 transition-colors text-[14px] font-normal">
                       <item.icon size={15} className="text-muted-foreground" />
                       {item.label}
                     </button>

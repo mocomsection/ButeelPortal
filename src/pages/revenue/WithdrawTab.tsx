@@ -4,9 +4,7 @@ import { ArrowDownToLine, Settings, Check, X, AlertCircle, RefreshCw, Clock, Shi
 import { Card } from "@/components/ui/Card";
 import { WITHDRAWALS_DATA, WITHDRAW_STATUS } from "@/data/revenue";
 import { AVAILABLE_BALANCE, fmtMoney, thCls, thRCls, tdBoldR, tdRCls } from "./revenueUtils";
-
-// Demo: KYC not completed yet
-const KYC_VERIFIED = false;
+import { getAccountState } from "@/data/ob-state";
 
 interface WithdrawTabProps {
   onWithdrawRequest: () => void;
@@ -63,10 +61,11 @@ function KycModal({ onClose, onGoAccount }: { onClose: () => void; onGoAccount: 
 export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabProps) {
   const navigate = useNavigate();
   const [showKycModal, setShowKycModal] = useState(false);
+  const kycVerified = getAccountState().kycVerified;
 
   const handleWithdrawClick = () => {
     if (AVAILABLE_BALANCE < 100000) return;
-    if (!KYC_VERIFIED) {
+    if (!kycVerified) {
       setShowKycModal(true);
     } else {
       onWithdrawRequest();
@@ -89,7 +88,7 @@ export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabPro
           <div>
             <p className="text-xs font-semibold text-zinc-400 mb-1">Боломжтой үлдэгдэл</p>
             <p className="text-3xl font-extrabold text-primary">{fmtMoney(AVAILABLE_BALANCE)}</p>
-            <p className="text-xs text-zinc-400 mt-1.5">Хамгийн бага ₮100,000.00</p>
+            <p className="text-xs text-zinc-400 mt-1.5">Таталт хийх хамгийн бага дүн: ₮100,000.00</p>
           </div>
           <div className="w-px bg-border self-stretch hidden sm:block" />
           {/* center: account info */}
@@ -137,8 +136,8 @@ export function WithdrawTab({ onWithdrawRequest, onDetailClick }: WithdrawTabPro
                 <th className="text-left text-xs font-bold text-zinc-400 uppercase px-5 py-3">Статус</th>
                 <th className={thRCls + " hidden sm:table-cell"}>Татах дүн</th>
                 <th className={thRCls + " hidden md:table-cell"}>Хүлээн авах</th>
-                <th className="text-left text-xs font-bold text-zinc-400 uppercase px-5 py-3 hidden lg:table-cell">Шинэчлэгдсэн</th>
-                <th className="px-5 py-3 text-xs font-bold text-zinc-400 uppercase">Үйлдэл</th>
+                <th className="text-left text-[11px] font-bold text-zinc-400 uppercase px-5 py-3 hidden lg:table-cell">Шинэчлэгдсэн</th>
+                <th className="px-5 py-3 text-[11px] font-bold text-zinc-400 uppercase">Үйлдэл</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">

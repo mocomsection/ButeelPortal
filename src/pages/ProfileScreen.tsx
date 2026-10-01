@@ -315,7 +315,7 @@ export default function ProfileScreen() {
 
         {/* ── Personal info ── */}
         <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-sm text-foreground">Хувийн мэдээлэл</p>
             {!editing && (
               <button type="button" onClick={enterEdit}
@@ -327,14 +327,12 @@ export default function ProfileScreen() {
 
           {/* READ MODE */}
           {!editing && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Овог" value={savedLastName} />
-                <Field label="Нэр"  value={savedFirstName} />
-              </div>
-              <Field label="И-мэйл" value={savedEmail}
+            <div className="divide-y divide-border/50">
+              <FieldRow label="Овог"          value={savedLastName} />
+              <FieldRow label="Нэр"           value={savedFirstName} />
+              <FieldRow label="И-мэйл"        value={savedEmail}
                 badge={<VerifiedBadge verified={savedEmail === ORIGINAL_EMAIL} />} />
-              <Field label="Утасны дугаар" value={savedPhone}
+              <FieldRow label="Утасны дугаар" value={savedPhone}
                 badge={<VerifiedBadge verified={savedPhone === ORIGINAL_PHONE} />} />
             </div>
           )}
@@ -496,14 +494,12 @@ export default function ProfileScreen() {
 }
 
 // ── helper components ─────────────────────────────────────────────────────────
-function Field({ label, value, badge }: { label: string; value: string; badge?: React.ReactNode }) {
+function FieldRow({ label, value, badge }: { label: string; value: string; badge?: React.ReactNode }) {
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-1">
-        <p className="text-[10px] font-bold text-zinc-400 uppercase">{label}</p>
-        {badge}
-      </div>
-      <p className="text-sm font-semibold text-foreground">{value || "—"}</p>
+    <div className="flex items-baseline justify-between py-2.5 gap-3">
+      <p className="text-[11px] font-bold text-zinc-400 uppercase w-28 flex-shrink-0 leading-5">{label}</p>
+      <p className="text-sm font-semibold text-foreground flex-1 min-w-0 truncate leading-5">{value || "—"}</p>
+      {badge && <div className="flex-shrink-0 self-center">{badge}</div>}
     </div>
   );
 }
