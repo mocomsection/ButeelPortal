@@ -4,8 +4,9 @@ import buteelLogo from "@/imports/Artboard_1.png";
 import { User, Building2, Check, ArrowLeft, AlertCircle } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
+import { RegisterNumberInput, isValidRegisterNumber } from "@/components/ui/RegisterNumberInput";
 import { OnboardingProgress } from "@/pages/onboarding/OnboardingProgress";
-import { patchObState } from "@/data/ob-state";
+import { patchObState, getAccountState } from "@/data/ob-state";
 import type { AccountType } from "@/data/ob-state";
 
 const TYPES: { id: AccountType; icon: React.ElementType; label: string; desc: string }[] = [
@@ -19,8 +20,9 @@ export default function OnboardingAccountTypeScreen() {
   const [phase, setPhase] = useState<"type" | "info">("type");
 
   // Individual fields
-  const [lastName,  setLastName]  = useState("");
-  const [firstName, setFirstName] = useState("");
+  const user = getAccountState();
+  const lastName = user.lastName;
+  const firstName = user.firstName;
   // Org fields
   const [orgName,  setOrgName]  = useState("");
   const [register, setRegister] = useState("");
@@ -35,35 +37,23 @@ export default function OnboardingAccountTypeScreen() {
     const partyName = accountType === "individual"
       ? `${lastName.trim()} ${firstName.trim()}`.trim()
       : orgName.trim();
-    patchObState({ accountType, partyName, partyRegister: register.trim() });
+    patchObState({ accountType, partyName, partyRegister: register.trim(), signerName: [user.lastName, user.firstName].filter(Boolean).join(" ") });
     navigate("/onboarding/contracts");
   };
 
   const canInfoNext = accountType === "individual"
-    ? !!lastName.trim() && !!firstName.trim() && !!register.trim()
+    ? !!lastName.trim() && !!firstName.trim() && isValidRegisterNumber(register)
     : !!orgName.trim() && !!register.trim();
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-10 sm:py-12">
+      <div className="w-full max-w-xl">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3"
             style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
             <img src={buteelLogo} alt="Buteel" className="w-8 h-8 object-contain" />
           </div>
-          {phase === "type" ? (
-            <>
-              <h1 className="text-xl font-extrabold text-zinc-900">Тавтай морилно уу!</h1>
-              <p className="text-sm text-zinc-500 mt-1">Аккаунтаа тохируулж эхлэцгээе.</p>
-            </>
-          ) : (
-            <>
-              <h1 className="text-xl font-extrabold text-zinc-900">
-                {accountType === "individual" ? "Хувь хүний мэдээлэл" : "Байгууллагын мэдээлэл"}
-              </h1>
-              <p className="text-sm text-zinc-500 mt-1">Гэрээ байгуулахад шаардлагатай мэдээлэл</p>
-            </>
-          )}
+          <h1 className="text-xl font-extrabold text-foreground">Buteel Portal</h1>
         </div>
 
         <OnboardingProgress step={0} />
@@ -116,17 +106,16 @@ export default function OnboardingAccountTypeScreen() {
               {accountType === "individual" ? (
                 <>
                   <div className="grid grid-cols-2 gap-3">
-                    <InfoField label="Овог" required value={lastName} onChange={setLastName} placeholder="Батбаяр" />
-                    <InfoField label="Нэр"  required value={firstName} onChange={setFirstName} placeholder="Болд" />
+                    <div><p className="mb-2 text-sm font-medium text-muted-foreground">Овог</p><p className="break-words rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-sm text-foreground">{lastName || "—"}</p></div>
+                    <div><p className="mb-2 text-sm font-medium text-muted-foreground">Нэр</p><p className="break-words rounded-xl border border-border bg-muted/20 px-3.5 py-2.5 text-sm text-foreground">{firstName || "—"}</p></div>
                   </div>
-                  <InfoField label="Регистрийн дугаар" required value={register} onChange={setRegister}
-                    placeholder="УН12345678" hint="Иргэний үнэмлэх дээрх дугаар" />
+                  <div><p className="mb-2 text-sm font-medium text-muted-foreground">Регистрийн дугаар <span className="text-red-500">*</span></p><RegisterNumberInput value={register} onChange={setRegister} /><p className="mt-1 text-xs text-muted-foreground">Хоёр үсгээ сонгоод найман цифрээ оруулна уу.</p></div>
                 </>
               ) : (
                 <>
                   <InfoField label="Байгууллагын нэр" required value={orgName} onChange={setOrgName}
                     placeholder="Steppe Records ХХК" />
-                  <InfoField label="Байгууллагын регистр" required value={register} onChange={setRegister}
+                  <InfoField label="Байгууллагын регистр" required value={register} onChange={value => setRegister(value.replace(/[^0-9]/g, ""))}
                     placeholder="1234567" hint="Улсын бүртгэлийн гэрчилгээ дэх дугаар" />
                 </>
               )}
@@ -159,7 +148,7 @@ function InfoField({
 }) {
   return (
     <div>
-      <label className="block text-xs font-bold text-zinc-500 uppercase mb-1.5">
+      <label className="block text-xs font-bold text-zinc-500 normal-case mb-1.5">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       <input

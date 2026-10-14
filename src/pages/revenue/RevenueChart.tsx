@@ -82,7 +82,7 @@ export function RevenueChart({ revenueContentType, onShowMonthly }: RevenueChart
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+      <div className="flex flex-wrap gap-2 items-center justify-between mt-3 pt-3 border-t border-border">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-primary" />
           <span className="text-xs text-muted-foreground font-medium">Одоогийн сар</span>

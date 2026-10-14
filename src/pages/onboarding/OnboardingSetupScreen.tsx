@@ -42,13 +42,14 @@ export default function OnboardingSetupScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-10 sm:py-12">
+      <div className="w-full max-w-xl">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3"
             style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
             <img src={buteelLogo} alt="Buteel" className="w-8 h-8 object-contain" />
           </div>
+          <h1 className="text-xl font-extrabold text-foreground">Buteel Portal</h1>
         </div>
 
         <OnboardingProgress step={3} subLabel={subLabel} />
@@ -60,7 +61,7 @@ export default function OnboardingSetupScreen() {
               <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
                 <contract.icon size={14} className="text-white" />
               </div>
-              <p className="text-[11px] text-white/80 font-semibold uppercase tracking-wide">
+              <p className="text-[11px] text-white/80 font-semibold normal-case tracking-wide">
                 {total > 1 ? `Тохиргоо ${idx + 1}/${total} — ` : ""}
                 {contract.name}
               </p>

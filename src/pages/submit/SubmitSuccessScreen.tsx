@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { CheckCircle2 } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Btn } from "@/components/ui/Btn";
 
 export default function SubmitSuccessScreen() {
@@ -18,12 +19,12 @@ export default function SubmitSuccessScreen() {
           <div className="bg-zinc-50 rounded-xl p-4 mb-8 text-left space-y-2">
             {[
               ["Бүтээл", "Минь сэтгэл"],
-              ["Статус", ""],
+              ["Төлөв", ""],
               ["Илгээсэн огноо", "2025-01-15"],
             ].map(([k, v], i) => (
               <div key={i} className="flex items-center justify-between text-sm">
                 <span className="text-zinc-500">{k}</span>
-                {k === "Статус" ? <StatusBadge status="reviewing" /> : <span className="font-medium text-zinc-900">{v}</span>}
+                {k === "Төлөв" ? <StatusBadge status="reviewing" /> : <span className="font-medium text-zinc-900">{v}</span>}
               </div>
             ))}
           </div>
@@ -36,4 +37,3 @@ export default function SubmitSuccessScreen() {
     </Shell>
   );
 }
-

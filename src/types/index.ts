@@ -13,10 +13,24 @@ export const STATUS_MAP: Record<StatusType, { label: string; cls: string }> = {
 };
 
 export interface Track {
+  assetId?: string;
   no: number; title: string; isrc: string; primaryArtist: string;
   featArtists: string[]; explicit: boolean; duration: string;
   fileName: string; fileSize: string; audioFormat: string; bitrate: string;
   sampleRate?: string; bitDepth?: string;
+  iswc?: string;
+  uploadedAt?: string;
+  originalDate?: string;
+  activeLang?: string;
+  titles?: Record<string, string>;
+  hasLyrics?: boolean | null;
+  vocalLanguage?: string;
+  lyrics?: string;
+  credits?: {
+    composer: { id: string; name: string; affiliation: string }[];
+    lyricist: { id: string; name: string; affiliation: string }[];
+    other: { id: string; name: string; role: string }[];
+  };
 }
 export interface ReleaseData {
   id: string; title: string; primaryArtist: string; featArtists: string[];
@@ -32,4 +46,15 @@ export interface ReleaseData {
   filmDuration?: string;
   trailerUrl?: string;
   cast?: { name: string; role: string }[];
+  titles?: Record<string, string>;
+  language?: string;
+  authors?: string[];
+  narrators?: string[];
+  isbn?: string;
+  isAbridged?: boolean;
+  copyrightOwner?: string;
+  copyrightYear?: string;
+  collaboratingStudios?: string[];
+  filmUrl?: string;
+  originalDate?: string;
 }

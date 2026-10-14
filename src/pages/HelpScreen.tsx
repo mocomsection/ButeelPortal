@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   ExternalLink, BookOpen, Headphones, MessageSquare, ChevronDown,
-  Search, Send, CheckCircle2, ArrowUpRight,
+  Search, ArrowUpRight,
 } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
@@ -35,7 +35,7 @@ const FAQS = [
   {
     category: "Аккаунт",
     q: "ISRC код гэж юу вэ?",
-    a: "ISRC (International Standard Recording Code) нь дуу бүрд олгогддог олон улсын стандарт танигч код. Өмнөх код байхгүй бол Buteel нийтлэх үед автоматаар олгоно.",
+    a: "ISRC (International Standard Recording Code) нь дуу бүрд олгогддог олон улсын стандарт танигч код. Өмнөх код байхгүй бол бүтээл илгээсний дараа автоматаар оноогдоно.",
   },
   {
     category: "Аккаунт",
@@ -62,8 +62,8 @@ const QUICK_ACTIONS = [
   },
   {
     icon: MessageSquare,
-    label: "Тикет үүсгэх",
-    sub: "ClickUp формоор хүсэлт илгээх",
+    label: "Тусламжийн хүсэлт үүсгэх",
+    sub: "Асуудлаа бидэнд мэдэгдэх",
     gradient: "linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)",
     iconBg: "bg-white/20",
     link: true,
@@ -78,23 +78,11 @@ const QUICK_ACTIONS = [
   },
 ];
 
-const TOPICS = [
-  { value: "", label: "Сэдэв сонгох..." },
-  { value: "submit", label: "Бүтээл илгээх" },
-  { value: "revenue", label: "Орлого / Тайлан" },
-  { value: "account", label: "Аккаунт / KYC" },
-  { value: "contract", label: "Гэрээ / Тохиргоо" },
-  { value: "tech", label: "Техникийн асуудал" },
-  { value: "other", label: "Бусад" },
-];
 
 export default function HelpScreen() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Бүгд");
-  const [topic, setTopic] = useState("");
-  const [message, setMessage] = useState("");
-  const [sent, setSent] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -104,19 +92,13 @@ export default function HelpScreen() {
     );
   }, [search, category]);
 
-  function handleSend() {
-    if (!topic || !message.trim()) return;
-    setSent(true);
-    setTopic("");
-    setMessage("");
-  }
 
   return (
     <Shell title="Тусламж">
       <div className="max-w-3xl space-y-6">
 
         {/* Quick actions */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {QUICK_ACTIONS.map((a, i) => (
             <div key={i}
               className="relative rounded-2xl p-4 cursor-pointer overflow-hidden group transition-all hover:shadow-lg hover:-translate-y-0.5"
@@ -149,12 +131,12 @@ export default function HelpScreen() {
 
         {/* FAQ */}
         <Card className="overflow-hidden">
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between gap-3">
+          <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h3 className="font-bold text-foreground text-sm">Түгээмэл асуулт</h3>
-            <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            <div className="flex min-w-0 items-center gap-2 flex-wrap sm:justify-end">
               {CATEGORIES.map(c => (
                 <button key={c} onClick={() => { setCategory(c); setOpenFaq(null); }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                  className={`min-h-10 px-3 py-2 whitespace-nowrap rounded-lg text-xs font-semibold transition-colors ${
                     category === c
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted/50 text-muted-foreground hover:bg-muted"
@@ -198,51 +180,6 @@ export default function HelpScreen() {
           )}
         </Card>
 
-        {/* Contact form */}
-        <Card className="overflow-hidden">
-          <div className="px-5 py-4 border-b border-border">
-            <h3 className="font-bold text-foreground text-sm">Дэмжлэг хүсэх</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">FAQ-д хариулт олдохгүй бол шууд бидэнд бичнэ үү.</p>
-          </div>
-          <div className="p-5 space-y-4">
-            {sent ? (
-              <div className="py-8 flex flex-col items-center gap-3 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center">
-                  <CheckCircle2 size={22} className="text-emerald-500" />
-                </div>
-                <div>
-                  <p className="font-bold text-foreground text-sm">Хүсэлт илгээгдлээ</p>
-                  <p className="text-xs text-muted-foreground mt-1">1–4 цагийн дотор имэйлээр хариу явуулна.</p>
-                </div>
-                <button onClick={() => setSent(false)}
-                  className="text-xs font-semibold text-primary hover:underline mt-1">
-                  Дахин илгээх
-                </button>
-              </div>
-            ) : (
-              <>
-                <div>
-                  <label className="block text-xs font-bold text-foreground mb-1.5">Сэдэв <span className="text-destructive">*</span></label>
-                  <select value={topic} onChange={e => setTopic(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors">
-                    {TOPICS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-foreground mb-1.5">Мессеж <span className="text-destructive">*</span></label>
-                  <textarea rows={4} value={message} onChange={e => setMessage(e.target.value)}
-                    placeholder="Асуултаа дэлгэрэнгүй бичнэ үү..."
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border bg-card text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none placeholder-muted-foreground/50" />
-                </div>
-                <button onClick={handleSend}
-                  disabled={!topic || !message.trim()}
-                  className="w-full h-10 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-primary text-primary-foreground hover:opacity-90">
-                  <Send size={14} />Илгээх
-                </button>
-              </>
-            )}
-          </div>
-        </Card>
 
       </div>
     </Shell>

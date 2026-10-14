@@ -6,7 +6,7 @@ import {
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { PasswordModal } from "@/components/ui/PasswordModal";
-import { patchAccountState } from "@/data/ob-state";
+import { patchAccountState, getAccountState } from "@/data/ob-state";
 
 const ORIGINAL_EMAIL = "bold@example.com";
 const ORIGINAL_PHONE = "+976 9900 1122";
@@ -192,8 +192,8 @@ export default function ProfileScreen() {
   };
 
   // ── saved values (source of truth) ─────────────────────────────────────────
-  const [savedLastName,  setSavedLastName]  = useState("Жаргал");
-  const [savedFirstName, setSavedFirstName] = useState("Болд");
+  const [savedLastName,  setSavedLastName]  = useState(() => getAccountState().lastName || "Жаргал");
+  const [savedFirstName, setSavedFirstName] = useState(() => getAccountState().firstName || "Болд");
   const [savedEmail,     setSavedEmail]     = useState(ORIGINAL_EMAIL);
   const [savedPhone,     setSavedPhone]     = useState(ORIGINAL_PHONE);
 
@@ -279,7 +279,7 @@ export default function ProfileScreen() {
         />
       )}
 
-      <div className="max-w-xl space-y-5">
+      <div className="w-full max-w-3xl space-y-5">
 
         {/* ── Avatar ── */}
         <Card className="p-5">
@@ -342,7 +342,7 @@ export default function ProfileScreen() {
           {/* EDIT MODE */}
           {editing && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <EditField
                   label="Овог" required value={lastName}
                   onChange={setLastName} placeholder="Батбаяр"
@@ -358,7 +358,7 @@ export default function ProfileScreen() {
               {/* Email */}
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <label className="text-xs font-bold text-zinc-500 uppercase">
+                  <label className="text-xs font-bold text-zinc-500 normal-case">
                     И-мэйл <span className="text-red-500">*</span>
                   </label>
                   {!emailChanged && <VerifiedBadge verified={savedEmail === ORIGINAL_EMAIL} />}
@@ -390,7 +390,7 @@ export default function ProfileScreen() {
               {/* Phone */}
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <label className="text-xs font-bold text-zinc-500 uppercase">
+                  <label className="text-xs font-bold text-zinc-500 normal-case">
                     Утасны дугаар <span className="text-red-500">*</span>
                   </label>
                   {!phoneChanged && <VerifiedBadge verified={savedPhone === ORIGINAL_PHONE} />}
@@ -464,7 +464,7 @@ export default function ProfileScreen() {
             </button>
           </div>
           <div className="mt-4">
-            <p className="text-xs font-bold text-zinc-500 uppercase mb-3">Идэвхтэй сессүүд</p>
+            <p className="text-xs font-bold text-zinc-500 normal-case mb-3">Идэвхтэй сессүүд</p>
             <div className="space-y-2">
               {LAST_SESSIONS.map((s, i) => {
                 const Icon = s.icon;
@@ -498,9 +498,9 @@ export default function ProfileScreen() {
 // ── helper components ─────────────────────────────────────────────────────────
 function FieldRow({ label, value, badge }: { label: string; value: string; badge?: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between py-2.5 gap-3">
-      <p className="text-[11px] font-bold text-zinc-400 uppercase w-28 flex-shrink-0 leading-5">{label}</p>
-      <p className="text-sm font-semibold text-foreground flex-1 min-w-0 truncate leading-5">{value || "—"}</p>
+    <div className="flex flex-wrap sm:flex-nowrap items-center sm:items-baseline justify-between py-2.5 gap-x-3 gap-y-1">
+      <p className="text-[11px] font-bold text-zinc-400 normal-case flex-1 sm:flex-none sm:w-28 flex-shrink-0 leading-5">{label}</p>
+      <p className="order-last basis-full sm:order-none sm:basis-0 sm:flex-1 text-sm font-semibold text-foreground min-w-0 break-words sm:truncate leading-5">{value || "—"}</p>
       {badge && <div className="flex-shrink-0 self-center">{badge}</div>}
     </div>
   );
@@ -514,7 +514,7 @@ function EditField({
 }) {
   return (
     <div>
-      <label className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">
+      <label className="text-xs font-bold text-zinc-500 normal-case block mb-1.5">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <input

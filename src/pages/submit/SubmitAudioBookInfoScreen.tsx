@@ -1,3 +1,4 @@
+import { ContentCoverUpload, type ContentCover } from "@/components/ui/ContentCoverUpload";
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router";
 import { Shell } from "@/components/layout/Shell";
@@ -7,37 +8,33 @@ import {
   AudioWaveform, TriangleAlert, CircleCheckBig, ClipboardCheck,
   Search, UserRound, ZapIcon, CalendarDays, CalendarClock,
   Info, Fingerprint, Sparkles, Image as ImageIcon, ImageOff, AlertCircle,
-  GripVertical, Building2, Lock,
+  GripVertical, Building2, Lock, LoaderCircle,
 } from "lucide-react";
 import "@/styles/wizard.css";
 import { AUDIOBOOKS as RELEASES } from "@/data/audiobooks";
+import { DateInput } from "@/components/ui/DateInput";
+import { SelectInput } from "@/components/ui/SelectInput";
+import { ContributorPicker, type ContributorPerson } from "@/components/ui/ContributorPicker";
+import { readAudioMetadata } from "@/utils/audioMetadata";
 
 type Stage = 1 | 2 | 3 | 4 | 5;
-type Person = { id: string; name: string };
+type Person = ContributorPerson;
 type Chapter = {
+  uploadError?: string; audioUrl?: string; fileSize?: string; bitrate?: string;
   id: string; title: string;
   titles: { mn: string; en: string; [k: string]: string };
   activeLang: string;
   duration: string;
   sourceName: string; fileFormat: string; sampleRate: string; bitDepth: string;
+  uploadedAt?: string;
   uploading: boolean; uploadProgress: number;
   isrcMode: "generate" | "existing";
   isrc: string;
 };
-type Cover = { name: string; dataUrl: string; width: number; height: number; size: number };
+type Cover = ContentCover;
 
 const STEPS = ["Үндсэн мэдээлэл","Бүлгүүд","Ковер зураг","Нийтлэх & Түгээх","Шалгах & Илгээх"];
 const AB_GENRES = ["Уран зохиол","Түүх","Шинжлэх ухаан","Хүүхэд","Танин мэдэхүй","Бизнес","Сэтгэл зүй","Хичээл","Туулган амьдрал","Яруу найраг","Бусад"];
-const AB_LANGUAGES = ["Монгол","English / Latin","Орос","Хятад","Солонгос","Японы","Бусад"];
-const KNOWN_PEOPLE: Person[] = [
-  { id: "P1", name: "Д. Мөнхбат" },
-  { id: "P2", name: "Болд Жаргал" },
-  { id: "P3", name: "Н. Батсайхан" },
-  { id: "P4", name: "Г. Ариунаа" },
-  { id: "P5", name: "Д. Гантулга" },
-  { id: "P6", name: "Б. Мөнхзул" },
-];
-
 const TITLE_LANGS = [
   { code: "mn", label: "Монгол" },
   { code: "en", label: "English / Latin" },
@@ -50,6 +47,16 @@ const TITLE_LANGS = [
 function titleLangLabel(code: string) {
   return TITLE_LANGS.find(l => l.code === code)?.label ?? code;
 }
+const AB_LANGUAGES = ["Монгол","English / Latin","Орос","Хятад","Солонгос","Японы","Бусад"];
+const KNOWN_PEOPLE: Person[] = [
+  { id: "P1", name: "Д. Мөнхбат" },
+  { id: "P2", name: "Болд Жаргал" },
+  { id: "P3", name: "Н. Батсайхан" },
+  { id: "P4", name: "Г. Ариунаа" },
+  { id: "P5", name: "Д. Гантулга" },
+  { id: "P6", name: "Б. Мөнхзул" },
+];
+
 
 function InfoTip({ text }: { text: string }) {
   const [open, setOpen] = React.useState(false);
@@ -83,15 +90,11 @@ function addDays(n: number) {
   return d.toISOString().split("T")[0];
 }
 
-function initials(name: string) {
-  return name.split(" ").map(w => w[0] || "").join("").toUpperCase().slice(0, 2) || "?";
-}
-
 function makeChapter(idx: number): Chapter {
   return {
     id: "CH-" + Date.now() + "-" + idx,
-    title: `${idx}-р бүлэг`,
-    titles: { mn: `${idx}-р бүлэг`, en: "" },
+    title: "",
+    titles: { mn: "", en: "" },
     activeLang: "mn",
     duration: "", sourceName: "", fileFormat: "", sampleRate: "", bitDepth: "",
     uploading: false, uploadProgress: 0,
@@ -108,97 +111,6 @@ function WaveBars({ seed = 0 }: { seed?: number }) {
   );
 }
 
-// ─── Person Picker — defined OUTSIDE to prevent remount-on-each-keystroke ─────
-function PersonPicker({
-  label, hint, required, multiple, people, query, open,
-  onQueryChange, onOpen, onClose, onAdd, onRemove, roleName,
-}: {
-  label: string; hint?: string; required?: boolean; multiple: boolean;
-  people: Person[]; query: string; open: boolean;
-  onQueryChange: (v: string) => void;
-  onOpen: () => void; onClose: () => void;
-  onAdd: (p: Person) => void; onRemove: (id: string) => void;
-  roleName: string;
-}) {
-  const filtered = KNOWN_PEOPLE.filter(p =>
-    !people.find(x => x.id === p.id) &&
-    (!query || p.name.toLowerCase().includes(query.toLowerCase()))
-  );
-  const canCreateNew = query.trim() && !KNOWN_PEOPLE.some(p => p.name.toLowerCase() === query.trim().toLowerCase());
-
-  return (
-    <div className="wiz-field">
-      <div className="wiz-artist-section">
-        <div className="wiz-artist-section-head">
-          <div>
-            <h3>{label}{required && <span className="wiz-req" style={{ marginLeft: 3 }}>*</span>}</h3>
-            {hint && <span>{hint}</span>}
-          </div>
-          {(multiple || people.length === 0) && (
-            <button type="button" className="wiz-btn wiz-artist-role-action"
-              onClick={e => { e.stopPropagation(); if (open) onClose(); else onOpen(); }}>
-              <Plus size={12} />{people.length > 0 ? "Нэмэх" : `${label} сонгох`}
-            </button>
-          )}
-        </div>
-        <div className="wiz-artist-role-box">
-          {people.length > 0 ? (
-            <div className="wiz-artist-selected-list">
-              {people.map(p => (
-                <div key={p.id} className="wiz-artist-selected-card">
-                  <span className="wiz-avatar md">{initials(p.name)}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <b style={{ display: "block", fontSize: 13 }}>{p.name}</b>
-                    <span style={{ fontSize: 12, color: "#888" }}>{roleName}</span>
-                  </div>
-                  <button type="button" className="wiz-btn icon-btn" onClick={() => onRemove(p.id)}><X size={13} /></button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="wiz-artist-empty">
-              <UserRound size={15} />
-              <span>{label} сонгоогүй байна.</span>
-            </div>
-          )}
-          {open && (
-            <div style={{ marginTop: 10, border: "1px solid var(--w-line)", borderRadius: 10, background: "#fff", overflow: "hidden", boxShadow: "0 8px 24px #0002" }}
-              onClick={e => e.stopPropagation()}>
-              <div style={{ padding: "8px 8px 4px", position: "relative" }}>
-                <Search size={13} style={{ position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)", color: "#999" }} />
-                <input className="wiz-input" style={{ height: 38, paddingLeft: 32 }}
-                  value={query} onChange={e => onQueryChange(e.target.value)}
-                  placeholder={`${label} хайх эсвэл нэр оруулах...`} autoFocus />
-              </div>
-              <div style={{ maxHeight: 200, overflowY: "auto" }}>
-                {filtered.map(p => (
-                  <div key={p.id} className="wiz-option" style={{ display: "flex", alignItems: "center", gap: 9 }}
-                    onMouseDown={() => { onAdd(p); onQueryChange(""); onClose(); }}>
-                    <span className="wiz-avatar sm">{initials(p.name)}</span>
-                    <span style={{ flex: 1 }}>
-                      <span style={{ display: "block", fontSize: 13 }}>{p.name}</span>
-                      <span style={{ display: "block", fontSize: 11, color: "var(--w-muted)" }}>ID: {p.id}</span>
-                    </span>
-                  </div>
-                ))}
-                {canCreateNew && (
-                  <div className="wiz-option" style={{ color: "var(--w-accent)", fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}
-                    onMouseDown={() => { onAdd({ id: "NEW-" + Date.now(), name: query.trim() }); onQueryChange(""); onClose(); }}>
-                    <Plus size={12} />"{query.trim()}" нэмэх
-                  </div>
-                )}
-                {filtered.length === 0 && !canCreateNew && (
-                  <div style={{ padding: "12px 14px", fontSize: 13, color: "var(--w-muted)" }}>Илэрц олдсонгүй</div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function SubmitAudioBookInfoScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -210,35 +122,32 @@ export default function SubmitAudioBookInfoScreen() {
 
   // Title
   const [titleMn, setTitleMn] = useState(editRelease?.title ?? "");
-  const [titleEn, setTitleEn] = useState("");
+  const [titleEn, setTitleEn] = useState(editRelease?.titles?.en || "");
   const [titleLang, setTitleLang] = useState("mn");
   const [titleLangOpen, setTitleLangOpen] = useState(false);
-  const [titleExtras, setTitleExtras] = useState<Record<string, string>>({});
 
   // People
-  const [authors, setAuthors] = useState<Person[]>([]);
-  const [authorOpen, setAuthorOpen] = useState(false);
-  const [authorQuery, setAuthorQuery] = useState("");
-  const [narrator, setNarrator] = useState<Person | null>(null);
-  const [narratorOpen, setNarratorOpen] = useState(false);
-  const [narratorQuery, setNarratorQuery] = useState("");
+  const [knownPeople, setKnownPeople] = useState<Person[]>(() => [...KNOWN_PEOPLE, ...[...new Set([...(editRelease?.authors || (editRelease?.primaryArtist ? [editRelease.primaryArtist] : [])), ...(editRelease?.narrators || [])])].filter(name => !KNOWN_PEOPLE.some(person => person.name === name)).map(name => ({ id: `person-${name}`, name }))]);
+  const [authors, setAuthors] = useState<Person[]>(() => (editRelease?.authors || (editRelease?.primaryArtist ? [editRelease.primaryArtist] : [])).map(name => knownPeople.find(person => person.name === name)!));
+  const [narrators, setNarrators] = useState<Person[]>(() => (editRelease?.narrators || []).map(name => knownPeople.find(person => person.name === name)!));
+  const [showContributorErrors, setShowContributorErrors] = useState(false);
 
   // Release info
   const [publisher, setPublisher] = useState(editRelease?.label ?? "");
   const [genre, setGenre] = useState(editRelease?.genre ?? "");
   const [genreOpen, setGenreOpen] = useState(false);
   const [genreSearch, setGenreSearch] = useState("");
-  const [subGenre, setSubGenre] = useState("");
-  const [language, setLanguage] = useState("Монгол");
+  const [subGenre, setSubGenre] = useState(editRelease?.subGenre || "");
+  const [language, setLanguage] = useState(editRelease?.language || "Монгол");
   const [synopsis, setSynopsis] = useState(editRelease?.synopsis ?? "");
-  const [isbn, setIsbn] = useState("");
-  const [cOwner, setCOwner] = useState("");
-  const [cYear, setCYear] = useState(String(new Date().getFullYear()));
-  const [ageRating, setAgeRating] = useState("Бүгдэд тохиромжтой");
-  const [isAbridged, setIsAbridged] = useState(false);
+  const [isbn, setIsbn] = useState(editRelease?.isbn || "");
+  const [cOwner, setCOwner] = useState(editRelease?.copyrightOwner || "");
+  const [cYear, setCYear] = useState(editRelease?.copyrightYear || String(new Date().getFullYear()));
+  const [ageRating, setAgeRating] = useState(editRelease?.ageRating || "Бүгдэд тохиромжтой");
+  const [isAbridged, setIsAbridged] = useState(editRelease?.isAbridged || false);
 
   // Chapters
-  const [chapters, setChapters] = useState<Chapter[]>([makeChapter(1)]);
+  const [chapters, setChapters] = useState<Chapter[]>(() => editRelease?.tracks.map((track, index) => ({ ...makeChapter(index + 1), title: track.title, titles: track.titles || { mn: track.title, en: "" }, activeLang: track.activeLang || "mn", duration: track.duration, sourceName: track.fileName, fileFormat: track.audioFormat, sampleRate: track.sampleRate || "", bitDepth: track.bitDepth || "", fileSize: track.fileSize, uploadedAt: track.uploadedAt, isrc: track.isrc })) || []);
   const [openChapter, setOpenChapter] = useState(0);
   const [chDragOver, setChDragOver] = useState<number | null>(null);
   const chDragFromRef = useRef<number | null>(null);
@@ -249,33 +158,25 @@ export default function SubmitAudioBookInfoScreen() {
     setChapters(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
   }, []);
 
-  const simulateChapterUpload = useCallback((id: string, fname: string) => {
-    updateChapter(id, { uploading: true, uploadProgress: 0, sourceName: fname });
-    let p = 0;
-    const iv = setInterval(() => {
-      p += Math.floor(Math.random() * 15) + 5;
-      if (p >= 100) {
-        clearInterval(iv);
-        updateChapter(id, { uploading: false, uploadProgress: 100, fileFormat: "WAV", sampleRate: "44.1 kHz", bitDepth: "24-bit", duration: `${5 + Math.floor(Math.random() * 20)}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}` });
-      } else {
-        updateChapter(id, { uploadProgress: p });
+  const simulateChapterUpload = useCallback((id: string, file: File) => {
+    updateChapter(id, { uploading: true, uploadProgress: 0, sourceName: file.name, uploadError: "", duration: "", sampleRate: "", bitDepth: "" });
+    const reader = new FileReader();
+    reader.onprogress = event => {
+      if (event.lengthComputable) updateChapter(id, { uploadProgress: Math.round(event.loaded / event.total * 100) });
+    };
+    reader.onerror = () => updateChapter(id, { uploading: false, sourceName: "", uploadError: "Файлыг уншиж чадсангүй. Дахин сонгоно уу." });
+    reader.onload = async () => {
+      try {
+        const metadata = await readAudioMetadata(file);
+        updateChapter(id, { ...metadata, uploading: false, uploadProgress: 100, audioUrl: String(reader.result) });
+      } catch {
+        updateChapter(id, { uploading: false, sourceName: "", uploadError: "Аудио мэдээллийг уншиж чадсангүй. Дахин сонгоно уу." });
       }
-    }, 150);
+    };
+    reader.readAsDataURL(file);
   }, [updateChapter]);
 
-  // Cover
   const [cover, setCover] = useState<Cover | null>(null);
-  const coverRef = useRef<HTMLInputElement>(null);
-  const handleCoverFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]; if (!f) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const img = new Image();
-      img.onload = () => setCover({ name: f.name, dataUrl: ev.target!.result as string, width: img.width, height: img.height, size: f.size });
-      img.src = ev.target!.result as string;
-    };
-    reader.readAsDataURL(f);
-  };
 
   // Distribution
   const [scheduleMode, setScheduleMode] = useState<"asap" | "date">("asap");
@@ -294,11 +195,31 @@ export default function SubmitAudioBookInfoScreen() {
       } catch {}
     }, 1500);
     return () => clearTimeout(tid);
-  }, [titleMn, titleEn, authors, narrator, genre, subGenre, publisher, language,
+  }, [titleMn, titleEn, authors, narrators, genre, subGenre, publisher, language,
       isbn, synopsis, cOwner, cYear, chapters, cover,
       scheduleMode, releaseDate, reviewConfirmed]);
 
-  const handleNext = () => { if (stage < 5) setStage((stage + 1) as Stage); else if (reviewConfirmed) setSubmitted(true); };
+  const handleNext = () => {
+    if ((stage === 3 || stage === 5) && !cover) { setStage(3); return; }
+    if ((stage === 1 || stage === 5) && authors.length === 0) {
+      setShowContributorErrors(true);
+      setStage(1);
+      return;
+    }
+    if ((stage === 1 || stage === 5) && titleLang !== "en" && !titleEn.trim()) {
+      setStage(1);
+      return;
+    }
+    if ((stage === 2 || stage === 5) && (chapters.length === 0 || chapters.some(chapter => {
+      const language = chapter.activeLang || "mn";
+      return !chapter.sourceName || chapter.uploading || !!chapter.uploadError || !chapter.titles[language]?.trim() || (language !== "en" && !chapter.titles.en?.trim());
+    }))) {
+      setStage(2);
+      return;
+    }
+    if (stage < 5) setStage((stage + 1) as Stage);
+    else if (reviewConfirmed) setSubmitted(true);
+  };
   const handleBack = () => { if (stage > 1) setStage((stage - 1) as Stage); else navigate(-1); };
   function handleChapterDrop(targetIdx: number) {
     const from = chDragFromRef.current;
@@ -315,72 +236,40 @@ export default function SubmitAudioBookInfoScreen() {
 
   function ChapterTitleEditor({ ch, idx }: { ch: Chapter; idx: number }) {
     const active = ch.activeLang || "mn";
-    const extraCodes = Object.keys(ch.titles).filter(k => k !== active && k !== "en");
-    const addableLangs = TITLE_LANGS.filter(l => l.code !== active && l.code !== "en" && !(l.code in ch.titles));
     return (
       <div className="wiz-field" onClick={e => e.stopPropagation()}>
-        <label className="wiz-label">Бүлгийн гарчиг <span className="wiz-req">*</span></label>
+        <label className="wiz-label">Бүлгийн гарчиг <span className="wiz-req">*</span>
+          <InfoTip text="Гарчгийг англи хэлээс өөр хэлээр бичсэн бол англи хувилбар эсвэл латин үсгээр бичсэн нэрийг заавал оруулна уу." />
+        </label>
         <div className="wiz-title-wrap">
           <div className="wiz-title-row">
             <input value={ch.titles[active] || ""}
               onChange={e => updateChapter(ch.id, { title: e.target.value, titles: { ...ch.titles, [active]: e.target.value } })}
               placeholder={`${idx + 1}-р бүлэг`} />
-            <button type="button" className="wiz-title-lang-btn"
-              onClick={() => setChLangOpenId(chLangOpenId === ch.id ? null : ch.id)}>
-              <span>{titleLangLabel(active)}</span>
-              <ChevronDown size={11} />
-              {chLangOpenId === ch.id && (
-                <div className="wiz-title-lang-drop" onMouseDown={e => e.stopPropagation()}>
-                  {TITLE_LANGS.map(l => (
-                    <div key={l.code} className={`wiz-title-lang-opt ${active === l.code ? "active" : ""}`}
-                      onMouseDown={() => { updateChapter(ch.id, { activeLang: l.code }); setChLangOpenId(null); }}>
-                      {l.label}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </button>
+            <SelectInput variant="attached" value={active}
+              onChange={language => updateChapter(ch.id, { activeLang: language, title: ch.titles[language] || "" })}
+              options={TITLE_LANGS.map(language => ({ value: language.code, label: language.label }))} />
           </div>
-          {active !== "en" && (
+          {active !== "en" && !!ch.titles[active]?.trim() && (
             <div className="wiz-title-row wiz-title-en-row">
               <span className="wiz-title-en-label">EN · Заавал</span>
-              <input value={ch.titles.en || ""}
+              <input required aria-label="English / Latin бүлгийн гарчиг" value={ch.titles.en || ""}
                 onChange={e => updateChapter(ch.id, { titles: { ...ch.titles, en: e.target.value } })}
                 placeholder="English / Latin гарчиг" />
             </div>
           )}
-          {extraCodes.map(code => (
-            <div className="wiz-title-row wiz-title-extra-row" key={code}>
-              <span className="wiz-title-extra-lang-badge">{titleLangLabel(code)}</span>
-              <input value={ch.titles[code] || ""}
-                onChange={e => updateChapter(ch.id, { titles: { ...ch.titles, [code]: e.target.value } })}
-                placeholder={`${titleLangLabel(code)} гарчиг`} />
-              <button type="button" className="wiz-title-remove-btn"
-                onClick={() => { const nt = { ...ch.titles }; delete nt[code]; updateChapter(ch.id, { titles: nt }); }}>
-                <X size={13} />
-              </button>
-            </div>
-          ))}
         </div>
-        {addableLangs.length > 0 && (
-          <div className="wiz-title-add-strip">
-            <span className="wiz-title-add-strip-label">Нэмэлт хувилбар:</span>
-            {addableLangs.map(l => (
-              <button key={l.code} type="button" className="wiz-title-add-btn"
-                onClick={() => updateChapter(ch.id, { titles: { ...ch.titles, [l.code]: "" } })}>
-                + {l.label}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     );
   }
 
-  const closeAll = () => { setAuthorOpen(false); setNarratorOpen(false); setGenreOpen(false); setTitleLangOpen(false); setChLangOpenId(null); };
+  const closeAll = () => { setGenreOpen(false); setChLangOpenId(null); setTitleLangOpen(false); };
 
-  const s1ok = !!titleMn.trim() && authors.length > 0 && !!genre;
-  const s2ok = chapters.length > 0 && chapters.some(c => c.sourceName && !c.uploading);
+  const s1ok = !!titleMn.trim() && (titleLang === "en" || !!titleEn.trim()) && authors.length > 0 && !!genre;
+  const s2ok = chapters.length > 0 && chapters.every(chapter => {
+    const language = chapter.activeLang || "mn";
+    return !!chapter.sourceName && !chapter.uploading && !chapter.uploadError && !!chapter.titles[language]?.trim() && (language === "en" || !!chapter.titles.en?.trim());
+  });
   const s3ok = !!cover;
   const s4ok = scheduleMode === "asap" || !!releaseDate;
 
@@ -402,65 +291,23 @@ export default function SubmitAudioBookInfoScreen() {
           <div className="wiz-field" onClick={e => e.stopPropagation()}>
             <label className="wiz-label">
               Номын нэр <span className="wiz-req">*</span>
-              <InfoTip text="Аудио номын гарчиг. Монгол болон English хувилбар шаардлагатай — олон улсын платформд English гарчиг харагдана." />
+              <InfoTip text="Гарчгийг англи хэлээс өөр хэлээр бичсэн бол англи хувилбар эсвэл латин үсгээр бичсэн нэрийг заавал оруулна уу." />
             </label>
             <div className="wiz-title-wrap">
               <div className="wiz-title-row">
                 <input value={titleMn} onChange={e => setTitleMn(e.target.value)}
                   placeholder="Гарчиг оруулах" />
-                <button type="button" className="wiz-title-lang-btn"
-                  onClick={() => setTitleLangOpen(v => !v)}>
-                  <span>{titleLangLabel(titleLang)}</span>
-                  <ChevronDown size={11} />
-                  {titleLangOpen && (
-                    <div className="wiz-title-lang-drop" onMouseDown={e => e.stopPropagation()}>
-                      {TITLE_LANGS.map(l => (
-                        <div key={l.code} className={`wiz-title-lang-opt ${titleLang === l.code ? "active" : ""}`}
-                          onMouseDown={() => { setTitleLang(l.code); setTitleLangOpen(false); }}>
-                          {l.label}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </button>
+                <SelectInput variant="attached" value={titleLang} onChange={setTitleLang}
+                  options={TITLE_LANGS.map(language => ({ value: language.code, label: language.label }))} />
               </div>
-              {titleLang !== "en" && (
+              {titleLang !== "en" && titleMn.trim().length > 0 && (
                 <div className="wiz-title-row wiz-title-en-row">
                   <span className="wiz-title-en-label">EN · Заавал</span>
-                  <input value={titleEn} onChange={e => setTitleEn(e.target.value)}
+                  <input required aria-label="English / Latin гарчиг" value={titleEn} onChange={e => setTitleEn(e.target.value)}
                     placeholder="English / Latin гарчиг" />
                 </div>
               )}
-              {Object.entries(titleExtras).map(([code, val]) => (
-                <div className="wiz-title-row wiz-title-extra-row" key={code}>
-                  <span className="wiz-title-extra-lang-badge">{titleLangLabel(code)}</span>
-                  <input value={val}
-                    onChange={e => setTitleExtras(prev => ({ ...prev, [code]: e.target.value }))}
-                    placeholder={`${titleLangLabel(code)} гарчиг`} />
-                  <button type="button" className="wiz-title-remove-btn"
-                    onClick={() => setTitleExtras(prev => { const n = { ...prev }; delete n[code]; return n; })}>
-                    <X size={13} />
-                  </button>
-                </div>
-              ))}
             </div>
-            {titleLang !== "en" && !titleEn.trim() && titleMn.trim().length >= 3 && (
-              <div className="wiz-title-warn">
-                <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
-                English / Latin хувилбар нь дэлхийн платформуудад шаардлагатай. Дээр оруулна уу.
-              </div>
-            )}
-            {TITLE_LANGS.filter(l => l.code !== titleLang && l.code !== "en" && !titleExtras[l.code]).length > 0 && (
-              <div className="wiz-title-add-strip">
-                <span className="wiz-title-add-strip-label">Нэмэлт хувилбар:</span>
-                {TITLE_LANGS.filter(l => l.code !== titleLang && l.code !== "en" && !titleExtras[l.code]).map(l => (
-                  <button key={l.code} type="button" className="wiz-title-add-btn"
-                    onClick={() => setTitleExtras(prev => ({ ...prev, [l.code]: "" }))}>
-                    + {l.label}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 
@@ -470,83 +317,18 @@ export default function SubmitAudioBookInfoScreen() {
             <Fingerprint size={17} />
             <div>
               <b>UPC автоматаар үүсгэгдэнэ</b>
-              <span>Аудио номын UPC кодыг нийтлэх үед систем автоматаар үүсгэнэ — гараар оруулах шаардлагагүй.</span>
+              <span>Аудио номыг илгээсний дараа UPC код автоматаар оноогдоно. Гараар оруулах шаардлагагүй.</span>
             </div>
           </div>
         </div>
 
-        {/* Authors */}
         <div className="wiz-section">
-          <PersonPicker
-            label="Зохиолч" hint="Нэг эсвэл олон зохиолч нэмнэ" required multiple
-            people={authors} query={authorQuery} open={authorOpen}
-            onQueryChange={setAuthorQuery} onOpen={() => setAuthorOpen(true)} onClose={() => setAuthorOpen(false)}
-            onAdd={p => setAuthors(prev => [...prev, p])} onRemove={id => setAuthors(prev => prev.filter(a => a.id !== id))}
-            roleName="Зохиолч"
-          />
+          <ContributorPicker label="Зохиолч" hint="Нэг эсвэл олон зохиолч сонгоно" required error={showContributorErrors}
+            people={authors} options={knownPeople} onChange={setAuthors} onCreate={person => setKnownPeople(previous => [...previous, person])} />
         </div>
-
-        {/* Narrator */}
         <div className="wiz-section">
-          <div className="wiz-field">
-            <div className="wiz-artist-section">
-              <div className="wiz-artist-section-head">
-                <div>
-                  <h3>Уншигч / Нарратор</h3>
-                  <span>Аудио ном уншсан хүн</span>
-                </div>
-                {!narrator && (
-                  <button type="button" className="wiz-btn wiz-artist-role-action"
-                    onClick={e => { e.stopPropagation(); setNarratorOpen(v => !v); setNarratorQuery(""); }}>
-                    <Plus size={12} />Сонгох
-                  </button>
-                )}
-              </div>
-              <div className="wiz-artist-role-box">
-                {narrator ? (
-                  <div className="wiz-artist-selected-card">
-                    <span className="wiz-avatar md">{initials(narrator.name)}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <b style={{ display: "block", fontSize: 13 }}>{narrator.name}</b>
-                      <span style={{ fontSize: 12, color: "#888" }}>Уншигч / Нарратор</span>
-                    </div>
-                    <button type="button" className="wiz-btn icon-btn" onClick={() => setNarrator(null)}><X size={13} /></button>
-                  </div>
-                ) : (
-                  <div className="wiz-artist-empty"><UserRound size={15} /><span>Уншигч сонгоогүй байна.</span></div>
-                )}
-                {narratorOpen && (
-                  <div style={{ marginTop: 10, border: "1px solid var(--w-line)", borderRadius: 10, background: "#fff", overflow: "hidden", boxShadow: "0 8px 24px #0002" }}
-                    onClick={e => e.stopPropagation()}>
-                    <div style={{ padding: "8px 8px 4px", position: "relative" }}>
-                      <Search size={13} style={{ position: "absolute", left: 20, top: "50%", transform: "translateY(-50%)", color: "#999" }} />
-                      <input className="wiz-input" style={{ height: 38, paddingLeft: 32 }}
-                        value={narratorQuery} onChange={e => setNarratorQuery(e.target.value)}
-                        placeholder="Уншигч хайх эсвэл нэр оруулах..." autoFocus />
-                    </div>
-                    <div style={{ maxHeight: 180, overflowY: "auto" }}>
-                      {KNOWN_PEOPLE.filter(p => !narratorQuery || p.name.toLowerCase().includes(narratorQuery.toLowerCase())).map(p => (
-                        <div key={p.id} className="wiz-option" style={{ display: "flex", alignItems: "center", gap: 9 }}
-                          onMouseDown={() => { setNarrator(p); setNarratorOpen(false); setNarratorQuery(""); }}>
-                          <span className="wiz-avatar sm">{initials(p.name)}</span>
-                          <span style={{ flex: 1 }}>
-                            <span style={{ display: "block", fontSize: 13 }}>{p.name}</span>
-                            <span style={{ display: "block", fontSize: 11, color: "var(--w-muted)" }}>ID: {p.id}</span>
-                          </span>
-                        </div>
-                      ))}
-                      {narratorQuery.trim() && !KNOWN_PEOPLE.some(p => p.name.toLowerCase() === narratorQuery.trim().toLowerCase()) && (
-                        <div className="wiz-option" style={{ color: "var(--w-accent)", fontWeight: 700, display: "flex", alignItems: "center", gap: 7 }}
-                          onMouseDown={() => { setNarrator({ id: "NEW-" + Date.now(), name: narratorQuery.trim() }); setNarratorOpen(false); setNarratorQuery(""); }}>
-                          <Plus size={12} />"{narratorQuery.trim()}" нэмэх
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          <ContributorPicker label="Уншигч" hint="Аудио номыг уншсан нэг эсвэл олон хүн"
+            people={narrators} options={knownPeople} onChange={setNarrators} onCreate={person => setKnownPeople(previous => [...previous, person])} />
         </div>
 
         {/* Fields grid */}
@@ -561,9 +343,11 @@ export default function SubmitAudioBookInfoScreen() {
             </div>
             <div className="wiz-field">
               <label className="wiz-label">Хэл</label>
-              <select value={language} onChange={e => setLanguage(e.target.value)} className="wiz-select">
-                {AB_LANGUAGES.map(l => <option key={l}>{l}</option>)}
-              </select>
+              <SelectInput
+                value={language}
+                onChange={setLanguage}
+                options={AB_LANGUAGES}
+              />
             </div>
             <div className="wiz-field">
               <label className="wiz-label">Жанр <span className="wiz-req">*</span><InfoTip text="Номын агуулгын чиглэл. Зөв жанр нь хайлт болон санал болгох системд нөлөөлнө." /></label>
@@ -608,9 +392,11 @@ export default function SubmitAudioBookInfoScreen() {
           <div className="wiz-grid2">
             <div className="wiz-field">
               <label className="wiz-label">Насны тохиромж<InfoTip text="Уншигчдын нас. Хүүхдийн ном, насанд хүрэгчдийн агуулга гэх мэт тодорхойлно." /></label>
-              <select value={ageRating} onChange={e => setAgeRating(e.target.value)} className="wiz-select">
-                {["Бүгдэд тохиромжтой", "6+", "13+", "18+"].map(r => <option key={r}>{r}</option>)}
-              </select>
+              <SelectInput
+                value={ageRating}
+                onChange={setAgeRating}
+                options={["Бүгдэд тохиромжтой", "6+", "13+", "18+"]}
+              />
             </div>
             <div className="wiz-field">
               <label className="wiz-label">Хувилбар<InfoTip text="Бүтэн эсвэл товчилсон хувилбар эсэхийг зааж өгнө." /></label>
@@ -636,12 +422,12 @@ export default function SubmitAudioBookInfoScreen() {
           </div>
           <div className="wiz-rights-row">
             <input value={cOwner} onChange={e => setCOwner(e.target.value)} className="wiz-input" placeholder="Эрх эзэмшигчийн нэр эсвэл байгууллага" />
-            <select className="wiz-select wiz-rights-year" value={cYear} onChange={e => setCYear(e.target.value)}>
-              {Array.from({ length: new Date().getFullYear() - 1899 }, (_, i) => {
-                const y = new Date().getFullYear() - i;
-                return <option key={y} value={String(y)}>{y}</option>;
-              })}
-            </select>
+<SelectInput
+              className="w-[100px] shrink-0 [&_button]:justify-start [&_button]:gap-4"
+              value={cYear}
+              onChange={setCYear}
+              options={Array.from({length: new Date().getFullYear()-1899},(_,i)=>{const y=new Date().getFullYear()-i; return {value:String(y),label:String(y)};})}
+            />
           </div>
         </div>
       </>
@@ -656,7 +442,7 @@ export default function SubmitAudioBookInfoScreen() {
             <div className="wiz-hint">Бүлэг бүрийн мэдээллийг нээгээд бөглөнө.</div>
           </div>
           <button type="button" className="wiz-btn" style={{ gap: 6, flexShrink: 0 }}
-            onClick={() => setChapters(prev => [...prev, makeChapter(prev.length + 1)])}>
+            onClick={() => { setOpenChapter(chapters.length); setChapters(prev => [...prev, makeChapter(prev.length + 1)]); }}>
             <Plus size={13} />Бүлэг нэмэх
           </button>
         </div>
@@ -686,7 +472,6 @@ export default function SubmitAudioBookInfoScreen() {
                       </span>
                     </div>
                     <div className="wiz-track-summary">
-                      <span className="wiz-status-pill isrc">ISRC↗</span>
                       {hasFile && !ch.uploading && <>
                         {ch.fileFormat && <span className="wiz-status-pill">{ch.fileFormat}</span>}
                         {ch.sampleRate && <span className="wiz-status-pill">{ch.sampleRate}</span>}
@@ -702,33 +487,22 @@ export default function SubmitAudioBookInfoScreen() {
                 {isOpen && (
                   <div className="wiz-track-body">
                     <div className="wiz-track-panel">
-                      {ChapterTitleEditor({ ch, idx })}
-
-                      {/* ISRC */}
-                      <div className="wiz-track-panel-head" style={{ marginTop: 14 }}>
-                        <div className="wiz-track-panel-title"><Fingerprint size={16} /><b>ISRC</b></div>
-                      </div>
-                      <div className="flex items-center gap-2.5 p-3 bg-violet-50 rounded-xl border border-violet-200 mb-1">
-                        <Sparkles size={14} className="text-violet-500 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm font-semibold text-violet-700">ISRC автоматаар үүснэ</p>
-                          <p className="text-xs text-violet-500">Илгээхийн өмнө энэ бүлэгт ISRC код онооно.</p>
-                        </div>
-                      </div>
-
-                      <div className="wiz-track-panel-head" style={{ marginTop: 14 }}>
+                      <div className="wiz-track-panel-head">
                         <div className="wiz-track-panel-title"><AudioWaveform size={16} /><b>Аудио файл</b></div>
                         <span>WAV · FLAC · MP3</span>
                       </div>
                       {!hasFile && !ch.uploading ? (
-                        <button type="button" onClick={() => uploadRefs.current[ch.id]?.click()} className="wiz-track-add-row">
-                          <UploadCloud size={15} />Файл хуулах
-                        </button>
+                        <div className="wiz-audio-source">
+                          <div className="wiz-audio-empty">
+                            <div><b>Аудио файл оруулаагүй</b><span>Аудио файлаа сонгоно уу.</span></div>
+                            <button type="button" onClick={() => uploadRefs.current[ch.id]?.click()} className="wiz-btn primary"><UploadCloud size={13} />Файл хуулах</button>
+                          </div>
+                        </div>
                       ) : ch.uploading ? (
                         <div className="wiz-audio-source">
                           <div className="wiz-audio-source-top">
-                            <FileAudio size={20} style={{ color: "var(--w-accent)", flexShrink: 0 }} />
-                            <div className="wiz-audio-file"><b>{ch.sourceName}</b><span>Хуулж байна...</span></div>
+                            <LoaderCircle size={20} className="animate-spin shrink-0 text-primary" />
+                            <div className="wiz-audio-file" role="status" aria-live="polite"><b>{ch.sourceName}</b><span>{ch.uploadProgress >= 100 ? "Аудио мэдээлэл уншиж байна…" : `Файл уншиж байна · ${ch.uploadProgress}%`}</span></div>
                           </div>
                           <div style={{ marginTop: 10, height: 4, background: "#eeeef4", borderRadius: 99, overflow: "hidden" }}>
                             <div style={{ width: `${ch.uploadProgress}%`, height: "100%", background: "var(--w-accent)", borderRadius: 99, transition: "width .2s" }} />
@@ -742,19 +516,36 @@ export default function SubmitAudioBookInfoScreen() {
                             {ch.duration && <span className="wiz-audio-duration">{ch.duration}</span>}
                             <WaveBars seed={idx * 5} />
                             <div className="wiz-audio-actions">
-                              <button type="button" className="wiz-btn icon-btn" onClick={() => uploadRefs.current[ch.id]?.click()}><RefreshCw size={13} /></button>
+                              <button type="button" className="wiz-btn" onClick={() => uploadRefs.current[ch.id]?.click()}><RefreshCw size={13} />Дахин хуулах</button>
                             </div>
                           </div>
-                          <div className="wiz-audio-meta">
-                            <span>{ch.sourceName}</span>
+                          <div className="wiz-audio-meta justify-between">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
                             {ch.fileFormat && <span>{ch.fileFormat}</span>}
-                            {ch.sampleRate && <span>{ch.sampleRate}</span>}
+                            <span>{ch.sampleRate || "Hz: Уншигдсангүй"}</span>
                             {ch.bitDepth && <span>{ch.bitDepth}</span>}
+                            </div>
+                            {ch.fileSize && <span>{ch.fileSize}</span>}
                           </div>
+                          {ch.uploadedAt && <p className="mt-2 text-xs text-muted-foreground">Хуулсан огноо: {new Date(ch.uploadedAt).toLocaleString("mn-MN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}</p>}
                         </div>
                       )}
+                      {ch.uploadError && <p role="alert" className="mt-2 text-xs text-destructive">{ch.uploadError}</p>}
                       <input ref={el => { uploadRefs.current[ch.id] = el; }} type="file" accept=".wav,.flac,.mp3,.aiff" className="hidden"
-                        onChange={e => { const f = e.target.files?.[0]; if (f) simulateChapterUpload(ch.id, f.name); }} />
+                        onChange={e => { const f = e.target.files?.[0]; if (f) simulateChapterUpload(ch.id, f); e.target.value = ""; }} />
+
+                      <div className="mt-5">
+                      {ChapterTitleEditor({ ch, idx })}
+
+                      {/* ISRC */}
+                      <div className="wiz-id-auto">
+                        <Sparkles size={16} />
+                        <div>
+                          <b>ISRC автоматаар үүснэ</b>
+                          <span>Илгээсний дараа энэ бүлэгт ISRC код автоматаар оноогдоно.</span>
+                        </div>
+                      </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -771,75 +562,7 @@ export default function SubmitAudioBookInfoScreen() {
       </>
     );
 
-    // ── Stage 3 — Cover 250×250 ─────────────────────────────────────────────
-    if (stage === 3) {
-      const validCover = cover ? cover.width === cover.height && cover.width >= 1400 : false;
-      return (
-        <>
-          <h2>Ковер зураг</h2>
-          <div className="wiz-cover-layout" style={{ gridTemplateColumns: "250px 1fr" }}>
-            {/* 250×250 drop zone — aspect-ratio 1/1 + 250px column = 250×250 */}
-            <div className="wiz-cover-drop" onClick={() => coverRef.current?.click()}>
-              {cover ? (
-                <>
-                  <img src={cover.dataUrl} alt="cover" />
-                  <div className="wiz-cover-overlay">
-                    <UploadCloud size={14} />
-                    <b style={{ flex: 1, minWidth: 0 }}>{cover.name}</b>
-                    <span>{cover.width}×{cover.height}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="wiz-cover-content">
-                  <ImageIcon size={34} />
-                  <b>Зураг оруулах</b>
-                  <span>JPG, PNG · Min 3000×3000px</span>
-                  <button type="button" className="wiz-btn" onClick={e => { e.stopPropagation(); coverRef.current?.click(); }}>Файл сонгох</button>
-                </div>
-              )}
-            </div>
-
-            {/* Requirements panel */}
-            <div className="wiz-cover-req-box">
-              <h3>Ковер зургийн шаардлага</h3>
-              <p>Аудио номын ковер нь дараах стандартыг хангасан байх ёстой.</p>
-              <div className="wiz-cover-req-group">
-                {[
-                  "Хамгийн багадаа 1400×1400px",
-                  "Дөрвөлжин 1:1 харьцаа (дөрвөлжин)",
-                  "JPG эсвэл PNG формат",
-                  "72 DPI-аас их нягтрал",
-                  "Зохиогчийн эрх зөрчилгүй зураг",
-                ].map(t => (
-                  <div key={t} style={{ display: "flex", alignItems: "center", gap: 7, padding: "4px 0", fontSize: 12, color: "#5b5f70" }}>
-                    <Check size={12} style={{ color: "#22c55e", flexShrink: 0 }} />{t}
-                  </div>
-                ))}
-              </div>
-              <div className="wiz-cover-spec-badges">
-                <span className="wiz-cover-spec-badge">1:1</span>
-                <span className="wiz-cover-spec-badge">Min 1400px</span>
-                <span className="wiz-cover-spec-badge">JPG/PNG</span>
-                <span className="wiz-cover-spec-badge">72+ DPI</span>
-              </div>
-              {cover && (
-                <p style={{ marginTop: 12, fontSize: 12, color: validCover ? "#22c55e" : "#f59e0b", display: "flex", alignItems: "center", gap: 5 }}>
-                  {validCover ? <Check size={11} /> : <TriangleAlert size={11} />}
-                  {cover.width}×{cover.height}px · {(cover.size / 1024 / 1024).toFixed(1)} MB
-                  {!validCover && " — Хэмжээ хангалтгүй"}
-                </p>
-              )}
-              {!cover && (
-                <button type="button" className="wiz-btn" style={{ marginTop: 14 }} onClick={() => coverRef.current?.click()}>
-                  <UploadCloud size={14} />Зураг сонгох
-                </button>
-              )}
-            </div>
-          </div>
-          <input ref={coverRef} type="file" accept=".jpg,.jpeg,.png,.webp" className="hidden" onChange={handleCoverFile} />
-        </>
-      );
-    }
+    if (stage === 3) return <ContentCoverUpload kind="audiobook" value={cover} onChange={setCover} />;
 
     // ── Stage 4 — wiz-publish-shell (no platform section for audiobooks) ────
     if (stage === 4) return (
@@ -873,7 +596,7 @@ export default function SubmitAudioBookInfoScreen() {
               <div className="wiz-schedule-date">
                 <div className="wiz-field" style={{ margin: 0 }}>
                   <label className="wiz-label" style={{ fontSize: 12 }}>Нийтлэх огноо <span className="wiz-req">*</span></label>
-                  <input type="date" className="wiz-input" min={addDays(7)} value={releaseDate} onChange={e => setReleaseDate(e.target.value)} />
+                  <DateInput value={releaseDate} onChange={setReleaseDate} min={addDays(7)} />
                 </div>
                 <div className="wiz-schedule-date-note"><Info size={13} /><span>Хамгийн эрт боломжит огноо: <b>{addDays(7)}</b>.</span></div>
               </div>
@@ -919,9 +642,8 @@ export default function SubmitAudioBookInfoScreen() {
                   {([
                     [titleLangLabel(titleLang) + " нэр", titleMn || "—"],
                     ...(titleLang !== "en" ? [["English нэр", titleEn || "—"]] as [string,string][] : []),
-                    ...Object.entries(titleExtras).map(([code, val]) => [titleLangLabel(code) + " нэр", val || "—"] as [string,string]),
                     ["Зохиолч", authors.map(a => a.name).join(", ") || "—"],
-                    ["Уншигч", narrator?.name || "—"],
+                    ["Уншигч", narrators.map(person => person.name).join(", ") || "—"],
                     ["Нийтлэгч", publisher || "—"],
                     ["Жанр", genre || "—"],
                     ["Хэл", language],
@@ -1024,6 +746,7 @@ export default function SubmitAudioBookInfoScreen() {
     const stageData = [
       { num: 1, title: "Үндсэн мэдээлэл", ok: s1ok, items: [
         { label: titleMn.trim() ? `"${titleMn}"` : "Монгол нэр оруулна уу", ok: !!titleMn.trim() },
+        ...(titleLang !== "en" ? [{ label: "English / Latin нэр", ok: !!titleEn.trim() }] : []),
         { label: authors.length > 0 ? authors.map(a => a.name).join(", ") : "Зохиолч нэмэх шаардлагатай", ok: authors.length > 0 },
         { label: genre || "Жанр сонгоогүй", ok: !!genre },
       ]},

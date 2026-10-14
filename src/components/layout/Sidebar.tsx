@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router";
+import { patchAccountState } from "@/data/ob-state";
 import buteelLogo from "@/imports/Artboard_1.png";
 import { TrendingUp, User, HelpCircle, X, LogOut, Disc3, BookOpen, Film, Users, BarChart2, Wallet, Settings } from "lucide-react";
 
@@ -6,9 +7,9 @@ const NAV_GROUPS = [
   {
     label: "ҮНДСЭН",
     items: [
-      { id: "dashboard",        path: "/dashboard",          label: "Хяналтын Самбар", icon: BarChart2 },
-      { id: "catalog-music",    path: "/releases",   label: "Дуу / Цомог", icon: Disc3 },
-      { id: "catalog-audiobook",path: "/audiobooks", label: "Аудио Ном",   icon: BookOpen },
+      { id: "dashboard",        path: "/dashboard",          label: "Хяналтын самбар", icon: BarChart2 },
+      { id: "catalog-music",    path: "/releases",   label: "Дуу / цомог", icon: Disc3 },
+      { id: "catalog-audiobook",path: "/audiobooks", label: "Аудио ном",   icon: BookOpen },
       { id: "catalog-film",     path: "/movies",     label: "Кино",         icon: Film },
       { id: "reports",          path: "/reports",            label: "Тайлан",           icon: TrendingUp },
       { id: "revenue",          path: "/revenue",            label: "Орлого",           icon: Wallet },
@@ -17,9 +18,9 @@ const NAV_GROUPS = [
   {
     label: "БУСАД",
     items: [
-      { id: "account", path: "/account", label: "Аккаунтын Тохиргоо", icon: Settings },
-      { id: "users",   path: "/users",   label: "Хэрэглэгч",           icon: Users },
-      { id: "help",    path: "/help",    label: "Тусламж",              icon: HelpCircle },
+      { id: "account", path: "/account", label: "Аккаунтын тохиргоо", icon: Settings },
+      { id: "users",   path: "/users",   label: "Хэрэглэгч удирдах",  icon: Users },
+      { id: "help",    path: "/help",    label: "Тусламж",             icon: HelpCircle },
     ],
   },
 ];
@@ -42,8 +43,7 @@ export function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () =>
   };
 
   return (
-    <aside className={`${mobile ? "fixed inset-0 z-50 flex" : "hidden lg:flex w-60 flex-shrink-0"}`}>
-      {mobile && <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />}
+    <aside className={`${mobile ? "flex h-full" : "hidden lg:flex w-60 flex-shrink-0"}`}>
 
       <div
         className={`flex flex-col relative ${mobile ? "relative z-10 w-60 h-full" : "w-full h-full"}`}
@@ -65,8 +65,8 @@ export function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () =>
             <span className="text-white font-extrabold text-[15px]">Buteel</span>
           </div>
           {mobile && (
-            <button type="button" onClick={onClose}
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-colors">
+            <button type="button" onClick={onClose} aria-label="Цэс хаах"
+              className="w-11 h-11 rounded-lg flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors">
               <X size={16} />
             </button>
           )}
@@ -78,13 +78,14 @@ export function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () =>
         <nav className="flex-1 px-3 pt-3 pb-2 flex flex-col gap-4 overflow-y-auto min-h-0">
           {NAV_GROUPS.map(group => (
             <div key={group.label}>
-              <p className="text-[10px] font-bold uppercase text-white/22 px-3 mb-2">{group.label}</p>
+              <p className="text-[10px] font-bold normal-case text-white/22 px-3 mb-2">{group.label}</p>
               <div className="flex flex-col gap-0.5">
                 {group.items.map(item => {
                   const active = isActive(item.id);
                   const Icon = item.icon;
                   return (
                     <button key={item.id} type="button"
+                      aria-current={active ? "page" : undefined}
                       onClick={() => { navigate(item.path); onClose?.(); }}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                         active ? "text-white font-semibold" : "text-white/55 hover:text-white/85 hover:bg-white/[0.05]"
@@ -104,7 +105,7 @@ export function Sidebar({ mobile, onClose }: { mobile?: boolean; onClose?: () =>
 
         {/* Bottom: logout */}
         <div className="px-3 py-3 flex-shrink-0">
-          <button type="button" onClick={() => navigate("/login")}
+          <button type="button" onClick={() => { patchAccountState({ kycVerified: false }); onClose?.(); navigate("/login"); }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/32 hover:bg-white/[0.05] hover:text-white/60 transition-all">
             <LogOut size={15} className="flex-shrink-0" />Гарах
           </button>

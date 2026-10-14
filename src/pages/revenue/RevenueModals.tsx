@@ -17,9 +17,9 @@ export function MonthlyModal({ open, onClose }: MonthlyModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}>
-      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[80vh] flex flex-col"
+      <div className="bg-card rounded-2xl shadow-xl border border-border w-full min-w-0 max-w-xl max-h-[calc(100dvh-2rem)] sm:max-h-[80dvh] flex flex-col"
         onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-border">
           <div>
             <h3 className="font-bold text-zinc-900">Сар бүрийн орлого</h3>
             <p className="text-xs text-zinc-400 mt-0.5">Нийт хугацааны баталгаажсан орлого</p>
@@ -29,19 +29,40 @@ export function MonthlyModal({ open, onClose }: MonthlyModalProps) {
             <X size={18} />
           </button>
         </div>
-        <div className="overflow-y-auto flex-1">
-          <table className="w-full">
+        <div className="min-h-0 overflow-y-auto flex-1">
+          <div className="divide-y divide-border sm:hidden">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 bg-card px-4 py-2.5 text-xs font-semibold text-zinc-400">
+              <span>Он сар / Төлөв</span>
+              <span>Орлого</span>
+            </div>
+            {[...ALL_MONTHLY].reverse().map(month => (
+              <div key={month.key} className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 px-4 py-3.5 ${month.key === CURRENT_MONTH_KEY ? "bg-violet-50/30" : ""}`}>
+                <p className="min-w-0 text-sm font-semibold text-zinc-900">{formatMonthFull(month.key)}</p>
+                <p className="row-span-2 text-right text-sm font-bold tabular-nums text-zinc-900 whitespace-nowrap">{fmtMoney(month.amount)}</p>
+                {month.key === CURRENT_MONTH_KEY ? (
+                  <span className="col-start-1 inline-flex w-fit max-w-full items-center gap-1 rounded-full bg-violet-50 px-2 py-1 text-xs font-semibold text-violet-700 ring-1 ring-violet-200">
+                    <Clock size={10} className="shrink-0" />Одоогийн сар
+                  </span>
+                ) : month.key < CURRENT_MONTH_KEY && month.amount > 0 ? (
+                  <span className="col-start-1 inline-flex w-fit max-w-full items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-200">
+                    <Check size={10} className="shrink-0" />Баталгаажсан
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+          <table className="hidden w-full sm:table">
             <thead className="sticky top-0 bg-white">
               <tr className="border-b border-border bg-zinc-50/60">
                 <th className={thCls}>Он сар</th>
                 <th className={thRCls}>Орлого</th>
-                <th className="px-5 py-3 text-left text-xs font-bold text-zinc-400 uppercase">Төлөв</th>
+                <th className="px-5 py-3 text-left text-xs font-bold text-zinc-400 normal-case">Төлөв</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-50">
               {[...ALL_MONTHLY].reverse().map(m => (
                 <tr key={m.key} className={`hover:bg-background/40 transition-colors ${m.key === CURRENT_MONTH_KEY ? "bg-violet-50/30" : ""}`}>
-                  <td className="px-5 py-3.5 text-sm font-semibold text-zinc-900">{formatMonthFull(m.key)}</td>
+                  <td className="px-5 py-3.5 text-sm font-semibold text-zinc-900 whitespace-nowrap">{formatMonthFull(m.key)}</td>
                   <td className="px-5 py-3.5 text-right text-sm tabular-nums font-bold text-zinc-900">{fmtMoney(m.amount)}</td>
                   <td className="px-5 py-3.5">
                     {m.key === CURRENT_MONTH_KEY && (
@@ -80,12 +101,12 @@ export function SongDetailModal({ song, onClose, periodLabel }: SongDetailModalP
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}>
-      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[85vh] flex flex-col"
+      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[calc(100dvh-32px)] flex flex-col"
         onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-4 border-b border-border gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase text-zinc-400 tracking-wide mb-0.5">Орлогын дэлгэрэнгүй</p>
+            <p className="text-[11px] font-bold normal-case text-zinc-400 tracking-wide mb-0.5">Орлогын дэлгэрэнгүй</p>
             <h3 className="font-extrabold text-zinc-900 text-base leading-snug truncate">{song.title}</h3>
             <p className="text-xs text-zinc-500 mt-0.5">{song.artist} · {song.label}</p>
           </div>
@@ -95,22 +116,22 @@ export function SongDetailModal({ song, onClose, periodLabel }: SongDetailModalP
           </button>
         </div>
         {/* Stats bar */}
-        <div className="px-6 py-3 bg-zinc-50/60 border-b border-border grid grid-cols-3 gap-4">
+        <div className="px-4 sm:px-6 py-3 bg-muted/20 border-b border-border grid grid-cols-1 min-[360px]:grid-cols-3 gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400">Хугацаа</p>
+            <p className="text-[10px] font-bold normal-case text-zinc-400">Хугацаа</p>
             <p className="text-xs font-semibold text-zinc-700 mt-0.5">{periodLabel}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400">Нийт сонсолт</p>
+            <p className="text-[10px] font-bold normal-case text-zinc-400">Нийт сонсолт</p>
             <p className="text-xs font-semibold text-zinc-700 mt-0.5">{totalStreams.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400">Нийт таталт</p>
+            <p className="text-[10px] font-bold normal-case text-zinc-400">Нийт таталт</p>
             <p className="text-xs font-semibold text-zinc-700 mt-0.5">{totalDownloads.toLocaleString()}</p>
           </div>
         </div>
         {/* Table */}
-        <div className="overflow-y-auto flex-1">
+        <div className="min-h-0 overflow-y-auto flex-1">
           <table className="w-full">
             <thead className="sticky top-0">
               <tr className="border-b border-border bg-zinc-50/90">
@@ -159,12 +180,12 @@ export function AlbumDetailModal({ album, onClose, periodLabel }: AlbumDetailMod
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}>
-      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[85vh] flex flex-col"
+      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-lg max-h-[calc(100dvh-32px)] flex flex-col"
         onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-4 border-b border-border gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase text-zinc-400 tracking-wide mb-0.5">Орлогын дэлгэрэнгүй</p>
+            <p className="text-[11px] font-bold normal-case text-zinc-400 tracking-wide mb-0.5">Орлогын дэлгэрэнгүй</p>
             <h3 className="font-extrabold text-zinc-900 text-base leading-snug truncate">{album.title}</h3>
             <p className="text-xs text-zinc-500 mt-0.5">{album.artist} · {album.trackCount} дуу</p>
           </div>
@@ -174,22 +195,22 @@ export function AlbumDetailModal({ album, onClose, periodLabel }: AlbumDetailMod
           </button>
         </div>
         {/* Stats bar */}
-        <div className="px-6 py-3 bg-zinc-50/60 border-b border-border grid grid-cols-3 gap-4">
+        <div className="px-4 sm:px-6 py-3 bg-muted/20 border-b border-border grid grid-cols-1 min-[360px]:grid-cols-3 gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400">Хугацаа</p>
+            <p className="text-[10px] font-bold normal-case text-zinc-400">Хугацаа</p>
             <p className="text-xs font-semibold text-zinc-700 mt-0.5">{periodLabel}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400">Нийт сонсолт</p>
+            <p className="text-[10px] font-bold normal-case text-zinc-400">Нийт сонсолт</p>
             <p className="text-xs font-semibold text-zinc-700 mt-0.5">{totalStreams.toLocaleString()}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase text-zinc-400">Нийт таталт</p>
+            <p className="text-[10px] font-bold normal-case text-zinc-400">Нийт таталт</p>
             <p className="text-xs font-semibold text-zinc-700 mt-0.5">{totalDownloads.toLocaleString()}</p>
           </div>
         </div>
         {/* Table */}
-        <div className="overflow-y-auto flex-1">
+        <div className="min-h-0 overflow-y-auto flex-1">
           <table className="w-full">
             <thead className="sticky top-0">
               <tr className="border-b border-border bg-zinc-50/90">
@@ -239,7 +260,7 @@ export function WithdrawalDetailModal({ withdrawal, onClose }: WithdrawalDetailM
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={onClose}>
-      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-md"
+      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto"
         onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
@@ -250,14 +271,15 @@ export function WithdrawalDetailModal({ withdrawal, onClose }: WithdrawalDetailM
             className="p-1.5 rounded-xl hover:bg-zinc-100 text-zinc-400 transition-colors"><X size={18} /></button>
         </div>
         <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex flex-col items-start gap-3 mb-5">
             <div>
               <p className="text-xs font-semibold text-zinc-400">Татах дүн</p>
-              <p className="text-2xl font-extrabold text-zinc-900">{fmtMoney(withdrawal.amount)}</p>
+              <p className="text-2xl font-extrabold text-zinc-900 break-all">{fmtMoney(withdrawal.amount)}</p>
             </div>
             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${WITHDRAW_STATUS[withdrawal.status]?.cls || ""}`}>
               {WITHDRAW_STATUS[withdrawal.status]?.label}
             </span>
+            <p className="text-xs text-zinc-500">Шинэчлэгдсэн: {withdrawal.modifiedAt}</p>
           </div>
 
           {/* exception: returned */}
@@ -339,16 +361,21 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
   const vatPayer = demoVat;
 
   const BASE        = AVAILABLE_BALANCE;
-  const ROYALTY     = Math.round(BASE * 0.10);
+  const BASE_NO_VAT = Math.round(BASE / 1.10);
+  const ROYALTY     = vatPayer ? Math.round(BASE_NO_VAT * 0.10) : Math.round(BASE * 0.10);
   const TRANSFER    = BASE - ROYALTY;
   const EBARIMT     = BASE;
-  const BASE_NO_VAT = Math.round(BASE / 1.10);
+  const openInfo = () => {
+    const rect = infoRef.current?.getBoundingClientRect();
+    if (rect) setInfoPos({ top: rect.top - 8, left: Math.max(16, Math.min(rect.left, window.innerWidth - 248)) });
+    setShowInfo(true);
+  };
 
   if (!step) return null;
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4"
       onClick={() => step === "form" && onClose()}>
-      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-md"
+      <div className="bg-card rounded-2xl shadow-xl border border-border w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto"
         onClick={e => e.stopPropagation()}>
 
         {step === "form" && (
@@ -365,7 +392,7 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
                   <div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-                      <p className="text-white/60 text-xs font-semibold uppercase tracking-wide">Боломжтой үлдэгдэл</p>
+                      <p className="text-white/60 text-xs font-semibold normal-case tracking-wide">Боломжтой үлдэгдэл</p>
                     </div>
                     <p className="text-2xl font-extrabold text-white mt-1 tabular-nums">{fmtMoney(AVAILABLE_BALANCE)}</p>
                   </div>
@@ -409,11 +436,12 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
                     <p className="text-xs text-zinc-500">Эрхийн шимтгэл</p>
                     <div className="relative">
                       <button ref={infoRef} type="button"
-                        onMouseEnter={() => {
-                          const r = infoRef.current?.getBoundingClientRect();
-                          if (r) setInfoPos({ top: r.top - 8, left: r.left });
-                          setShowInfo(true);
-                        }}
+                        aria-label="Эрхийн шимтгэлийн тайлбар" aria-expanded={showInfo}
+                        onMouseEnter={openInfo}
+                        onClick={openInfo}
+                        onFocus={openInfo}
+                        onBlur={() => setShowInfo(false)}
+                        onKeyDown={event => { if (event.key === "Escape") setShowInfo(false); }}
                         onMouseLeave={() => setShowInfo(false)}
                         className="text-zinc-400 hover:text-zinc-600 transition-colors flex items-center">
                         <Info size={13} />
@@ -460,7 +488,7 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
         {/* Info tooltip — fixed, outside all overflow containers */}
         {showInfo && step === "form" && (
           <div className="fixed z-[300] w-60 bg-zinc-900 text-white text-xs rounded-xl px-3 py-2.5 leading-relaxed shadow-2xl pointer-events-none"
-            style={{ top: infoPos.top, left: infoPos.left, transform: "translateY(-100%) translateX(-8px)" }}>
+            style={{ top: infoPos.top, left: infoPos.left, transform: "translateY(-100%)" }}>
             {vatPayer
               ? (demoOrg
                   ? "ААНОАТ хуулийн 24.1-д зааснаар эрхийн шимтгэлийг НӨАТ-гүй дүнгээс хасаж тооцоолж суутгана."
@@ -499,7 +527,7 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
                 ].map(row => (
                   <div key={row.key} className="flex items-center justify-between py-2.5 border-b border-zinc-200/60 last:border-0">
                     <div>
-                      <p className="text-xs font-bold uppercase text-zinc-400">{row.key}</p>
+                      <p className="text-xs font-bold normal-case text-zinc-400">{row.key}</p>
                       <p className="text-sm font-bold text-zinc-900 mt-0.5">{row.val}</p>
                     </div>
                     <button type="button" onClick={() => onCopy(row.val, row.field)}
@@ -524,7 +552,7 @@ export function WithdrawalRequestModal({ step, onClose, onSubmit, copiedField, o
               </div>
 
               <p className="text-xs text-zinc-400 leading-relaxed text-center">
-                Баримт санхүүд ирсний дараа хүсэлтийн статус автоматаар шинэчлэгдэнэ. Та дахин ямар нэг товч дарах шаардлагагүй.
+                Баримт санхүүд ирсний дараа хүсэлтийн төлөв автоматаар шинэчлэгдэнэ. Та дахин ямар нэг товч дарах шаардлагагүй.
               </p>
             </div>
           </>

@@ -1,12 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import buteelLogo from "@/imports/Artboard_1.png";
-import { Check, Upload, Pencil, RotateCcw, ChevronDown, User } from "lucide-react";
+import { Check, Pencil, RotateCcw, ChevronDown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
+import { ContractPartyInfo } from "@/components/ui/ContractPartyInfo";
+import { SuccessDialog } from "@/components/ui/SuccessDialog";
 import { OnboardingProgress } from "@/pages/onboarding/OnboardingProgress";
 import { OB_CONTRACTS } from "@/data/agreements";
-import { getObState, patchObState } from "@/data/ob-state";
+import { getObState, patchObState, getAccountState } from "@/data/ob-state";
 
 export default function OnboardingSignScreen() {
   const navigate = useNavigate();
@@ -16,17 +18,16 @@ export default function OnboardingSignScreen() {
   const state = getObState();
   const contract = OB_CONTRACTS.find(c => c.id === state.contracts[idx]);
 
-  const [tab, setTab] = useState<"draw" | "upload">("draw");
   const [agreed, setAgreed] = useState(false);
+  const [signedSuccess, setSignedSuccess] = useState(false);
   const [signature, setSignature] = useState<string>("");
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
-  const [uploadPreview, setUploadPreview] = useState<string>("");
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
+  const hasInkRef = useRef(false);
   const lastPosRef = useRef({ x: 0, y: 0 });
   const scrollRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!contract) navigate("/onboarding/contracts");
@@ -35,9 +36,7 @@ export default function OnboardingSignScreen() {
   useEffect(() => {
     setAgreed(false);
     setSignature("");
-    setUploadPreview("");
     setScrolledToBottom(false);
-    setTab("draw");
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext("2d");
@@ -45,7 +44,7 @@ export default function OnboardingSignScreen() {
     }
   }, [idx]);
 
-  const getCanvasPos = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getCanvasPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
     return {
@@ -54,12 +53,15 @@ export default function OnboardingSignScreen() {
     };
   };
 
-  const startDraw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const startDraw = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!e.isPrimary || e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    hasInkRef.current = false;
     isDrawingRef.current = true;
     lastPosRef.current = getCanvasPos(e);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawingRef.current) return;
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
@@ -72,6 +74,7 @@ export default function OnboardingSignScreen() {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.stroke();
+    hasInkRef.current = true;
     lastPosRef.current = pos;
   };
 
@@ -79,25 +82,13 @@ export default function OnboardingSignScreen() {
     if (!isDrawingRef.current) return;
     isDrawingRef.current = false;
     const canvas = canvasRef.current;
-    if (canvas) setSignature(canvas.toDataURL());
+    if (canvas && hasInkRef.current) setSignature(canvas.toDataURL());
   }, []);
 
   const clearCanvas = () => {
     const canvas = canvasRef.current!;
     canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
     setSignature("");
-  };
-
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const url = ev.target?.result as string;
-      setUploadPreview(url);
-      setSignature(url);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleScroll = () => {
@@ -108,13 +99,20 @@ export default function OnboardingSignScreen() {
     }
   };
 
-  const effectiveSignature = tab === "draw" ? signature : uploadPreview;
-  const canSubmit = agreed && !!effectiveSignature;
+  const effectiveSignature = signature;
+  const user = getAccountState();
+  const signerName = [user.lastName, user.firstName].filter(Boolean).join(" ");
+  const canSubmit = agreed && !!effectiveSignature && !!signerName;
 
   const handleNext = () => {
     if (!canSubmit || !contract) return;
     const current = getObState();
-    patchObState({ signed: { ...current.signed, [contract.id]: effectiveSignature } });
+    patchObState({ signed: { ...current.signed, [contract.id]: effectiveSignature }, signerName });
+    setSignedSuccess(true);
+  };
+
+  const continueAfterSigning = () => {
+    setSignedSuccess(false);
     const nextIdx = idx + 1;
     if (nextIdx < state.contracts.length) {
       navigate(`/onboarding/sign?idx=${nextIdx}`);
@@ -129,13 +127,15 @@ export default function OnboardingSignScreen() {
   const subLabel = total > 1 ? `${idx + 1}/${total}` : undefined;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-10 sm:py-12">
+      <SuccessDialog open={signedSuccess} title="Гэрээ амжилттай баталгаажлаа" description={`${contract.name}-д таны гарын үсэг хадгалагдлаа. ${idx < state.contracts.length - 1 ? "Дараагийн гэрээтэй танилцаж бүртгэлээ үргэлжлүүлнэ үү." : "Дараагийн алхамд шилжиж бүртгэлээ үргэлжлүүлнэ үү."}`} buttonLabel="Үргэлжлүүлэх" onContinue={continueAfterSigning} />
+      <div className="w-full max-w-3xl">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3"
             style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
             <img src={buteelLogo} alt="Buteel" className="w-8 h-8 object-contain" />
           </div>
+          <h1 className="text-xl font-extrabold text-foreground">Buteel Portal</h1>
         </div>
 
         <OnboardingProgress step={2} subLabel={subLabel} />
@@ -149,7 +149,7 @@ export default function OnboardingSignScreen() {
               </div>
               <div className="flex-1 min-w-0">
                 {total > 1 && (
-                  <p className="text-[11px] text-white/70 font-semibold uppercase tracking-wide mb-0.5">
+                  <p className="text-[11px] text-white/70 font-semibold normal-case tracking-wide mb-0.5">
                     Гэрээ {idx + 1} / {total}
                   </p>
                 )}
@@ -165,31 +165,15 @@ export default function OnboardingSignScreen() {
 
           <div className="p-6">
             {/* Party info */}
-            {(state.partyName || state.partyRegister) && (
-              <div className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white border border-zinc-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <User size={14} className="text-zinc-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide mb-1">Гэрээ байгуулах этгээд</p>
-                  {state.partyName && <p className="text-sm font-bold text-zinc-900 leading-tight">{state.partyName}</p>}
-                  {state.partyRegister && (
-                    <p className="text-xs text-zinc-500 mt-0.5">
-                      {state.accountType === "org" ? "Байгууллагын регистр: " : "Регистр: "}
-                      <span className="font-semibold text-zinc-700">{state.partyRegister}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+            <div className="mb-4"><ContractPartyInfo isOrg={state.accountType === "org"} name={state.partyName} register={state.partyRegister} signerName={signerName} /></div>
 
             {/* Contract text */}
-            <p className="text-xs font-bold uppercase text-zinc-400 mb-2 tracking-wide">Гэрээний агуулга</p>
+            <p className="mb-3 text-sm font-medium text-foreground">Гэрээтэй танилцах</p>
             <div className="relative mb-4">
               <div
                 ref={scrollRef}
                 onScroll={handleScroll}
-                className="h-[380px] overflow-y-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-700 leading-relaxed whitespace-pre-wrap select-text"
+                className="h-[min(68dvh,680px)] overflow-y-auto rounded-xl border border-border bg-muted/20 p-4 text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap select-text"
               >
                 {contract.contractText}
               </div>
@@ -210,21 +194,10 @@ export default function OnboardingSignScreen() {
             </div>
 
             {/* Signature section */}
-            <p className="text-xs font-bold uppercase text-zinc-400 mb-2 tracking-wide">Гарын үсэг</p>
+            <p className="text-xs font-bold normal-case text-zinc-400 mb-2 tracking-wide">Гарын үсэг</p>
             <div className="border border-zinc-200 rounded-xl overflow-hidden mb-4">
-              <div className="flex border-b border-zinc-200">
-                {(["draw", "upload"] as const).map(t => (
-                  <button key={t} onClick={() => setTab(t)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors ${
-                      tab === t ? "bg-white text-zinc-900 border-b-2 border-primary" : "bg-zinc-50 text-zinc-500 hover:text-zinc-700"
-                    }`}>
-                    {t === "draw" ? <><Pencil size={13} /> Хулганаар зурах</> : <><Upload size={13} /> Зураг оруулах</>}
-                  </button>
-                ))}
-              </div>
-
-              <div className="p-4">
-                {tab === "draw" && (
+              <div className="border-b border-border bg-muted/20 px-4 py-3"><p className="flex items-center gap-2 text-sm font-medium text-foreground"><Pencil size={15} />Гарын үсэг зурах</p><p className="mt-1 text-xs text-muted-foreground">Хулгана эсвэл хуруугаараа доорх талбарт зурна уу.</p></div>
+<div className="p-4">
                   <div className="relative">
                     <canvas
                       ref={canvasRef}
@@ -234,15 +207,15 @@ export default function OnboardingSignScreen() {
                         signature ? "border-primary bg-white" : "border-dashed border-zinc-300 bg-zinc-50"
                       }`}
                       style={{ height: 160, touchAction: "none" }}
-                      onMouseDown={startDraw}
-                      onMouseMove={draw}
-                      onMouseUp={stopDraw}
-                      onMouseLeave={stopDraw}
+                      onPointerDown={startDraw}
+                      onPointerMove={draw}
+                      onPointerUp={stopDraw}
+                      onPointerCancel={stopDraw}
                     />
                     {!signature && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-1.5">
                         <Pencil size={18} className="text-zinc-300" />
-                        <p className="text-xs text-zinc-400">Энд хулганаар гарын үсгээ зурна уу</p>
+                        <p className="text-xs text-zinc-400">Энд гарын үсгээ зурна уу</p>
                       </div>
                     )}
                     <div className="absolute bottom-4 left-8 right-8 h-px bg-zinc-200 pointer-events-none" />
@@ -253,44 +226,19 @@ export default function OnboardingSignScreen() {
                       </button>
                     )}
                   </div>
-                )}
 
-                {tab === "upload" && (
-                  <div>
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-                    {uploadPreview ? (
-                      <div className="relative rounded-lg border-2 border-primary overflow-hidden bg-white" style={{ height: 160 }}>
-                        <img src={uploadPreview} alt="signature" className="w-full h-full object-contain" />
-                        <button onClick={() => { setUploadPreview(""); setSignature(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                          className="absolute top-2 right-2 flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-800 bg-white border border-zinc-200 rounded-lg px-2 py-1">
-                          <RotateCcw size={11} /> Солих
-                        </button>
-                      </div>
-                    ) : (
-                      <button onClick={() => fileInputRef.current?.click()}
-                        className="w-full flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 hover:border-primary hover:bg-primary/5 transition-colors"
-                        style={{ height: 160 }}>
-                        <Upload size={18} className="text-zinc-400" />
-                        <div className="text-center">
-                          <p className="text-sm font-semibold text-zinc-700">Гарын үсгийн зураг оруулах</p>
-                          <p className="text-xs text-zinc-400 mt-0.5">PNG, JPG — цагаан дэвсгэртэй</p>
-                        </div>
-                      </button>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
 
             {/* Agree checkbox */}
-            <label className={`flex items-start gap-3 p-3.5 rounded-xl border transition-colors cursor-pointer mb-5 ${
+            <label className={`flex items-center gap-3 p-3.5 rounded-xl border transition-colors cursor-pointer mb-5 ${
               !scrolledToBottom
                 ? "opacity-50 pointer-events-none border-zinc-200 bg-zinc-50"
                 : agreed
                   ? "border-primary/30 bg-primary/5"
                   : "border-zinc-200 hover:border-zinc-300 bg-white"
             }`}>
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                 agreed ? "bg-primary border-primary" : "border-zinc-300 bg-white"
               }`}>
                 {agreed && <Check size={11} className="text-white" />}
@@ -298,7 +246,7 @@ export default function OnboardingSignScreen() {
               <input type="checkbox" className="sr-only" checked={agreed} disabled={!scrolledToBottom}
                 onChange={e => setAgreed(e.target.checked)} />
               <span className="text-sm text-zinc-700 leading-snug">
-                Би <span className="font-semibold text-zinc-900">{contract.name}</span>-ийн агуулгыг анхааралтай уншиж, бүрэн ойлгосон бөгөөд зөвшөөрч байна.
+                Би, <span className="font-semibold text-zinc-900">{signerName || "овог нэрээ бүртгэлийн мэдээлэлд оруулна уу"}</span>, {state.accountType === "org" && <><span className="font-semibold">{state.partyName}</span>-ийг төлөөлж, </>}<span className="font-semibold text-zinc-900">{contract.name}</span>-тэй бүрэн танилцаж, нөхцөлийг зөвшөөрч байна.
               </span>
             </label>
 

@@ -13,9 +13,9 @@
 }
 
 .wiz-root {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--w-bg);
-  font-family: "Nunito", sans-serif;
+  font-family: inherit;
   color: var(--w-text);
   font-size: 14px;
 }
@@ -183,7 +183,7 @@
   border-radius: 12px;
   padding: 26px;
 }
-.wiz-form h2 { font-size: 20px; margin: 0 0 22px; font-weight: 800; }
+.wiz-form h2 { font-size: 18px; margin: 0 0 20px; font-weight: 600; line-height: 1.5; }
 
 /* Mode pill */
 .wiz-mode-pill {
@@ -211,7 +211,7 @@
   font-size: 11px;
   font-weight: 800;
   
-  text-transform: uppercase;
+  text-transform: none;
   color: var(--w-muted);
 }
 .wiz-field-label {
@@ -238,20 +238,21 @@
 .wiz-label {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-weight: 700;
-  font-size: 13px;
-  margin-bottom: 6px;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 8px;
   position: relative;
 }
 .wiz-req { color: var(--w-danger); }
 .wiz-input, .wiz-select {
   width: 100%;
-  height: 42px;
-  border: 1px solid #d8d9e1;
-  border-radius: 8px;
-  padding: 0 11px;
-  background: #fff;
+  height: 44px;
+  border: 1px solid var(--w-line);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--w-panel);
   color: var(--w-text);
   outline: none;
   font-size: 14px;
@@ -293,8 +294,8 @@
 .wiz-hint { font-size: 12px; color: var(--w-muted); margin-top: 5px; }
 .wiz-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 /* Inline row for rights owner + year */
-.wiz-rights-row { display: flex; gap: 10px; align-items: center; }
-.wiz-rights-row .wiz-input { flex: 1; }
+.wiz-rights-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.wiz-rights-row .wiz-input { flex: 1; min-width: 0; }
 .wiz-rights-year { flex: 0 0 104px !important; width: 104px !important; }
 /* Remove number input spinners */
 .wiz-input[type="number"] { -moz-appearance: textfield; }
@@ -312,10 +313,11 @@
 .wiz-btn {
   border: 1px solid var(--w-line);
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
+  min-height: 40px;
   padding: 9px 12px;
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 600;
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -394,7 +396,7 @@
   border-radius: 11px;
   background: #fff;
   box-shadow: 0 1px 4px #0000000d;
-  overflow: visible;
+  overflow: hidden;
 }
 .wiz-title-row {
   display: flex;
@@ -408,7 +410,7 @@
   flex: 1; min-width: 0;
   border: 0; outline: none;
   padding: 12px 14px;
-  font-size: 15px; font-weight: 700;
+  font-size: 14px; font-weight: 700;
   font-family: inherit;
   background: transparent; color: var(--w-text);
 }
@@ -1329,8 +1331,10 @@
 }
 .wiz-modal {
   width: min(480px, 100%);
-  background: #fff;
-  border-radius: 12px;
+  background: var(--w-panel);
+  border-radius: 16px;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
   border: 1px solid var(--w-line);
   padding: 22px;
   box-shadow: 0 24px 70px #0005;
@@ -1339,7 +1343,7 @@
 .wiz-modal.xl { width: min(620px, 100%); }
 .wiz-modal.track { width: min(620px, 100%); padding: 0; overflow: hidden; }
 .wiz-modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
-.wiz-modal-head h3 { margin: 0; font-size: 19px; }
+.wiz-modal-head h3 { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.5; }
 .wiz-modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
 .wiz-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .wiz-choice {
@@ -1613,4 +1617,26 @@
   .wiz-credit-role-row { grid-template-columns: 1fr; }
   .wiz-track-body { padding-left: 12px; padding-right: 12px; }
   .wiz-schedule-date { grid-template-columns: 1fr; }
+}
+/* Shared mobile layout for music / audiobook / film wizards */
+@media(max-width: 639px) {
+  .wiz-in-shell div { min-width: 0; }
+  .wiz-publish-topbar, .wiz-review-hero { flex-direction: column; padding: 12px; }
+  .wiz-publish-summary { justify-content: flex-start; }
+  .wiz-publish-summary-pill, .wiz-review-hero-status { white-space: normal; }
+  .wiz-publish-block-head { padding: 12px; }
+  .wiz-publish-block-body { padding: 0 12px 12px; }
+  .wiz-service-group-head { flex-wrap: wrap; gap: 8px; }
+  .wiz-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .wiz-footer > div { display: contents !important; }
+  .wiz-footer > div > span { order: -1; grid-column: 1 / -1; }
+  .wiz-footer .wiz-btn { justify-content: center; }
+  .wiz-modal { max-height: calc(100dvh - 2rem); overflow-y: auto; }
+}
+@media(max-width: 480px) {
+  .wiz-steps { overflow-x: visible; }
+  .wiz-step { min-width: 0; padding: 4px 1px 0; gap: 6px; }
+  .wiz-step-num { width: 30px; height: 30px; font-size: 11px; box-shadow: 0 0 0 3px var(--w-bg, #fff); }
+  .wiz-steps::before, .wiz-steps::after { top: 19px; }
+  .wiz-step-label-text { font-size: 9.5px; max-width: 100%; overflow-wrap: anywhere; word-break: normal; }
 }

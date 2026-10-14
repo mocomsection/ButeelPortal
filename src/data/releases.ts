@@ -154,3 +154,29 @@ export const RELEASES: ReleaseData[] = [
     ],
   },
 ] satisfies ReleaseData[];
+
+const existingAlbum = RELEASES.find(product => product.status === "distributed" && product.type === "Album")!;
+const existingSingle: ReleaseData = {
+  ...existingAlbum,
+  id: "62849173",
+  title: existingAlbum.tracks[1].title,
+  type: "Single",
+  upc: "8801234567898",
+  tracks: [{ ...existingAlbum.tracks[1], no: 1 }],
+};
+RELEASES.push(existingSingle);
+RELEASES.push({
+  ...existingAlbum,
+  id: "58392016",
+  title: "Түүвэр цомог",
+  status: "draft",
+  upc: "",
+  releaseDate: "",
+  createdAt: "2026-10-13",
+  updatedAt: "2026-10-13 12:00",
+  tracks: [
+    { ...existingAlbum.tracks[0], no: 1 },
+    { ...existingSingle.tracks[0], no: 2 },
+    { no: 3, assetId: "71930482", title: "Шинэ өглөө", isrc: "", primaryArtist: existingAlbum.primaryArtist, featArtists: [], explicit: false, duration: "3:20", fileName: "shine_ugloo.wav", fileSize: "42 MB", audioFormat: "WAV", bitrate: "", sampleRate: "44.1 kHz", bitDepth: "16 bits" },
+  ],
+});

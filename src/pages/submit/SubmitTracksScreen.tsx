@@ -5,6 +5,8 @@ import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
 import { Stepper } from "@/components/ui/Stepper";
+import { SelectInput } from "@/components/ui/SelectInput";
+import { ContributorNameExample } from "@/components/ui/ContributorNameExample";
 import { MOCK_ARTISTS } from "@/data/artists";
 import { RELEASE_STEPS } from "@/data/content";
 import { TrackData, ArtistRef, ContribRef, OtherContribRef, makeTrack } from "./track/types";
@@ -182,18 +184,22 @@ export default function SubmitTracksScreen() {
   }) {
     const [name, setName] = useState("");
     const [affil, setAffil] = useState("");
+    const [nameLanguage, setNameLanguage] = useState("mn");
     return (
       <div className="mt-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
         <div>
           <p className="text-xs font-semibold text-zinc-600">{label}</p>
           <p className="text-xs text-zinc-400">Хууль ёсны бүтэн нэр оруулна уу</p>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Овог Нэр (Хууль ёсны)"
-            className="px-3 py-2 text-sm rounded-lg border border-zinc-200 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" />
+        <div className="grid grid-cols-1 gap-2">
+          <div className="flex overflow-hidden rounded-xl border border-border bg-card focus-within:ring-2 focus-within:ring-primary/20">
+            <input value={name} onChange={e => setName(e.target.value)} placeholder={nameLanguage === "mn" ? "Овог, нэр оруулах" : "Нэр, овог оруулах"} className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none" />
+            <SelectInput value={nameLanguage} onChange={setNameLanguage} variant="attached" options={[{ value: "mn", label: "Монгол" }, { value: "en", label: "English / Latin" }]} />
+          </div>
           <input value={affil} onChange={e => setAffil(e.target.value)} placeholder="Байгууллага (ASCAP, BMI...)"
             className="px-3 py-2 text-sm rounded-lg border border-zinc-200 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" />
         </div>
+        <ContributorNameExample language={nameLanguage} />
         <div className="flex gap-2 justify-end">
           <button type="button" onClick={onCancel}
             className="text-xs text-zinc-500 hover:text-zinc-700 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-colors">Болих</button>
@@ -207,17 +213,23 @@ export default function SubmitTracksScreen() {
   function OtherContribAddForm({ onSave, onCancel }: { onSave: (name: string, role: string) => void; onCancel: () => void }) {
     const [name, setName] = useState("");
     const [role, setRole] = useState("producer");
+    const [nameLanguage, setNameLanguage] = useState("mn");
     return (
       <div className="mt-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
         <p className="text-xs font-semibold text-zinc-600">Оролцогч нэмэх</p>
-        <div className="grid grid-cols-2 gap-2">
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Нэр *"
-            className="px-3 py-2 text-sm rounded-lg border border-zinc-200 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20" />
-          <select value={role} onChange={e => setRole(e.target.value)}
-            className="px-3 py-2 text-sm rounded-lg border border-zinc-200 bg-white outline-none focus:border-violet-500">
-            {OTHER_ROLES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
-          </select>
+        <div className="grid grid-cols-1 gap-2">
+          <div className="flex overflow-hidden rounded-xl border border-border bg-card focus-within:ring-2 focus-within:ring-primary/20">
+            <input value={name} onChange={e => setName(e.target.value)} placeholder={nameLanguage === "mn" ? "Овог, нэр оруулах" : "Нэр, овог оруулах"} className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm outline-none" />
+            <SelectInput value={nameLanguage} onChange={setNameLanguage} variant="attached" options={[{ value: "mn", label: "Монгол" }, { value: "en", label: "English / Latin" }]} />
+          </div>
+          <SelectInput
+            value={role}
+            onChange={setRole}
+            options={OTHER_ROLES.map(r => ({ value: r.id, label: r.label }))}
+            className="px-3 py-2 text-sm rounded-lg border border-zinc-200"
+          />
         </div>
+        <ContributorNameExample language={nameLanguage} />
         <div className="flex gap-2 justify-end">
           <button type="button" onClick={onCancel}
             className="text-xs text-zinc-500 hover:text-zinc-700 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition-colors">Болих</button>
@@ -263,7 +275,7 @@ export default function SubmitTracksScreen() {
 
         {/* 1. Audio file */}
         <div className={sec}>
-          <p className="text-xs font-bold uppercase text-zinc-400 mb-3 flex items-center gap-1.5">
+          <p className="text-xs font-bold normal-case text-zinc-400 mb-3 flex items-center gap-1.5">
             <Activity size={11} />Аудио файл
           </p>
           {track.uploading ? (
@@ -330,7 +342,7 @@ export default function SubmitTracksScreen() {
         {/* 2. Track metadata — album mode only. Single inherits from Stage 1, don't repeat. */}
         {!isSingle && (
           <div className={sec}>
-            <p className="text-xs font-bold uppercase text-zinc-400 mb-4 flex items-center gap-1.5">
+            <p className="text-xs font-bold normal-case text-zinc-400 mb-4 flex items-center gap-1.5">
               <Music2 size={11} />Дууны үндсэн мэдээлэл
             </p>
 
@@ -350,6 +362,15 @@ export default function SubmitTracksScreen() {
                     className={`px-3 text-xs font-semibold transition-colors border-l border-zinc-200 ${track.titleLang === "en" ? "bg-primary text-white" : "text-zinc-500 hover:bg-zinc-50"}`}>EN</button>
                 </div>
               </div>
+              {track.titleLang === "mn" && track.titleMn.trim().length > 0 && (
+                <div className="mt-2">
+                  <label className="block text-xs font-semibold text-zinc-600 mb-1.5" htmlFor={`track-title-en-${track.id}`}>English / Latin нэр <span className="text-red-500">*</span></label>
+                  <input id={`track-title-en-${track.id}`} required value={track.titleEn}
+                    onChange={event => updateTrack(track.id, { titleEn: event.target.value })}
+                    placeholder="English / Latin нэр"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border bg-card outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+              )}
               <div className="flex gap-3 mt-1.5">
                 <span className={`text-xs flex items-center gap-1 ${track.titleMn ? "text-green-600" : "text-zinc-400"}`}>
                   {track.titleMn ? <Check size={9} /> : "○"} Монгол
@@ -376,19 +397,23 @@ export default function SubmitTracksScreen() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-zinc-600 block mb-1.5">Үндсэн жанр <span className="text-red-500">*</span></label>
-                <select value={track.trackGenre} onChange={e => updateTrack(track.id, { trackGenre: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-200 bg-white outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500">
-                  <option value="">Жанр сонгох</option>
-                  {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
+                <SelectInput
+                  value={track.trackGenre}
+                  onChange={v => updateTrack(track.id, { trackGenre: v })}
+                  options={GENRES}
+                  placeholder="Жанр сонгох"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-200"
+                />
               </div>
               <div>
                 <label className="text-xs font-semibold text-zinc-600 block mb-1.5">Secondary genre</label>
-                <select value={track.trackSecondaryGenre} onChange={e => updateTrack(track.id, { trackSecondaryGenre: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-200 bg-white outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500">
-                  <option value="">Нэмэлт жанр</option>
-                  {GENRES.filter(g => g !== track.trackGenre).map(g => <option key={g} value={g}>{g}</option>)}
-                </select>
+                <SelectInput
+                  value={track.trackSecondaryGenre}
+                  onChange={v => updateTrack(track.id, { trackSecondaryGenre: v })}
+                  options={GENRES.filter(g => g !== track.trackGenre)}
+                  placeholder="Нэмэлт жанр"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-zinc-200"
+                />
               </div>
             </div>
           </div>
@@ -396,7 +421,7 @@ export default function SubmitTracksScreen() {
 
         {/* 3. ISRC */}
         <div className={sec}>
-          <p className="text-xs font-bold uppercase text-zinc-400 mb-3 flex items-center gap-1.5">
+          <p className="text-xs font-bold normal-case text-zinc-400 mb-3 flex items-center gap-1.5">
             <Fingerprint size={11} />ISRC
           </p>
           <p className="text-sm font-semibold text-zinc-700 mb-2">Энэ бичлэг өмнө нь гарч байсан уу? <span className="text-red-500">*</span></p>
@@ -421,7 +446,7 @@ export default function SubmitTracksScreen() {
               <Sparkles size={14} className="text-violet-500 flex-shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-violet-700">ISRC автоматаар үүснэ</p>
-                <p className="text-xs text-violet-500">Илгээхийн өмнө энэ бичлэгт ISRC код онооно.</p>
+                <p className="text-xs text-violet-500">Илгээсний дараа энэ бичлэгт ISRC код автоматаар оноогдоно.</p>
               </div>
             </div>
           ) : (
@@ -436,7 +461,7 @@ export default function SubmitTracksScreen() {
 
         {/* 4. Lyrics & content */}
         <div className={sec}>
-          <p className="text-xs font-bold uppercase text-zinc-400 mb-3 flex items-center gap-1.5">
+          <p className="text-xs font-bold normal-case text-zinc-400 mb-3 flex items-center gap-1.5">
             <Mic2 size={11} />Дууны үг & контент
           </p>
           <p className="text-sm font-semibold text-zinc-700 mb-2">Энэ дуу үгтэй юу? <span className="text-red-500">*</span></p>
@@ -460,11 +485,11 @@ export default function SubmitTracksScreen() {
           {track.hasLyrics === true && (
             <div className="space-y-3">
               <div>
-                <p className="text-sm font-semibold text-zinc-700 mb-2">Explicit контент <span className="text-red-500">*</span></p>
+                <p className="text-sm font-semibold text-zinc-700 mb-2">Ёс бус үг хэллэг, агуулгатай эсэх <span className="text-red-500">*</span></p>
                 <div className="grid grid-cols-2 gap-2">
                   {([
-                    { id: "not_explicit" as const, label: "Not explicit" },
-                    { id: "explicit"     as const, label: "Explicit" },
+                    { id: "not_explicit" as const, label: "Үгүй, байхгүй" },
+                    { id: "explicit"     as const, label: "Тийм, байгаа" },
                   ]).map(opt => (
                     <label key={opt.id} className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${track.explicitStatus === opt.id ? "border-primary bg-violet-50/50" : "border-zinc-200 hover:border-zinc-300"}`}>
                       <input type="radio" name={`explicit-${track.id}`} checked={track.explicitStatus === opt.id}
@@ -480,11 +505,13 @@ export default function SubmitTracksScreen() {
               </div>
               <div>
                 <label className="text-sm font-semibold text-zinc-700 block mb-1.5">Дуулагдаж буй үндсэн хэл <span className="text-red-500">*</span></label>
-                <select value={track.vocalLanguage} onChange={e => updateTrack(track.id, { vocalLanguage: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-200 bg-white outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500">
-                  <option value="">Хэл сонгох</option>
-                  {VOCAL_LANGS.map(l => <option key={l}>{l}</option>)}
-                </select>
+                <SelectInput
+                  value={track.vocalLanguage}
+                  onChange={v => updateTrack(track.id, { vocalLanguage: v })}
+                  options={VOCAL_LANGS}
+                  placeholder="Хэл сонгох"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-zinc-200"
+                />
               </div>
               <div>
                 <label className="text-sm font-semibold text-zinc-700 block mb-1.5">Дууны үг</label>
@@ -500,12 +527,12 @@ export default function SubmitTracksScreen() {
 
         {/* 5. Contributors */}
         <div className={sec}>
-          <p className="text-xs font-bold uppercase text-zinc-400 mb-4 flex items-center gap-1.5">
+          <p className="text-xs font-bold normal-case text-zinc-400 mb-4 flex items-center gap-1.5">
             <Users size={11} />Оролцогчид
           </p>
 
           {/* Үндсэн оролцогчид */}
-          <p className="text-xs font-bold uppercase text-zinc-300 mb-3">Үндсэн оролцогчид</p>
+          <p className="text-xs font-bold normal-case text-zinc-300 mb-3">Үндсэн оролцогчид</p>
 
           {/* Aya zoiogch — multiple */}
           <div className="mb-4">
@@ -574,7 +601,7 @@ export default function SubmitTracksScreen() {
 
           {/* Бусад contributor */}
           <div className="pt-4 border-t border-zinc-100">
-            <p className="text-xs font-bold uppercase text-zinc-300 mb-3">Бусад оролцогчид</p>
+            <p className="text-xs font-bold normal-case text-zinc-300 mb-3">Бусад оролцогчид</p>
             <SectionLabel title="Бусад оролцогч" sub="Producer, Mixing, Mastering, Recording" />
             {track.otherContribs.length > 0 && (
               <div className="space-y-1.5 mb-2">
@@ -612,7 +639,7 @@ export default function SubmitTracksScreen() {
 
   // ── Completeness ──
   const trackDone = (t: TrackData) => {
-    const hasTitle = isSingle || t.titleMn.trim().length > 0;
+    const hasTitle = isSingle || (t.titleLang === "en" ? !!t.titleEn.trim() : !!t.titleMn.trim() && !!t.titleEn.trim());
     const hasArtist = isSingle || t.trackPrimary.length > 0;
     const hasGenre = isSingle || !!t.trackGenre;
     return t.hasAudio && hasTitle && hasArtist && hasGenre && t.hasLyrics !== null && t.composers.length > 0;
@@ -736,7 +763,7 @@ export default function SubmitTracksScreen() {
           <div className="lg:col-span-1">
             <div className="sticky top-4 space-y-3">
               <Card className="p-4">
-                <p className="text-xs font-bold uppercase text-zinc-400 mb-3">Шалгах Жагсаалт</p>
+                <p className="text-xs font-bold normal-case text-zinc-400 mb-3">Шалгах Жагсаалт</p>
                 <div className="space-y-1.5">
                   {tracks.map((t, i) => {
                     const items = [
@@ -757,7 +784,7 @@ export default function SubmitTracksScreen() {
                 </div>
               </Card>
               <Card className="p-4">
-                <p className="text-xs font-bold uppercase text-zinc-400 mb-3">Аудио Шаардлага</p>
+                <p className="text-xs font-bold normal-case text-zinc-400 mb-3">Аудио Шаардлага</p>
                 <div className="space-y-1.5 text-xs text-zinc-500">
                   <p>• WAV эсвэл FLAC формат</p>
                   <p>• 44.1 kHz эсвэл 48 kHz</p>
@@ -767,7 +794,7 @@ export default function SubmitTracksScreen() {
                 </div>
               </Card>
               <Card className="p-4">
-                <p className="text-xs font-bold uppercase text-zinc-400 mb-2">Credits</p>
+                <p className="text-xs font-bold normal-case text-zinc-400 mb-2">Credits</p>
                 <div className="space-y-1.5 text-xs text-zinc-500">
                   <p>• Ая зохиогч заавал шаардлагатай</p>
                   <p>• Хэд хэдэн зохиогч нэмж болно</p>

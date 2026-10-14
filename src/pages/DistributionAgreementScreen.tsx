@@ -2,14 +2,16 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import {
   CheckCircle2, ArrowLeft, ChevronDown, ChevronUp,
-  Check, Pencil, Upload, RotateCcw, FileText,
+  Check, Pencil, RotateCcw, FileText,
 } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
+import { ContractPartyInfo } from "@/components/ui/ContractPartyInfo";
+import { SuccessDialog } from "@/components/ui/SuccessDialog";
 import { OB_CONTRACTS } from "@/data/agreements";
 import { CMS_AGREEMENTS } from "@/data/cms-agreements";
-import { getAccountState, addSignedContract } from "@/data/ob-state";
+import { getAccountState, addSignedContract, patchAccountState } from "@/data/ob-state";
 import type { ContractId } from "@/data/ob-state";
 
 type SignStep = "read" | "sign";
@@ -18,13 +20,11 @@ interface SignState {
   step: SignStep;
   scrolledToBottom: boolean;
   agreed: boolean;
-  tab: "draw" | "upload";
   signature: string;
-  uploadPreview: string;
 }
 
 function defaultSignState(): SignState {
-  return { step: "read", scrolledToBottom: false, agreed: false, tab: "draw", signature: "", uploadPreview: "" };
+  return { step: "read", scrolledToBottom: false, agreed: false, signature: "" };
 }
 
 // Normalise OB + CMS contracts to a single shape for rendering
@@ -48,20 +48,26 @@ export default function DistributionAgreementScreen() {
   const [accState, setAccState] = useState(() => getAccountState());
   const [expanded, setExpanded]   = useState<string | null>(null);
   const [signing, setSigning]     = useState<string | null>(null);
+  const [signedSuccess, setSignedSuccess] = useState<DisplayContract | null>(null);
+  const signerName = [accState.lastName, accState.firstName].filter(Boolean).join(" ");
+  const contractParty = {
+    name: accState.accountType === "org" ? accState.partyName || "Steppe Records ХХК" : signerName,
+    register: accState.partyRegister || "",
+    signerName,
+    accountType: accState.accountType ?? "individual" as const,
+  };
   const [signStates, setSignStates] = useState<Record<string, SignState>>({});
   const [signedCmsIds, setSignedCmsIds] = useState<string[]>(() =>
-    JSON.parse(sessionStorage.getItem("signedCms") || "[]")
+    Object.keys(getAccountState().signatures ?? {}).filter(id => CMS_AGREEMENTS.some(contract => contract.id === id))
   );
 
   const scrollRefs   = useRef<Record<string, HTMLDivElement | null>>({});
   const canvasRefs   = useRef<Record<string, HTMLCanvasElement | null>>({});
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const isDrawingRef  = useRef(false);
+  const hasInkRef = useRef(false);
   const lastPosRef    = useRef({ x: 0, y: 0 });
 
-  const obSignedIds = accState.signedContracts.length > 0
-    ? accState.signedContracts
-    : (["music"] as ContractId[]);
+  const obSignedIds = accState.signedContracts;
 
   // Build normalised list
   const allContracts: DisplayContract[] = [
@@ -109,7 +115,7 @@ export default function DistributionAgreementScreen() {
 
   const cancelSigning = () => {
     setSigning(null);
-    if (isSingleMode) navigate("/account");
+    setSignedSuccess(null);
   };
 
   // Auto-start if ?contract= provided and not yet signed
@@ -122,7 +128,7 @@ export default function DistributionAgreementScreen() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const getCanvasPos = (id: string, e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getCanvasPos = (id: string, e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRefs.current[id]!;
     const rect = canvas.getBoundingClientRect();
     return {
@@ -131,12 +137,15 @@ export default function DistributionAgreementScreen() {
     };
   };
 
-  const startDraw = (id: string, e: React.MouseEvent<HTMLCanvasElement>) => {
+  const startDraw = (id: string, e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!e.isPrimary || e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    hasInkRef.current = false;
     isDrawingRef.current = true;
     lastPosRef.current = getCanvasPos(id, e);
   };
 
-  const draw = (id: string, e: React.MouseEvent<HTMLCanvasElement>) => {
+  const draw = (id: string, e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawingRef.current) return;
     const canvas = canvasRefs.current[id]!;
     const ctx = canvas.getContext("2d")!;
@@ -149,6 +158,7 @@ export default function DistributionAgreementScreen() {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.stroke();
+    hasInkRef.current = true;
     lastPosRef.current = pos;
   };
 
@@ -156,24 +166,13 @@ export default function DistributionAgreementScreen() {
     if (!isDrawingRef.current) return;
     isDrawingRef.current = false;
     const canvas = canvasRefs.current[id];
-    if (canvas) patchSign(id, { signature: canvas.toDataURL() });
+    if (canvas && hasInkRef.current) patchSign(id, { signature: canvas.toDataURL() });
   };
 
   const clearCanvas = (id: string) => {
     const canvas = canvasRefs.current[id]!;
     canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
     patchSign(id, { signature: "" });
-  };
-
-  const handleUpload = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const url = ev.target?.result as string;
-      patchSign(id, { uploadPreview: url, signature: url });
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleScroll = (id: string) => {
@@ -186,29 +185,32 @@ export default function DistributionAgreementScreen() {
 
   const handleSubmit = (c: DisplayContract) => {
     const ss = getSignState(c.id);
-    const effectiveSig = ss.tab === "draw" ? ss.signature : ss.uploadPreview;
-    if (!ss.agreed || !effectiveSig) return;
+    const effectiveSig = ss.signature;
+    if (!ss.agreed || !effectiveSig || !signerName.trim()) return;
 
     if (c.isCms) {
       const updated = [...signedCmsIds, c.id];
       sessionStorage.setItem("signedCms", JSON.stringify(updated));
       setSignedCmsIds(updated);
+      patchAccountState({ signatures: { ...accState.signatures, [c.id]: effectiveSig }, contractParties: { ...accState.contractParties, [c.id]: contractParty }, signedDates: { ...accState.signedDates, [c.id]: new Date().toISOString().split("T")[0] } });
+      setAccState(getAccountState());
     } else {
-      addSignedContract(c.id as ContractId, "");
+      addSignedContract(c.id as ContractId, "", effectiveSig, contractParty);
       setAccState(getAccountState());
     }
 
     setSigning(null);
     setSignStates(prev => { const n = { ...prev }; delete n[c.id]; return n; });
 
-    if (isSingleMode) navigate("/account");
+    setSignedSuccess(c);
   };
 
   const signedCount = obSignedIds.length + signedCmsIds.length;
 
   return (
     <Shell title={isSingleMode ? (visibleContracts[0]?.name ?? "Гэрээ") : "Гэрээнүүд"}>
-      <div className="max-w-2xl space-y-5">
+      <SuccessDialog open={!!signedSuccess} title="Гэрээ амжилттай байгууллаа" description={`${signedSuccess?.name ?? "Гэрээ"}-д гарын үсэг зурж баталгаажууллаа. ${signedSuccess?.isCms ? "Баталгаажсан гэрээг гэрээний хэсгээс харах боломжтой." : `Одоо аккаунтын мэдээлэл хэсэгт ${signedSuccess?.id === "music" ? "лейбл" : signedSuccess?.id === "film" ? "продакшн" : "нийтлэгч"} нэмэх хүсэлтээ үүсгэнэ үү.`}`} buttonLabel={signedSuccess?.isCms ? "Дуусгах" : "Мэдээлэл хэсэгт очих"} onContinue={() => { const contract = signedSuccess; setSignedSuccess(null); navigate(contract?.isCms ? "/account?tab=agreements" : `/account?tab=info&setup=${contract?.id}`); }} />
+      <div className="max-w-3xl space-y-5">
         <button type="button" onClick={() => navigate("/account")}
           className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-700 transition-colors">
           <ArrowLeft size={16} />Аккаунтад буцах
@@ -235,20 +237,20 @@ export default function DistributionAgreementScreen() {
             const isExpanded = expanded === c.id;
             const isSigning  = signing === c.id;
             const ss         = getSignState(c.id);
-            const effectiveSig = ss.tab === "draw" ? ss.signature : ss.uploadPreview;
+            const effectiveSig = ss.signature;
             const canSubmit  = ss.agreed && !!effectiveSig;
             const { Icon }   = c;
 
             return (
               <Card key={c.id} className="overflow-hidden p-0">
                 {/* Header */}
-                <div className={`px-5 py-4 flex items-center gap-4 ${isSigned ? "bg-green-50/40" : "bg-white"}`}>
+                <div className="px-5 py-4 flex flex-wrap items-center gap-3 bg-card">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${c.iconBg} text-white`}>
                     <Icon size={18} />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-[1_1_calc(100%-56px)] sm:flex-1">
                     <p className="font-semibold text-sm text-zinc-900">{c.name}</p>
-                    <p className="text-xs text-zinc-500 mt-0.5 truncate">
+                    <p className="text-xs text-muted-foreground mt-1 break-words">
                       {isSigned && c.signedDate ? `${c.setupName ? c.setupName + " · " : ""}${c.signedDate}` : c.desc}
                     </p>
                   </div>
@@ -288,7 +290,7 @@ export default function DistributionAgreementScreen() {
                       </div>
                     )}
                     <div>
-                      <p className="text-xs font-bold uppercase text-zinc-400 mb-2">Гэрээний агуулга</p>
+                      <p className="text-xs font-bold normal-case text-zinc-400 mb-2">Гэрээний агуулга</p>
                       <div className="h-72 overflow-y-auto rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-600 leading-relaxed whitespace-pre-wrap">
                         {c.contractText}
                       </div>
@@ -326,6 +328,10 @@ export default function DistributionAgreementScreen() {
                     })()}
 
                     <div className="p-5 space-y-4">
+                      <ContractPartyInfo isOrg={contractParty.accountType === "org"} name={contractParty.name} register={contractParty.register} signerName={signerName} />
+                      <div className="grid grid-cols-2 gap-2">
+                        {[{ key: "read", label: "Гэрээтэй танилцах" }, { key: "sign", label: "Гарын үсэг зурах" }].map((step, index) => <div key={step.key} className={"flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-medium " + (ss.step === step.key ? "border-primary/30 bg-primary/5 text-primary" : "border-border bg-muted/20 text-muted-foreground")}><span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-current text-[10px]">{index + 1}</span>{step.label}</div>)}
+                      </div>
                       {/* Step 1: Read */}
                       {ss.step === "read" && (
                         <>
@@ -333,7 +339,7 @@ export default function DistributionAgreementScreen() {
                             <div
                               ref={el => { scrollRefs.current[c.id] = el; }}
                               onScroll={() => handleScroll(c.id)}
-                              className="h-[520px] overflow-y-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs text-zinc-700 leading-relaxed whitespace-pre-wrap">
+                              className="h-[min(68dvh,680px)] overflow-y-auto rounded-xl border border-border bg-muted/20 p-4 text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
                               {c.contractText}
                             </div>
                             {!ss.scrolledToBottom && (
@@ -354,7 +360,7 @@ export default function DistributionAgreementScreen() {
                           <div className="flex gap-3">
                             <Btn variant="secondary" onClick={cancelSigning}>Болих</Btn>
                             <Btn full disabled={!ss.scrolledToBottom} onClick={() => patchSign(c.id, { step: "sign" })}>
-                              Гарын үсэг зурах →
+                              Гарын үсэг зурах
                             </Btn>
                           </div>
                         </>
@@ -364,18 +370,8 @@ export default function DistributionAgreementScreen() {
                       {ss.step === "sign" && (
                         <>
                           <div className="border border-zinc-200 rounded-xl overflow-hidden">
-                            <div className="flex border-b border-zinc-200">
-                              {(["draw", "upload"] as const).map(t => (
-                                <button key={t} onClick={() => patchSign(c.id, { tab: t })}
-                                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold transition-colors ${
-                                    ss.tab === t ? "bg-white text-zinc-900 border-b-2 border-primary" : "bg-zinc-50 text-zinc-500 hover:text-zinc-700"
-                                  }`}>
-                                  {t === "draw" ? <><Pencil size={13} /> Хулганаар зурах</> : <><Upload size={13} /> Зураг оруулах</>}
-                                </button>
-                              ))}
-                            </div>
-                            <div className="p-4">
-                              {ss.tab === "draw" && (
+                            <div className="border-b border-border bg-muted/20 px-4 py-3"><p className="flex items-center gap-2 text-sm font-medium text-foreground"><Pencil size={15} />Гарын үсэг зурах</p><p className="mt-1 text-xs text-muted-foreground">Хулгана эсвэл хуруугаараа доорх талбарт зурна уу.</p></div>
+<div className="p-4">
                                 <div className="relative">
                                   <canvas
                                     ref={el => { canvasRefs.current[c.id] = el; }}
@@ -384,15 +380,15 @@ export default function DistributionAgreementScreen() {
                                       ss.signature ? "border-primary bg-white" : "border-dashed border-zinc-300 bg-zinc-50"
                                     }`}
                                     style={{ height: 180, touchAction: "none" }}
-                                    onMouseDown={e => startDraw(c.id, e)}
-                                    onMouseMove={e => draw(c.id, e)}
-                                    onMouseUp={() => stopDraw(c.id)}
-                                    onMouseLeave={() => stopDraw(c.id)}
+                                    onPointerDown={e => startDraw(c.id, e)}
+                                    onPointerMove={e => draw(c.id, e)}
+                                    onPointerUp={() => stopDraw(c.id)}
+                                    onPointerCancel={() => stopDraw(c.id)}
                                   />
                                   {!ss.signature && (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-1.5">
                                       <Pencil size={18} className="text-zinc-300" />
-                                      <p className="text-xs text-zinc-400">Энд хулганаар гарын үсгээ зурна уу</p>
+                                      <p className="text-xs text-zinc-400">Энд гарын үсгээ зурна уу</p>
                                     </div>
                                   )}
                                   <div className="absolute bottom-4 left-8 right-8 h-px bg-zinc-200 pointer-events-none" />
@@ -403,40 +399,14 @@ export default function DistributionAgreementScreen() {
                                     </button>
                                   )}
                                 </div>
-                              )}
-                              {ss.tab === "upload" && (
-                                <>
-                                  <input
-                                    ref={el => { fileInputRefs.current[c.id] = el; }}
-                                    type="file" accept="image/*" className="hidden"
-                                    onChange={e => handleUpload(c.id, e)} />
-                                  {ss.uploadPreview ? (
-                                    <div className="relative rounded-lg border-2 border-primary overflow-hidden bg-white" style={{ height: 180 }}>
-                                      <img src={ss.uploadPreview} alt="signature" className="w-full h-full object-contain" />
-                                      <button onClick={() => {
-                                        patchSign(c.id, { uploadPreview: "", signature: "" });
-                                        if (fileInputRefs.current[c.id]) fileInputRefs.current[c.id]!.value = "";
-                                      }} className="absolute top-2 right-2 flex items-center gap-1 text-xs text-zinc-500 bg-white border border-zinc-200 rounded-lg px-2 py-1">
-                                        <RotateCcw size={11} /> Солих
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button onClick={() => fileInputRefs.current[c.id]?.click()}
-                                      className="w-full flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 hover:border-primary hover:bg-primary/5 transition-colors"
-                                      style={{ height: 180 }}>
-                                      <Upload size={18} className="text-zinc-400" />
-                                      <p className="text-sm font-semibold text-zinc-700">Гарын үсгийн зураг оруулах</p>
-                                    </button>
-                                  )}
-                                </>
-                              )}
                             </div>
                           </div>
 
-                          <label className={`flex items-start gap-3 p-3.5 rounded-xl border transition-colors cursor-pointer ${
+                          {!signerName && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">Гэрээнд гарын үсэг зурахын өмнө профайлын овог, нэрээ бүрэн оруулна уу.</p>}
+                          <label className={`flex items-center gap-3 p-3.5 rounded-xl border transition-colors cursor-pointer ${
                             ss.agreed ? "border-primary/30 bg-primary/5" : "border-zinc-200 hover:border-zinc-300 bg-white"
                           }`}>
-                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                               ss.agreed ? "bg-primary border-primary" : "border-zinc-300 bg-white"
                             }`}>
                               {ss.agreed && <Check size={11} className="text-white" />}
@@ -444,13 +414,13 @@ export default function DistributionAgreementScreen() {
                             <input type="checkbox" className="sr-only" checked={ss.agreed}
                               onChange={e => patchSign(c.id, { agreed: e.target.checked })} />
                             <span className="text-sm text-zinc-700 leading-snug">
-                              Би <span className="font-semibold">{c.name}</span>-ийн агуулгыг анхааралтай уншиж, бүрэн зөвшөөрч байна.
+                              Би, <span className="font-semibold">{signerName.trim() || "овог нэрээ оруулна уу"}</span>, {accState.accountType === "org" && <><span className="font-semibold">{accState.partyName || "Steppe Records ХХК"}</span>-ийг төлөөлж, </>}<span className="font-semibold">{c.name}</span>-тэй бүрэн танилцаж, нөхцөлийг зөвшөөрч байна.
                             </span>
                           </label>
 
                           <div className="flex gap-3">
                             <Btn variant="secondary" onClick={() => patchSign(c.id, { step: "read" })}>Буцах</Btn>
-                            <Btn full disabled={!canSubmit} onClick={() => handleSubmit(c)}>
+                            <Btn full disabled={!canSubmit || !signerName.trim()} onClick={() => handleSubmit(c)}>
                               Гэрээ баталгаажуулах
                             </Btn>
                           </div>

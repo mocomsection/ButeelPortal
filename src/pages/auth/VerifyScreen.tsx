@@ -1,24 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import buteelLogo from "@/imports/Artboard_1.png";
-import { FileText, Smartphone } from "lucide-react";
+import { Mail, Smartphone } from "lucide-react";
 import { Btn } from "@/components/ui/Btn";
 import { Card } from "@/components/ui/Card";
 
 export default function VerifyScreen() {
   const navigate = useNavigate();
-  const [method, setMethod] = useState<"email" | "phone">("email");
+  const [recipient] = useState<{ method: "email" | "phone"; destination: string } | null>(() => {
+    try { const saved = JSON.parse(sessionStorage.getItem("buteel_verification") || "null"); return saved && ["email", "phone"].includes(saved.method) && typeof saved.destination === "string" ? saved : null; } catch { return null; }
+  });
+  const method = recipient?.method ?? "email";
   const [code, setCode] = useState("");
-  const [sent, setSent] = useState(true);
   const [resendSec, setResendSec] = useState(59);
 
-  useState(() => {
+  useEffect(() => {
     const t = setInterval(() => setResendSec(s => s > 0 ? s - 1 : 0), 1000);
     return () => clearInterval(t);
-  });
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-10 sm:py-12">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4" style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
@@ -32,18 +34,11 @@ export default function VerifyScreen() {
 
         <Card className="p-8">
           {/* Method toggle */}
-          <div className="flex bg-zinc-100 rounded-xl p-1 mb-6">
-            {(["email", "phone"] as const).map(m => (
-              <button type="button" key={m} onClick={() => { setMethod(m); setCode(""); setSent(true); setResendSec(59); }}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all ${method === m ? "bg-white shadow-sm text-zinc-900" : "text-zinc-500"}`}>
-                {m === "email" ? <><FileText size={14} />И-мэйл</> : <><Smartphone size={14} />Утас</>}
-              </button>
-            ))}
-          </div>
+          <p className="mb-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">{method === "email" ? <Mail size={16} /> : <Smartphone size={16} />}{method === "email" ? "И-мэйлээр баталгаажуулах" : "Утсаар баталгаажуулах"}</p>
 
           {/* Destination hint */}
           <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3 mb-6 text-sm text-violet-800 font-medium text-center">
-            {method === "email" ? "bo**@example.mn" : "+976 ****-0000"}
+            <span className="break-all">{recipient?.destination || "Код хүлээн авах хаягаа бүртгэлийн хэсэгт оруулна уу."}</span>
           </div>
 
           {/* Code input */}
@@ -57,7 +52,7 @@ export default function VerifyScreen() {
             />
           </div>
 
-          <Btn full size="lg" disabled={code.length < 6} onClick={() => navigate("/onboarding/account-type")}>
+          <Btn full size="lg" disabled={code.length < 6 || !recipient} onClick={() => navigate("/onboarding/account-type")}>
             Баталгаажуулах
           </Btn>
 

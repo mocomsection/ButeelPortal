@@ -26,7 +26,7 @@ export default function StatementDetailScreen() {
               <p className="text-2xl font-bold text-zinc-900">2024 Q4</p>
               <p className="text-sm text-zinc-500 mt-0.5">2024-10-01 — 2024-12-31</p>
             </div>
-            <div className="text-right">
+            <div className="sm:text-right">
               <p className="text-sm text-zinc-500">Нийт дүн</p>
               <p className="text-2xl font-bold text-zinc-900">₮ 312,500</p>
               <StatusBadge status="paid" />
@@ -42,19 +42,22 @@ export default function StatementDetailScreen() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                  {["Бүтээл", "Дуу", "Платформ", "Төрөл", "Дүн"].map(h => (
-                    <th key={h} className="text-left text-xs font-semibold text-zinc-500 uppercase px-4 py-3">{h}</th>
+                  {["Бүтээл", "Дуу", "Платформ", "Төрөл", "Дүн"].map((h, i) => (
+                    <th key={h} className={`text-xs font-semibold text-zinc-500 normal-case px-4 py-3 ${i === 4 ? "text-right sm:text-left" : "text-left"} ${i > 0 && i < 4 ? "hidden sm:table-cell" : ""}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-50">
                 {rows.map((r, i) => (
                   <tr key={i} className="hover:bg-zinc-50/50">
-                    <td className="px-4 py-3 text-zinc-900 font-medium">{r.release}</td>
-                    <td className="px-4 py-3 text-zinc-600">{r.track}</td>
-                    <td className="px-4 py-3 text-zinc-600">{r.service}</td>
-                    <td className="px-4 py-3"><span className="bg-zinc-100 text-zinc-600 text-xs px-2 py-0.5 rounded font-medium">{r.type}</span></td>
-                    <td className="px-4 py-3 font-semibold text-zinc-900">{r.amount}</td>
+                    <td className="px-4 py-3 text-zinc-900 font-medium">
+                      {r.release}
+                      <p className="sm:hidden text-xs font-normal text-zinc-500 mt-0.5">{r.track} · {r.service} · {r.type}</p>
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600 hidden sm:table-cell">{r.track}</td>
+                    <td className="px-4 py-3 text-zinc-600 hidden sm:table-cell">{r.service}</td>
+                    <td className="px-4 py-3 hidden sm:table-cell"><span className="bg-zinc-100 text-zinc-600 text-xs px-2 py-0.5 rounded font-medium">{r.type}</span></td>
+                    <td className="px-4 py-3 font-semibold text-zinc-900 whitespace-nowrap text-right sm:text-left">{r.amount}</td>
                   </tr>
                 ))}
               </tbody>
@@ -65,4 +68,3 @@ export default function StatementDetailScreen() {
     </Shell>
   );
 }
-

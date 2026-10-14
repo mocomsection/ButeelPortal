@@ -9,7 +9,7 @@ import { getObState, completeOnboarding } from "@/data/ob-state";
 export default function OnboardingCompleteScreen() {
   const navigate = useNavigate();
   const state = getObState();
-  const signedContracts = OB_CONTRACTS.filter(c => state.contracts.includes(c.id));
+  const signedContracts = OB_CONTRACTS.filter(c => state.contracts.includes(c.id) && !!state.signed[c.id]);
 
   const handleStart = () => {
     completeOnboarding();
@@ -17,21 +17,23 @@ export default function OnboardingCompleteScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-10 sm:py-12">
+      <div className="w-full max-w-xl">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3"
             style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
             <img src={buteelLogo} alt="Buteel" className="w-8 h-8 object-contain" />
           </div>
+          <h1 className="text-xl font-extrabold text-foreground">Buteel Portal</h1>
         </div>
 
         <Card className="p-8 text-center">
           <div className="w-16 h-16 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-5">
             <CheckCircle2 size={34} className="text-primary" />
           </div>
-          <h2 className="text-2xl font-bold text-zinc-900 mb-1">Аккаунт амжилттай үүслээ!</h2>
-          <p className="text-sm text-zinc-500 mb-6">Бүтээлүүдийг нийтлэхэд бэлэн боллоо.</p>
+
+          <h2 className="mb-1 text-xl font-semibold text-foreground">Аккаунт амжилттай үүслээ!</h2>
+          <p className="mb-6 text-sm leading-relaxed text-muted-foreground">Гэрээ болон үндсэн нэрийн тохиргоогоо хийж дууслаа.</p>
 
           <div className="space-y-3 mb-6 text-left">
             {signedContracts.map(c => {

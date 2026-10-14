@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ChevronRight, ArrowLeft, Zap, CalendarDays, RadioTower, Check, Info } from "lucide-react";
+import { DateInput } from "@/components/ui/DateInput";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
@@ -34,10 +35,10 @@ const SERVICE_GROUPS = [
   {
     id: "radio",
     title: "Сурталчилгааны радио цацалт",
-    sub: "Promotional airplay — royalty тооцоолдоггүй",
+    sub: "Уран бүтээлээ сурталчилгааны зорилгоор Sonsy FM радиод түгээх.",
     locked: false,
     services: ["Sonsy FM 78.9 & 100.1"] as ServiceName[],
-    note: "Энэ радио цацалт нь сурталчилгааны зорилготой. Buteel энэ цацалтын royalty орлогыг тооцож хуваарилахгүй.",
+    note: "Энэ сонголтыг идэвхжүүлснээр таны уран бүтээлийг сурталчилгааны зорилгоор Sonsy FM радиод нийлүүлнэ. Радио цацалтаас үүсэх эрхийн төлбөр (royalty)-ийг эрх эзэмшигч өөрийн харьяалах эрхийн хамтын удирдлагын байгууллага (CMO)-аар дамжуулан цуглуулна.",
   },
 ];
 
@@ -131,8 +132,7 @@ export default function SubmitSettingsScreen() {
               {scheduleMode === "date" && (
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-zinc-700 block">Нийтлэх огноо <span className="text-red-500">*</span></label>
-                  <input type="date" min={minDate()} value={releaseDate} onChange={e => setReleaseDate(e.target.value)}
-                    className="w-full max-w-xs px-3.5 py-2.5 text-sm rounded-xl border border-zinc-200 outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500" />
+                  <DateInput value={releaseDate} onChange={setReleaseDate} min={minDate()} className="max-w-xs" />
                   <div className="flex items-center gap-2 text-xs text-zinc-500">
                     <Info size={11} />
                     Хамгийн эрт боломжит огноо: <strong>{minDate()}</strong>
@@ -204,7 +204,7 @@ export default function SubmitSettingsScreen() {
           <div className="lg:col-span-1">
             <div className="sticky top-4 space-y-3">
               <Card className="p-4">
-                <p className="text-xs font-bold uppercase text-zinc-400 mb-3">Нийтлэлтийн тухай</p>
+                <p className="text-xs font-bold normal-case text-zinc-400 mb-3">Нийтлэлтийн тухай</p>
                 <div className="space-y-2.5 text-xs text-zinc-500">
                   <p>• ASAP: шалгалт дуусмагц (~2–3 өдөр)</p>
                   <p>• Огноо: хамгийн багадаа 7 хоногийн дараа</p>
@@ -212,7 +212,7 @@ export default function SubmitSettingsScreen() {
                 </div>
               </Card>
               <Card className="p-4">
-                <p className="text-xs font-bold uppercase text-zinc-400 mb-3">Сонгосон сувгууд</p>
+                <p className="text-xs font-bold normal-case text-zinc-400 mb-3">Сонгосон сувгууд</p>
                 <div className="flex flex-wrap gap-1.5">
                   {[...selected].map(name => (
                     <span key={name} className="flex items-center gap-1 text-xs font-semibold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">
@@ -230,4 +230,3 @@ export default function SubmitSettingsScreen() {
     </Shell>
   );
 }
-

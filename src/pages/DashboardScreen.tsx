@@ -61,7 +61,7 @@ export default function DashboardScreen() {
       </div>
 
       {/* 4 stat cards — all self-start so content aligns to top inside equal-height cells */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 items-stretch">
+      <div role="region" aria-label="Хяналтын самбарын үзүүлэлтүүд" tabIndex={0} className="grid grid-flow-col auto-cols-[minmax(240px,85%)] sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 items-stretch overflow-x-auto sm:overflow-visible overscroll-x-contain snap-x snap-mandatory pb-2 sm:pb-0 [&>div]:snap-start focus-visible:outline-2 focus-visible:outline-primary">
 
         {/* 1 — Нийт контент */}
         <Card className="p-5 flex flex-col">
@@ -191,9 +191,6 @@ export default function DashboardScreen() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-foreground text-sm truncate">{r.title}</p>
-                        {r.status === "revision" && (
-                          <span className="text-xs bg-destructive/10 text-destructive font-bold px-1.5 py-0.5 rounded flex-shrink-0">Засвар</span>
-                        )}
                       </div>
                       <p className="text-xs text-muted-foreground">{r.primaryArtist} · {typeLabel(r)}</p>
                     </div>

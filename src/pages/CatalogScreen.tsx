@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import { deleteDraftProduct, getCatalogSnapshot, subscribeCatalog } from "@/data/catalog-store";
 import { useNavigate, useLocation } from "react-router";
+import * as Popover from "@radix-ui/react-popover";
 import {
   Music2, Plus, Search, Check, X, AlertCircle, Disc3, Eye, BookOpen,
   ChevronDown, MoreHorizontal, Filter, LayoutGrid, List, Film, Pencil,
-  User, Tag, ArrowRight, Headphones, Building2, Clapperboard, Mic2, Video,
+  User, Tag, Building2, Clapperboard, Mic2, Trash2, Copy,
 } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
+import { MusicModeDialog } from "@/components/ui/MusicModeDialog";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { RELEASES } from "@/data/releases";
-import { AUDIOBOOKS } from "@/data/audiobooks";
-import { MOVIES } from "@/data/movies";
-const ALL_RELEASES = [...RELEASES, ...AUDIOBOOKS, ...MOVIES];
 import type { ReleaseData } from "@/types";
 
 // ── Per-type static config ────────────────────────────────────────────────────
@@ -105,18 +105,21 @@ function SearchDrop({
   items: string[]; allLabel: string; onClose: () => void;
 }) {
   const filtered = items.filter(i => !searchVal || i.toLowerCase().includes(searchVal.toLowerCase()));
-  const dropBtn = `flex items-center gap-2 h-9 px-3.5 rounded-xl text-sm font-semibold border transition-colors ${active || open ? "border-primary bg-secondary text-primary" : "border-border bg-card text-foreground/70 hover:border-primary/40"}`;
+  const dropBtn = `flex items-center gap-2 h-10 px-3.5 rounded-xl text-sm font-semibold border transition-colors ${active || open ? "border-primary bg-secondary text-primary" : "border-border bg-card text-foreground/70 hover:border-primary/40"}`;
   return (
-    <div className="relative flex-shrink-0">
-      <button type="button" onClick={onToggle} className={dropBtn}>
+    <Popover.Root open={open} onOpenChange={next => { if (!next) onClose(); }}>
+      <div className="relative flex-shrink-0 flex items-center">
+      <Popover.Trigger asChild>
+      <button type="button" onClick={onToggle} aria-expanded={open} className={`${dropBtn} whitespace-nowrap`}>
         <Icon size={13} />
         <span>{value === "all" ? label : value}</span>
-        {value !== "all"
-          ? <button type="button" onClick={e => { e.stopPropagation(); setValue("all"); }} className="ml-0.5 hover:opacity-70"><X size={10} /></button>
-          : <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />}
+        <ChevronDown size={12} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && (
-        <div className="absolute top-11 left-0 z-30 bg-card rounded-2xl shadow-xl border border-border w-56">
+      </Popover.Trigger>
+      {value !== "all" && <button type="button" aria-label={`${label} шүүлтүүр цэвэрлэх`} onClick={() => setValue("all")} className="ml-1 p-2 rounded-lg text-muted-foreground hover:bg-muted"><X size={12} /></button>}
+      </div>
+      <Popover.Portal>
+        <Popover.Content align="start" sideOffset={8} collisionPadding={16} className="z-40 bg-card rounded-2xl shadow-xl border border-border w-56 max-w-[calc(100vw-2rem)] outline-none">
           <div className="p-2 border-b border-border">
             <div className="relative">
               <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -138,9 +141,9 @@ function SearchDrop({
             ))}
             {filtered.length === 0 && <p className="px-4 py-3 text-xs text-muted-foreground">Олдсонгүй</p>}
           </div>
-        </div>
-      )}
-    </div>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
@@ -155,6 +158,7 @@ export default function CatalogScreen() {
 
   // ── filter state ──────────────────────────────────────────────────────────
   const [view, setView] = useState<"list" | "grid">("grid");
+  const [visibleCount, setVisibleCount] = useState(10);
   const [search, setSearch] = useState("");
   const [artistFilter, setArtistFilter]   = useState("all");
   const [artistSearch, setArtistSearch]   = useState("");
@@ -167,15 +171,30 @@ export default function CatalogScreen() {
   // music-only
   const [releaseTypeFilter, setReleaseTypeFilter] = useState("all");
   const [releaseTypeOpen, setReleaseTypeOpen]     = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenuId(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [openMenuId]);
 
   const closeAllDrops = () => {
     setArtistOpen(false); setLabelOpen(false);
     setStatusOpen(false); setReleaseTypeOpen(false);
   };
 
-  const typeReleases = ALL_RELEASES.filter(r => r.contentType === ct);
-  const uniqueArtists = [...new Set(typeReleases.map(r => r.primaryArtist))].sort();
-  const uniqueLabels  = [...new Set(typeReleases.map(r => r.label).filter(Boolean))].sort();
+  const catalogProducts = useSyncExternalStore(subscribeCatalog, getCatalogSnapshot);
+  const [deleteTarget, setDeleteTarget] = useState<ReleaseData | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const typeReleases = catalogProducts.filter(r => r.contentType === ct);
+  const uniqueArtists = [...new Set<string>(typeReleases.map(r => r.primaryArtist))].sort();
+  const uniqueLabels  = [...new Set<string>(typeReleases.map(r => r.label).filter(Boolean))].sort();
 
   const filtered = typeReleases.filter(r => {
     const matchStatus  = statusFilters.length === 0 || statusFilters.includes(r.status);
@@ -197,7 +216,6 @@ export default function CatalogScreen() {
 
   // ── New content ───────────────────────────────────────────────────────────
   const [showMusicModal, setShowMusicModal] = useState(pathname === "/releases/new");
-  const [musicMode, setMusicMode]           = useState<"single" | "album" | null>(null);
 
   // auto-open modal when landing on /releases/new
   useEffect(() => {
@@ -207,11 +225,15 @@ export default function CatalogScreen() {
   const handleNew = () => {
     if (ct === "audiobook") { navigate("/audiobooks/new"); return; }
     if (ct === "film")      { navigate("/movies/new"); return; }
-    setMusicMode(null); setShowMusicModal(true);
+    setShowMusicModal(true);
   };
 
   const dropBtn = (active: boolean) =>
-    `flex items-center gap-2 h-9 px-3.5 rounded-xl text-sm font-semibold border transition-colors ${active ? "border-primary bg-secondary text-primary" : "border-border bg-card text-foreground/70 hover:border-primary/40"}`;
+    `flex flex-shrink-0 items-center gap-2 h-10 px-3.5 rounded-xl text-sm font-semibold whitespace-nowrap border transition-colors ${active ? "border-primary bg-secondary text-primary" : "border-border bg-card text-foreground/70 hover:border-primary/40"}`;
+
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [pathname, search, artistFilter, labelFilter, releaseTypeFilter, statusFilters]);
 
   const EmptyIcon = cfg.emptyIcon;
 
@@ -219,7 +241,8 @@ export default function CatalogScreen() {
     <Shell title={cfg.title} subtitle={cfg.subtitle}>
 
       {/* ── Toolbar ── */}
-      <div className="flex items-center gap-2 mb-5 flex-wrap" onClick={closeAllDrops}>
+      <div className="flex items-center gap-2 mb-5 flex-wrap">
+        <div aria-label="Контентын шүүлтүүрүүд" className="flex w-full lg:w-auto max-w-full flex-wrap items-center gap-2">
 
         {/* Artist / Зохиолч / Найруулагч */}
         <SearchDrop
@@ -255,7 +278,8 @@ export default function CatalogScreen() {
 
         {/* Music-only: release type filter */}
         {ct === "music" && (
-          <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
+          <Popover.Root open={releaseTypeOpen} onOpenChange={next => { if (!next) setReleaseTypeOpen(false); }}>
+            <Popover.Trigger asChild>
             <button type="button"
               onClick={() => { setReleaseTypeOpen(v => !v); setArtistOpen(false); setLabelOpen(false); setStatusOpen(false); }}
               className={dropBtn(releaseTypeOpen || releaseTypeFilter !== "all")}>
@@ -263,8 +287,9 @@ export default function CatalogScreen() {
               {releaseTypeFilter === "all" ? "Төрөл" : releaseTypeFilter}
               <ChevronDown size={12} className={`transition-transform ${releaseTypeOpen ? "rotate-180" : ""}`} />
             </button>
-            {releaseTypeOpen && (
-              <div className="absolute top-11 left-0 z-30 bg-card rounded-2xl shadow-xl border border-border py-1.5 min-w-[160px]">
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content align="start" sideOffset={8} collisionPadding={16} className="z-40 bg-card rounded-2xl shadow-xl border border-border py-1.5 min-w-[160px] outline-none">
                 <button type="button" onClick={() => { setReleaseTypeFilter("all"); closeAllDrops(); }}
                   className={`w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-muted/40 transition-colors ${releaseTypeFilter === "all" ? "text-primary font-semibold" : "text-foreground/70"}`}>
                   Бүгд {releaseTypeFilter === "all" && <Check size={12} />}
@@ -275,22 +300,24 @@ export default function CatalogScreen() {
                     {t} {releaseTypeFilter === t && <Check size={12} />}
                   </button>
                 ))}
-              </div>
-            )}
-          </div>
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
         )}
 
         {/* Status filter */}
-        <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
+        <Popover.Root open={statusOpen} onOpenChange={next => { if (!next) setStatusOpen(false); }}>
+          <Popover.Trigger asChild>
           <button type="button"
             onClick={() => { setStatusOpen(v => !v); setArtistOpen(false); setLabelOpen(false); setReleaseTypeOpen(false); }}
             className={dropBtn(statusOpen || statusFilters.length > 0)}>
             <Filter size={13} />
-            {statusFilters.length === 0 ? "Статус" : `${statusFilters.length} статус`}
+            {statusFilters.length === 0 ? "Төлөв" : `${statusFilters.length} төлөв`}
             <ChevronDown size={12} className={`transition-transform ${statusOpen ? "rotate-180" : ""}`} />
           </button>
-          {statusOpen && (
-            <div className="absolute top-11 left-0 z-30 bg-card rounded-2xl shadow-xl border border-border py-1.5 min-w-[196px]">
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content align="start" sideOffset={8} collisionPadding={16} className="z-40 bg-card rounded-2xl shadow-xl border border-border py-1.5 min-w-[196px] max-h-[60dvh] overflow-y-auto outline-none">
               {STATUS_OPTIONS.map(opt => (
                 <button key={opt.id} type="button" onClick={() => toggleStatus(opt.id)}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/40 transition-colors">
@@ -307,9 +334,9 @@ export default function CatalogScreen() {
                     className="text-xs font-semibold text-muted-foreground hover:text-foreground">Цэвэрлэх</button>
                 </div>
               )}
-            </div>
-          )}
-        </div>
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
 
         {/* Active status pills */}
         {statusFilters.map(id => {
@@ -322,27 +349,32 @@ export default function CatalogScreen() {
           ) : null;
         })}
 
+        </div>
+        <div className="flex items-center gap-2 w-full lg:w-auto lg:flex-1 min-w-0">
         {/* Search */}
-        <div className="relative flex-1 min-w-[180px]">
+        <div className="relative flex-1 min-w-0">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-8 pr-3 h-9 text-sm bg-card rounded-xl border border-border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder-muted-foreground"
+            className="w-full pl-8 pr-3 h-10 text-sm bg-card rounded-xl border border-border outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder-muted-foreground"
             placeholder={cfg.searchPlaceholder} />
         </div>
 
-        {/* View toggle + New */}
+        {/* View toggle */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="flex items-center border border-border rounded-xl overflow-hidden bg-card">
-            <button type="button" onClick={() => setView("list")}
-              className={`p-2 transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <button type="button" onClick={() => setView("list")} aria-label="Жагсаалтаар харах" aria-pressed={view === "list"}
+              className={`h-10 w-10 flex items-center justify-center transition-colors ${view === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
               <List size={15} />
             </button>
-            <button type="button" onClick={() => setView("grid")}
-              className={`p-2 transition-colors ${view === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+            <button type="button" onClick={() => setView("grid")} aria-label="Картаар харах" aria-pressed={view === "grid"}
+              className={`h-10 w-10 flex items-center justify-center transition-colors ${view === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>
               <LayoutGrid size={15} />
             </button>
           </div>
-          <Btn size="sm" icon={<Plus size={14} />} onClick={handleNew}>{cfg.newLabel}</Btn>
+        </div>
+        </div>
+        <div className="ml-auto flex-shrink-0 [&_button]:min-h-10">
+          <Btn size="lg" icon={<Plus size={14} />} onClick={handleNew}>{cfg.newLabel}</Btn>
         </div>
       </div>
 
@@ -354,7 +386,7 @@ export default function CatalogScreen() {
               <EmptyIcon size={36} className="mx-auto text-zinc-200 mb-3" />
               <p className="text-zinc-400 text-sm">Бүтээл олдсонгүй</p>
             </div>
-          ) : filtered.map(r => (
+          ) : filtered.slice(0, visibleCount).map(r => (
             <div key={r.id}
               className={`bg-white rounded-xl border-t-2 border border-zinc-100 shadow-sm hover:shadow-[0_4px_20px_0_rgba(108,77,246,0.1)] transition-all overflow-hidden ${statusColor[r.status] || "border-t-zinc-200"}`}>
               {/* Cover */}
@@ -376,11 +408,11 @@ export default function CatalogScreen() {
               </div>
 
               {/* Info */}
-              <div className="p-3">
-                <p className="font-semibold text-sm text-zinc-900 truncate leading-tight">{r.title}</p>
-                <p className="text-xs text-zinc-500 mt-0.5 truncate">{r.primaryArtist}</p>
+              <div className="p-3.5">
+                <p className="font-semibold text-sm text-zinc-900 truncate leading-snug">{r.title}</p>
+                <p className="text-xs text-zinc-500 mt-1 truncate">{r.primaryArtist}</p>
 
-                <div className="flex items-center justify-between mt-2 flex-wrap gap-1">
+                <div className="flex items-center justify-between mt-2.5 flex-wrap gap-1">
                   {ct === "music" ? (
                     <>
                       <div className="flex items-center gap-1">
@@ -395,30 +427,24 @@ export default function CatalogScreen() {
                 </div>
 
                 {/* Type-specific detail row */}
-                <div className="mt-2 pt-2 border-t border-zinc-100 space-y-0.5">
+                <div className="mt-2.5 pt-2.5 border-t border-zinc-100 space-y-1.5">
                   {ct === "music" && (
                     <>
                       {r.label && <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Лейбл:</span> {r.label}</p>}
-                      <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500 font-sans">UPC:</span> {r.upc || "—"}</p>
+                      <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">UPC:</span> {r.upc || "—"}</p>
                     </>
                   )}
-                  {ct === "audiobook" && (
-                    <>
-                      {r.label && <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Нийтлэгч:</span> {r.label}</p>}
-                    </>
+                  {ct === "audiobook" && r.label && (
+                    <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Нийтлэгч:</span> {r.label}</p>
                   )}
-                  {ct === "film" && (
-                    <>
-  
-                      {r.label && <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Студи:</span> {r.label}</p>}
-                    </>
+                  {ct === "film" && r.label && (
+                    <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Студи:</span> {r.label}</p>
                   )}
+                  {r.releaseDate && <p className="text-xs text-zinc-400 truncate"><span className="font-semibold text-zinc-500">Нийтлэх огноо:</span> {r.releaseDate}</p>}
                 </div>
 
-                <p className="text-xs text-zinc-400 mt-1.5">{r.releaseDate}</p>
-
                 {/* Actions */}
-                <div className="flex items-center gap-1 mt-2.5">
+                <div className="flex items-center gap-1 mt-3">
                   <button type="button" onClick={() => navigate(detailPath(r))}
                     className="flex items-center justify-center w-8 h-8 rounded-xl border border-zinc-200 text-zinc-500 hover:bg-zinc-50 hover:text-zinc-700 transition-colors">
                     <Eye size={14} />
@@ -430,6 +456,11 @@ export default function CatalogScreen() {
                     </button>
                   )}
                   <button type="button"
+                    onClick={e => {
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      setMenuPos({ top: rect.bottom + 4, left: rect.right - 160 });
+                      setOpenMenuId(openMenuId === r.id ? null : r.id);
+                    }}
                     className="flex items-center justify-center w-8 h-8 rounded-xl border border-zinc-200 text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600 transition-colors ml-auto">
                     <MoreHorizontal size={14} />
                   </button>
@@ -441,31 +472,34 @@ export default function CatalogScreen() {
       ) : (
         /* ── List view ── */
         <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <p className="flex items-center justify-center gap-2 border-b border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground min-[1200px]:hidden">
+            <span aria-hidden="true">↔</span> Бүх баганыг харахын тулд зүүн, баруун тийш гүйлгэнэ үү
+          </p>
+          <div role="region" aria-label={`${cfg.title} мэдээллийн хүснэгт`} tabIndex={0} className="overflow-x-auto overscroll-x-contain pb-4 focus-visible:outline-2 focus-visible:outline-primary">
+            <table className="w-full min-w-[900px] [&_th]:whitespace-nowrap">
               <thead>
                 <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                  <th className="text-left text-xs font-semibold text-zinc-400 uppercase px-5 py-3">
+                  <th className="text-left text-xs font-semibold text-zinc-400 normal-case px-5 py-3">
                     {ct === "music" ? "Дуу / Цомог нэр" : ct === "audiobook" ? "Номын нэр" : "Киноны нэр"}
                   </th>
-                  <th className="text-left text-xs font-semibold text-zinc-400 uppercase px-4 py-3 hidden sm:table-cell">
+                  <th className="text-left text-xs font-semibold text-zinc-400 normal-case px-4 py-3">
                     {ct === "music" ? "Артист" : ct === "audiobook" ? "Зохиолч" : "Найруулагч"}
                   </th>
-                  <th className="text-left text-xs font-semibold text-zinc-400 uppercase px-4 py-3 hidden lg:table-cell">
+                  <th className="text-left text-xs font-semibold text-zinc-400 normal-case px-4 py-3">
                     {ct === "music" ? "Лейбл" : ct === "audiobook" ? "Нийтлэгч" : "Студи"}
                   </th>
                   {ct === "music" && (
-                    <th className="text-left text-xs font-semibold text-zinc-400 uppercase px-4 py-3 hidden xl:table-cell">UPC</th>
+                    <th className="text-left text-xs font-semibold text-zinc-400 normal-case px-4 py-3">UPC</th>
                   )}
                   {ct === "audiobook" && (
-                    <th className="text-left text-xs font-semibold text-zinc-400 uppercase px-4 py-3 hidden xl:table-cell">Бүлэг</th>
+                    <th className="text-left text-xs font-semibold text-zinc-400 normal-case px-4 py-3">Бүлэг</th>
                   )}
                   {ct === "music" && (
-                    <th className="text-left text-xs font-semibold text-zinc-400 uppercase px-4 py-3 hidden sm:table-cell">Төрөл</th>
+                    <th className="text-left text-xs font-semibold text-zinc-400 normal-case px-4 py-3">Төрөл</th>
                   )}
-                  <th className="text-left text-xs font-semibold text-zinc-400 uppercase px-4 py-3">Статус</th>
-                  <th className="text-left text-xs font-semibold text-zinc-400 uppercase px-4 py-3 hidden md:table-cell">Огноо</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-400 uppercase">Үйлдэл</th>
+                  <th className="text-left text-xs font-semibold text-zinc-400 normal-case px-4 py-3">Төлөв</th>
+                  <th className="text-left text-xs font-semibold text-zinc-400 normal-case px-4 py-3">Огноо</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-400 normal-case">Үйлдэл</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-50">
@@ -490,21 +524,21 @@ export default function CatalogScreen() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 text-sm text-zinc-500 hidden sm:table-cell">{artistLabel(r)}</td>
-                    <td className="px-4 py-3.5 text-sm text-zinc-500 hidden lg:table-cell">{r.label || "—"}</td>
+                    <td className="px-4 py-3.5 text-sm text-zinc-500">{artistLabel(r)}</td>
+                    <td className="px-4 py-3.5 text-sm text-zinc-500">{r.label || "—"}</td>
                     {ct === "music" && (
-                      <td className="px-4 py-3.5 text-xs text-zinc-400 hidden xl:table-cell">{r.upc || "—"}</td>
+                      <td className="px-4 py-3.5 text-xs text-zinc-400">{r.upc || "—"}</td>
                     )}
                     {ct === "audiobook" && (
-                      <td className="px-4 py-3.5 text-xs text-zinc-500 hidden xl:table-cell">{r.tracks.length} бүлэг</td>
+                      <td className="px-4 py-3.5 text-xs text-zinc-500">{r.tracks.length} бүлэг</td>
                     )}
                     {ct === "music" && (
-                      <td className="px-4 py-3.5 hidden sm:table-cell">
+                      <td className="px-4 py-3.5">
                         <span className="text-xs bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded font-medium">{r.type}</span>
                       </td>
                     )}
                     <td className="px-4 py-3.5"><StatusBadge status={r.status} /></td>
-                    <td className="px-4 py-3.5 text-sm text-zinc-400 hidden md:table-cell">{r.releaseDate}</td>
+                    <td className="px-4 py-3.5 text-sm text-zinc-400">{r.releaseDate}</td>
                     <td className="px-4 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button type="button" onClick={() => navigate(detailPath(r))}
@@ -518,6 +552,11 @@ export default function CatalogScreen() {
                           </button>
                         )}
                         <button type="button"
+                          onClick={e => {
+                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                            setMenuPos({ top: rect.bottom + 4, left: rect.right - 160 });
+                            setOpenMenuId(openMenuId === r.id ? null : r.id);
+                          }}
                           className="flex items-center justify-center w-8 h-8 rounded-xl border border-zinc-200 text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600 transition-colors">
                           <MoreHorizontal size={14} />
                         </button>
@@ -531,83 +570,77 @@ export default function CatalogScreen() {
         </Card>
       )}
 
-      {/* ── Music new-content modal (single / album / music-video choice) ── */}
-      {showMusicModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowMusicModal(false)} />
-
-          <div className="relative bg-card rounded-2xl shadow-2xl border border-border w-full max-w-[580px] overflow-hidden">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3 px-7 pt-6 pb-5">
-              <div>
-                <h2 className="text-lg font-extrabold text-foreground m-0">Дуу, Цомог үүсгэх</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">Контентын төрлийг сонгоно уу</p>
-              </div>
-              <button type="button" onClick={() => setShowMusicModal(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors flex-shrink-0">
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* 3-column card grid */}
-            <div className="grid grid-cols-3 gap-3 px-7 pb-3">
-              {([
-                { id: "single" as const, icon: Headphones, label: "Single",     sub: "Зөвхөн нэг дуу гаргах" },
-                { id: "album"  as const, icon: Disc3,      label: "Album / EP", sub: "Олон дуу багтаасан цомог үүсгэх" },
-              ] as { id: "single" | "album"; icon: (p: { size?: number; className?: string }) => JSX.Element; label: string; sub: string }[]).map(m => {
-                const on = musicMode === m.id;
-                const MIcon = m.icon;
-                return (
-                  <button key={m.id} type="button" onClick={() => setMusicMode(m.id)}
-                    className={`group flex flex-col items-start p-4 rounded-xl border-2 text-left transition-all ${
-                      on
-                        ? "border-primary bg-primary/5"
-                        : "border-border bg-background hover:border-primary/40 hover:bg-muted/30"
-                    }`}>
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-colors ${
-                      on ? "bg-primary" : "bg-muted group-hover:bg-primary/10"
-                    }`}>
-                      <MIcon size={20} className={on ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"} />
-                    </div>
-                    <p className="font-extrabold text-sm text-foreground leading-tight">{m.label}</p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{m.sub}</p>
-                    {on && (
-                      <div className="mt-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center ml-auto">
-                        <Check size={11} className="text-primary-foreground" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-
-              {/* Music Video — disabled / coming soon */}
-              <div className="relative flex flex-col items-start p-4 rounded-xl border-2 border-dashed border-border/60 bg-muted/20 opacity-60 select-none cursor-not-allowed">
-                <div className="w-11 h-11 rounded-xl bg-muted flex items-center justify-center mb-3">
-                  <Video size={20} className="text-muted-foreground/50" />
-                </div>
-                <p className="font-extrabold text-sm text-foreground/60 leading-tight">Дууны видео</p>
-                <p className="text-xs text-muted-foreground/60 mt-1 leading-relaxed">MV нийтлэх</p>
-                <span className="mt-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
-                  Тун удахгүй
-                </span>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex items-center justify-end gap-2 px-7 py-4 mt-1 border-t border-border bg-muted/20">
-              <button type="button" onClick={() => setShowMusicModal(false)}
-                className="h-9 px-4 rounded-xl text-sm font-semibold border border-border bg-card text-foreground/70 hover:bg-muted/40 transition-colors">
-                Болих
-              </button>
-              <button type="button" disabled={!musicMode}
-                onClick={() => { if (musicMode) { setShowMusicModal(false); navigate(`/releases/new/${musicMode}`); } }}
-                className="h-9 px-5 rounded-xl text-sm font-semibold bg-primary text-primary-foreground hover:bg-accent transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
-                Үргэлжлүүлэх <ArrowRight size={14} />
-              </button>
-            </div>
-          </div>
+      {view === "grid" && filtered.length > 0 && (
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <p className="text-xs text-muted-foreground">Нийт {filtered.length} бүтээлээс {Math.min(visibleCount, filtered.length)} харагдаж байна</p>
+          {visibleCount < filtered.length && (
+            <button type="button" onClick={() => setVisibleCount(count => count + 10)}
+              className="min-h-11 rounded-xl border border-border bg-card px-6 py-2 text-sm font-semibold text-primary hover:bg-secondary">
+              Цааш үзэх
+            </button>
+          )}
         </div>
       )}
+
+      <MusicModeDialog open={showMusicModal} onClose={() => setShowMusicModal(false)} onChoose={mode => { setShowMusicModal(false); navigate(`/releases/new/${mode}`); }} />
+
+      {/* Grid action menu */}
+      {openMenuId && (() => {
+        const r = filtered.find(x => x.id === openMenuId);
+        if (!r) return null;
+        return (
+          <div ref={menuRef}
+            className="fixed z-[300] bg-white rounded-xl border border-border shadow-xl py-1 w-40"
+            style={{ top: menuPos.top, left: menuPos.left }}>
+            <button type="button" onClick={() => setOpenMenuId(null)}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-zinc-700 hover:bg-zinc-50 transition-colors">
+              <Copy size={14} className="text-zinc-400" />Хуулах
+            </button>
+            {r.status === "draft" && <>
+            <div className="border-t border-zinc-100 my-1" />
+            <button type="button" onClick={() => {
+              setOpenMenuId(null);
+              setDeleteError("");
+              setDeleteTarget(r);
+            }}
+              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors">
+              <Trash2 size={14} />Устгах
+            </button>
+            </>}
+          </div>
+        );
+      })()}
+      <Dialog.Root open={!!deleteTarget} onOpenChange={open => { if (!open) { setDeleteTarget(null); setDeleteError(""); } }}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[400] bg-black/50 backdrop-blur-sm" />
+          <Dialog.Content className="fixed left-4 right-4 top-1/2 z-[401] flex max-h-[calc(100dvh-2rem)] -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl sm:left-1/2 sm:right-auto sm:w-full sm:max-w-md sm:-translate-x-1/2">
+            <div className="flex items-start justify-between gap-3 px-5 pt-5 sm:px-6 sm:pt-6">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive"><AlertCircle size={20} /></span>
+                <Dialog.Title className="text-lg font-extrabold text-foreground">{deleteTarget?.status === "draft" ? "Ноорог устгах уу?" : "Устгах боломжгүй"}</Dialog.Title>
+              </div>
+              <Dialog.Close aria-label="Мэдэгдэл хаах" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><X size={16} /></Dialog.Close>
+            </div>
+            <div className="overflow-y-auto px-5 pb-5 pt-3 sm:px-6">
+              <Dialog.Description className="break-words text-sm leading-relaxed text-muted-foreground">
+                {deleteTarget?.status === "draft" ? `“${deleteTarget.title}” ноорогийг устгана. Энэ үйлдлийг буцаах боломжгүй.` : "Зөвхөн ноорог төлөвтэй бүтээлийг устгаж болно. Илгээгдсэн болон түгээгдсэн бүтээлүүд хадгалагдана."}
+              </Dialog.Description>
+              {deleteError && <div role="alert" className="mt-3 flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive"><AlertCircle size={16} className="mt-0.5 shrink-0" /><span>{deleteError}</span></div>}
+            </div>
+            <div className="flex justify-end gap-2 border-t border-border bg-muted/20 px-5 py-4 sm:px-6">
+              <Btn variant={deleteTarget?.status === "draft" ? "secondary" : "primary"} onClick={() => { setDeleteTarget(null); setDeleteError(""); }}>{deleteTarget?.status === "draft" ? "Болих" : "Ойлголоо"}</Btn>
+              {deleteTarget?.status === "draft" && <Btn variant="danger" icon={<Trash2 size={14} />} onClick={() => {
+                try {
+                  deleteDraftProduct(deleteTarget.id);
+                  setDeleteTarget(null);
+                } catch (error) {
+                  setDeleteError(error instanceof Error ? error.message : "Ноорогийг устгаж чадсангүй. Дахин оролдоно уу.");
+                }
+              }}>Устгах</Btn>}
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </Shell>
   );
 }

@@ -1,40 +1,41 @@
+import { lazy } from "react";
 import { Navigate } from "react-router";
 
-import LoginScreen from "@/pages/auth/LoginScreen";
-import RegisterScreen from "@/pages/auth/RegisterScreen";
-import VerifyScreen from "@/pages/auth/VerifyScreen";
-import TermsScreen from "@/pages/auth/TermsScreen";
+const LoginScreen = lazy(() => import("@/pages/auth/LoginScreen"));
+const RegisterScreen = lazy(() => import("@/pages/auth/RegisterScreen"));
+const VerifyScreen = lazy(() => import("@/pages/auth/VerifyScreen"));
+const TermsScreen = lazy(() => import("@/pages/auth/TermsScreen"));
 
-import OnboardingAccountTypeScreen from "@/pages/onboarding/OnboardingAccountTypeScreen";
-import OnboardingContractsScreen from "@/pages/onboarding/OnboardingContractsScreen";
-import OnboardingSignScreen from "@/pages/onboarding/OnboardingSignScreen";
-import OnboardingSetupScreen from "@/pages/onboarding/OnboardingSetupScreen";
-import OnboardingCompleteScreen from "@/pages/onboarding/OnboardingCompleteScreen";
+const OnboardingAccountTypeScreen = lazy(() => import("@/pages/onboarding/OnboardingAccountTypeScreen"));
+const OnboardingContractsScreen = lazy(() => import("@/pages/onboarding/OnboardingContractsScreen"));
+const OnboardingSignScreen = lazy(() => import("@/pages/onboarding/OnboardingSignScreen"));
+const OnboardingSetupScreen = lazy(() => import("@/pages/onboarding/OnboardingSetupScreen"));
+const OnboardingCompleteScreen = lazy(() => import("@/pages/onboarding/OnboardingCompleteScreen"));
 
-import DashboardScreen from "@/pages/DashboardScreen";
-import AccountStatusScreen from "@/pages/AccountStatusScreen";
-import AccountTaxScreen from "@/pages/AccountTaxScreen";
-import DistributionAgreementScreen from "@/pages/DistributionAgreementScreen";
-import CatalogScreen from "@/pages/CatalogScreen";
-import ReleaseDetailScreen from "@/pages/ReleaseDetailScreen";
-import RevenueScreen from "@/pages/RevenueScreen";
-import ReportsScreen from "@/pages/ReportsScreen";
-import ProfileScreen from "@/pages/ProfileScreen";
-import StatementDetailScreen from "@/pages/StatementDetailScreen";
-import HelpScreen from "@/pages/HelpScreen";
-import UsersScreen from "@/pages/UsersScreen";
-import NotFoundScreen from "@/pages/NotFoundScreen";
+const DashboardScreen = lazy(() => import("@/pages/DashboardScreen"));
+const AccountStatusScreen = lazy(() => import("@/pages/AccountStatusScreen"));
+const AccountTaxScreen = lazy(() => import("@/pages/AccountTaxScreen"));
+const DistributionAgreementScreen = lazy(() => import("@/pages/DistributionAgreementScreen"));
+const CatalogScreen = lazy(() => import("@/pages/CatalogScreen"));
+const ReleaseDetailScreen = lazy(() => import("@/pages/ReleaseDetailScreen"));
+const RevenueScreen = lazy(() => import("@/pages/RevenueScreen"));
+const ReportsScreen = lazy(() => import("@/pages/ReportsScreen"));
+const ProfileScreen = lazy(() => import("@/pages/ProfileScreen"));
+const StatementDetailScreen = lazy(() => import("@/pages/StatementDetailScreen"));
+const HelpScreen = lazy(() => import("@/pages/HelpScreen"));
+const UsersScreen = lazy(() => import("@/pages/UsersScreen"));
+const NotFoundScreen = lazy(() => import("@/pages/NotFoundScreen"));
 
-import MusicWizard from "@/pages/submit/MusicWizard";
-import SubmitStep1 from "@/pages/submit/SubmitStep1";
-import SubmitStep2 from "@/pages/submit/SubmitStep2";
-import SubmitTracksScreen from "@/pages/submit/SubmitTracksScreen";
-import SubmitCoverArtScreen from "@/pages/submit/SubmitCoverArtScreen";
-import SubmitSettingsScreen from "@/pages/submit/SubmitSettingsScreen";
-import SubmitReviewScreen from "@/pages/submit/SubmitReviewScreen";
-import SubmitSuccessScreen from "@/pages/submit/SubmitSuccessScreen";
-import SubmitAudioBookInfoScreen from "@/pages/submit/SubmitAudioBookInfoScreen";
-import SubmitFilmInfoScreen from "@/pages/submit/SubmitFilmInfoScreen";
+const MusicWizard = lazy(() => import("@/pages/submit/MusicWizard"));
+const SubmitStep1 = lazy(() => import("@/pages/submit/SubmitStep1"));
+const SubmitStep2 = lazy(() => import("@/pages/submit/SubmitStep2"));
+const SubmitTracksScreen = lazy(() => import("@/pages/submit/SubmitTracksScreen"));
+const SubmitCoverArtScreen = lazy(() => import("@/pages/submit/SubmitCoverArtScreen"));
+const SubmitSettingsScreen = lazy(() => import("@/pages/submit/SubmitSettingsScreen"));
+const SubmitReviewScreen = lazy(() => import("@/pages/submit/SubmitReviewScreen"));
+const SubmitSuccessScreen = lazy(() => import("@/pages/submit/SubmitSuccessScreen"));
+const SubmitAudioBookInfoScreen = lazy(() => import("@/pages/submit/SubmitAudioBookInfoScreen"));
+const SubmitFilmInfoScreen = lazy(() => import("@/pages/submit/SubmitFilmInfoScreen"));
 
 export const routes = [
   { path: "/",                        element: <Navigate to="/login" replace /> },

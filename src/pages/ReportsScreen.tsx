@@ -35,7 +35,12 @@ export default function ReportsScreen() {
       <div className="space-y-5 max-w-[1100px]">
         <RevenueSummaryCard
           revenueContentType={revenueContentType}
-          setRevenueContentType={setRevenueContentType}
+          setRevenueContentType={type => {
+            setRevenueContentType(type);
+            setGrouping("track");
+            setSearchQ("");
+            setDetailPage(1);
+          }}
           onWithdrawClick={() => navigate("/revenue")}
         />
         <RevenueChart

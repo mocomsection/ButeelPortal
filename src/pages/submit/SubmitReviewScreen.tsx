@@ -31,7 +31,7 @@ function DataGrid({ items }: { items: [string, string][] }) {
     <div className="grid grid-cols-2 gap-x-4 gap-y-2">
       {items.map(([k, v], i) => (
         <div key={i} className="flex flex-col gap-0.5">
-          <span className="text-xs text-zinc-400 uppercase font-semibold">{k}</span>
+          <span className="text-xs text-zinc-400 normal-case font-semibold">{k}</span>
           <span className="text-sm font-semibold text-zinc-800">{v || "—"}</span>
         </div>
       ))}
@@ -84,7 +84,7 @@ export default function SubmitReviewScreen() {
                 ["English / Latin", "Minh Setgel"],
                 ["Үндсэн артист", "Болд"],
                 ["Жанр", "Pop"],
-                ["Label", "Steppe Records"],
+                ["Лейбл", "Steppe Records"],
                 ["UPC", "Автоматаар үүснэ"],
                 ["© Эзэмшигч", "Болд Жаргал"],
               ]} />
@@ -119,7 +119,7 @@ export default function SubmitReviewScreen() {
                               ["Ая зохиогч", t.composers], ["Explicit", t.explicit ? "Explicit" : "Not explicit"],
                             ].map(([k, v], j) => (
                               <div key={j}>
-                                <p className="text-xs text-zinc-400 uppercase font-semibold">{k}</p>
+                                <p className="text-xs text-zinc-400 normal-case font-semibold">{k}</p>
                                 <p className="text-xs font-semibold text-zinc-700">{String(v) || "—"}</p>
                               </div>
                             ))}
@@ -136,11 +136,11 @@ export default function SubmitReviewScreen() {
             <ReviewPanel icon={RadioTower} title="Нийтлэх & Түгээх" onEdit={() => navigate("/submit/settings")}>
               <div className="space-y-2">
                 <div className="flex justify-between items-baseline">
-                  <span className="text-xs text-zinc-400 uppercase font-semibold">Нийтлэх хугацаа</span>
+                  <span className="text-xs text-zinc-400 normal-case font-semibold">Нийтлэх хугацаа</span>
                   <span className="text-sm font-semibold text-zinc-800">Аль болох хурдан (2–3 өдөр)</span>
                 </div>
                 <div className="flex justify-between items-baseline">
-                  <span className="text-xs text-zinc-400 uppercase font-semibold">Сувгийн тоо</span>
+                  <span className="text-xs text-zinc-400 normal-case font-semibold">Сувгийн тоо</span>
                   <span className="text-sm font-semibold text-zinc-800">{selectedServices.length}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-2">
@@ -208,4 +208,3 @@ export default function SubmitReviewScreen() {
     </Shell>
   );
 }
-

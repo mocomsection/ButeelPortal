@@ -5,6 +5,7 @@ import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
 import { Btn } from "@/components/ui/Btn";
 import { Input } from "@/components/ui/Input";
+import { SelectInput } from "@/components/ui/SelectInput";
 
 export default function PaymentInfoScreen() {
   const navigate = useNavigate();
@@ -23,16 +24,12 @@ export default function PaymentInfoScreen() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-zinc-700 mb-1.5">Банк</label>
-              <select
-                value={bank} onChange={e => setBank(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border bg-white text-zinc-900 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
-                <option>Хаан банк</option>
-                <option>Голомт банк</option>
-                <option>Төрийн банк</option>
-                <option>МТБанк</option>
-                <option>Капитрон банк</option>
-                <option>Хас банк</option>
-              </select>
+              <SelectInput
+                value={bank}
+                onChange={setBank}
+                options={["Хаан банк", "Голомт банк", "Төрийн банк", "МТБанк", "Капитрон банк", "Хас банк"]}
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border bg-white text-zinc-900 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              />
             </div>
             <Input label="Дансны дугаар" placeholder="1234567890" value={accountNo} onChange={setAccountNo} />
             <Input label="Дансны эзэмшигчийн нэр" placeholder="БОЛД ЖАРГАЛ" value={holderName} onChange={setHolderName}

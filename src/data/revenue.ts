@@ -94,23 +94,23 @@ export const WITHDRAWALS_DATA = [
   { id:"W001", requestedDate:"2026-08-10", amount:270000.00, status:"receipt_pending", modifiedAt:"2026-08-10 09:15", note:"" },
   { id:"W002", requestedDate:"2026-05-20", amount:410000.00, status:"paid",            modifiedAt:"2026-05-28 14:30", note:"" },
   { id:"W003", requestedDate:"2026-02-15", amount:285000.00, status:"paid",            modifiedAt:"2026-02-22 11:00", note:"" },
-  { id:"W004", requestedDate:"2025-11-05", amount:195000.00, status:"reviewing",       modifiedAt:"2025-11-06 10:20", note:"" },
+  { id:"W004", requestedDate:"2025-11-05", amount:195000.00, status:"receipt_received", modifiedAt:"2025-11-06 10:20", note:"" },
   { id:"W005", requestedDate:"2025-08-18", amount:120000.00, status:"returned",        modifiedAt:"2025-08-20 13:40", note:"Регистрийн дугаар буруу шивэгдсэн. Баримтаа засварлаад дахин илгээнэ үү." },
 ];
 
 export const WITHDRAW_STATUS: Record<string, { label: string; cls: string }> = {
   created:         { label: "Хүсэлт үүссэн",          cls: "bg-blue-50 text-blue-700 ring-1 ring-blue-200"   },
-  receipt_pending: { label: "Баримт хүлээгдэж байна",  cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-200" },
-  reviewing:       { label: "Санхүү шалгаж байна",     cls: "bg-violet-50 text-violet-700 ring-1 ring-violet-200" },
+  receipt_pending:  { label: "Баримт хүлээгдэж байна",  cls: "bg-amber-50 text-amber-700 ring-1 ring-amber-200" },
+  receipt_received: { label: "Баримт хүлээн авсан",     cls: "bg-blue-50 text-blue-700 ring-1 ring-blue-200"    },
   paid:            { label: "Төлбөр шилжүүлсэн",       cls: "bg-green-50 text-green-700 ring-1 ring-green-200" },
   returned:        { label: "Буцаасан",                 cls: "bg-red-50 text-red-700 ring-1 ring-red-200"       },
 };
 
 export const TIMELINE_STAGES = [
   { key:"created",         label:"Хүсэлт үүссэн",          sub:"Таны хүсэлт бүртгэгдлээ." },
-  { key:"receipt_pending", label:"Баримт хүлээгдэж байна",  sub:"eBarimt баримтыг илгээнэ үү." },
-  { key:"reviewing",       label:"Санхүү шалгаж байна",     sub:"Баримт болон хүсэлтийг шалгаж байна." },
+  { key:"receipt_pending",  label:"Баримт хүлээгдэж байна",  sub:"eBarimt баримтыг илгээнэ үү." },
+  { key:"receipt_received", label:"Баримт хүлээн авсан",     sub:"Баримт хүлээн авсан. Шалгаж байна." },
   { key:"paid",            label:"Төлбөр шилжүүлсэн",       sub:"Дансанд шилжүүлэх ажиллагаа дууслаа." },
 ];
 
-export const STATUS_ORDER: Record<string, number> = { created:0, receipt_pending:1, reviewing:2, paid:3 };
+export const STATUS_ORDER: Record<string, number> = { created:0, receipt_pending:1, receipt_received:2, paid:3 };

@@ -24,13 +24,14 @@ export default function OnboardingContractsScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-dvh bg-background flex items-center justify-center px-4 py-10 sm:py-12">
+      <div className="w-full max-w-xl">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl mb-3"
             style={{ background: "linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 80%, #000) 100%)" }}>
             <img src={buteelLogo} alt="Buteel" className="w-8 h-8 object-contain" />
           </div>
+          <h1 className="text-xl font-extrabold text-foreground">Buteel Portal</h1>
         </div>
 
         <OnboardingProgress step={1} />

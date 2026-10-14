@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { ArrowLeft, Check, Building2, User, Receipt, AlertCircle } from "lucide-react";
+import { ArrowLeft, Check, Building2, User } from "lucide-react";
 import { Shell } from "@/components/layout/Shell";
 import { Card } from "@/components/ui/Card";
+import { RegisterNumberInput, isValidRegisterNumber } from "@/components/ui/RegisterNumberInput";
+import { getAccountState, patchAccountState } from "@/data/ob-state";
 
 type AccType = "individual" | "org";
 type SaveState = "idle" | "saving" | "saved";
@@ -13,7 +15,7 @@ function Field({
 }: { label: string; required?: boolean; helper?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">
+      <label className="text-sm font-medium text-muted-foreground block mb-2">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       {children}
@@ -38,26 +40,24 @@ function TextInput({
 export default function AccountTaxScreen() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const accType: AccType = (searchParams.get("type") as AccType) ?? "individual";
+  const accType: AccType = searchParams.get("type") === "org" ? "org" : searchParams.get("type") === "individual" ? "individual" : getAccountState().accountType ?? "individual";
   const isOrg = accType === "org";
 
   // ── individual fields ─────────────────────────────────────────────────────
-  const [lastName,   setLastName]   = useState("Жаргал");
-  const [firstName,  setFirstName]  = useState("Болд");
-  const [regNumber,  setRegNumber]  = useState("УН12345678");
+  const [lastName,   setLastName]   = useState(() => getAccountState().lastName || "Жаргал");
+  const [firstName,  setFirstName]  = useState(() => getAccountState().firstName || "Болд");
+  const [regNumber,  setRegNumber]  = useState(() => getAccountState().accountType === "individual" ? getAccountState().partyRegister || "УН12345678" : "УН12345678");
   const [taxId,      setTaxId]      = useState("9900112233");
 
   // ── organization fields ───────────────────────────────────────────────────
-  const [orgName,    setOrgName]    = useState("Steppe Records ХХК");
-  const [orgReg,     setOrgReg]     = useState("1234567");
+  const [orgName,    setOrgName]    = useState(() => getAccountState().accountType === "org" ? getAccountState().partyName || "Steppe Records ХХК" : "Steppe Records ХХК");
+  const [orgReg,     setOrgReg]     = useState(() => getAccountState().accountType === "org" ? getAccountState().partyRegister || "1234567" : "1234567");
   const [orgTaxId,   setOrgTaxId]   = useState("7711223344");
 
   // ── shared ────────────────────────────────────────────────────────────────
-  const [vatPayer,   setVatPayer]   = useState(false);
-  const [vatRegNum,  setVatRegNum]  = useState("");
-  const [saveState,  setSaveState]  = useState<SaveState>("idle");
+  const [saveState, setSaveState] = useState<SaveState>("idle");
 
-  const indCanSave = !!lastName.trim() && !!firstName.trim() && !!regNumber.trim() && !!taxId.trim();
+  const indCanSave = !!lastName.trim() && !!firstName.trim() && isValidRegisterNumber(regNumber) && !!taxId.trim();
   const orgCanSave = !!orgName.trim() && !!orgReg.trim() && !!orgTaxId.trim();
   const canSave    = isOrg ? orgCanSave : indCanSave;
 
@@ -65,6 +65,7 @@ export default function AccountTaxScreen() {
     if (!canSave) return;
     setSaveState("saving");
     setTimeout(() => {
+      patchAccountState({ accountType: accType, partyName: isOrg ? orgName.trim() : `${lastName.trim()} ${firstName.trim()}`, partyRegister: isOrg ? orgReg.trim() : regNumber.trim() });
       setSaveState("saved");
       setTimeout(() => { setSaveState("idle"); navigate("/account"); }, 1400);
     }, 700);
@@ -72,14 +73,14 @@ export default function AccountTaxScreen() {
 
   return (
     <Shell title="Аккаунтын мэдээлэл засах">
-      <div className="max-w-xl space-y-5">
+      <div className="w-full max-w-3xl space-y-4">
 
         <button type="button" onClick={() => navigate("/account")}
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors -mt-1 mb-1">
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft size={15} />Буцах
         </button>
 
-        {/* ── Account type indicator ── */}
+        {/* Account type indicator */}
         <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${isOrg ? "bg-blue-50 border-blue-200" : "bg-secondary/40 border-primary/20"}`}>
           <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isOrg ? "bg-blue-500" : "bg-primary"}`}>
             {isOrg ? <Building2 size={14} className="text-white" /> : <User size={14} className="text-white" />}
@@ -94,92 +95,47 @@ export default function AccountTaxScreen() {
           </div>
         </div>
 
-        {/* ── Individual fields ── */}
+        {/* Individual fields */}
         {!isOrg && (
-          <Card className="p-5">
-            <p className="font-bold text-sm text-foreground mb-4">Иргэний мэдээлэл</p>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Овог" required>
-                  <TextInput value={lastName} onChange={setLastName} placeholder="Батбаяр" />
-                </Field>
-                <Field label="Нэр" required>
-                  <TextInput value={firstName} onChange={setFirstName} placeholder="Болд" />
-                </Field>
-              </div>
-              <Field label="Регистрийн дугаар" required helper="Иргэний үнэмлэхийн дугаар (жишээ: УН12345678)">
-                <TextInput
-                  value={regNumber}
-                  onChange={v => setRegNumber(v.toUpperCase())}
-                  placeholder="УН12345678"
-                />
+          <Card className="p-5 space-y-4">
+            <p className="font-bold text-sm text-foreground">Иргэний мэдээлэл</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Овог" required>
+                <TextInput value={lastName} onChange={setLastName} placeholder="Батбаяр" />
+              </Field>
+              <Field label="Нэр" required>
+                <TextInput value={firstName} onChange={setFirstName} placeholder="Болд" />
+              </Field>
+            </div>
+            <Field label="Регистрийн дугаар" required helper="Иргэний үнэмлэхийн дугаар (жишээ: УН12345678)">
+              <RegisterNumberInput value={regNumber} onChange={setRegNumber} />
+            </Field>
+            <Field label="ТТД" required helper="Татвар төлөгчийн дугаар">
+              <TextInput value={taxId} onChange={setTaxId} placeholder="0000000000" />
+            </Field>
+          </Card>
+        )}
+
+        {/* Organization fields */}
+        {isOrg && (
+          <Card className="p-5 space-y-4">
+            <p className="font-bold text-sm text-foreground">Байгуулгын мэдээлэл</p>
+            <Field label="Байгуулгын нэр" required>
+              <TextInput value={orgName} onChange={setOrgName} placeholder="ХХК / ТББ нэр" />
+            </Field>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Байгууллагын регистрийн дугаар" required>
+                <TextInput value={orgReg} onChange={value => setOrgReg(value.replace(/[^0-9]/g, ""))} placeholder="1234567" />
               </Field>
               <Field label="ТТД" required helper="Татвар төлөгчийн дугаар">
-                <TextInput
-                  value={taxId}
-                  onChange={setTaxId}
-                  placeholder="0000000000"
-                />
+                <TextInput value={orgTaxId} onChange={setOrgTaxId} placeholder="0000000000" />
               </Field>
             </div>
           </Card>
         )}
 
-        {/* ── Organization fields ── */}
-        {isOrg && (
-          <Card className="p-5">
-            <p className="font-bold text-sm text-foreground mb-4">Байгуулгын мэдээлэл</p>
-            <div className="space-y-4">
-              <Field label="Байгуулгын нэр" required>
-                <TextInput value={orgName} onChange={setOrgName} placeholder="ХХК / ТББ нэр" />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Улсын бүртгэлийн дугаар" required helper="ХЗД-ийн бүртгэлийн дугаар">
-                  <TextInput
-                    value={orgReg}
-                    onChange={setOrgReg}
-                    placeholder="1234567"
-                  />
-                </Field>
-                <Field label="ТТД" required helper="Татвар төлөгчийн дугаар">
-                  <TextInput
-                    value={orgTaxId}
-                    onChange={setOrgTaxId}
-                    placeholder="0000000000"
-                  />
-                </Field>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* ── НӨАТ ── */}
-        <Card className="p-5">
-          <div className="flex items-center gap-3 cursor-pointer select-none" onClick={() => setVatPayer(v => !v)}>
-            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${vatPayer ? "bg-primary border-primary" : "border-border"}`}>
-              {vatPayer && <Check size={10} className="text-white" />}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-foreground">НӨАТ төлөгч мөн</p>
-              <p className="text-xs text-muted-foreground mt-0.5">НӨАТ-ын бүртгэлтэй бол сонгоно уу</p>
-            </div>
-          </div>
-
-          {vatPayer && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <Field label="НӨАТ бүртгэлийн дугаар" helper="Татварын газрын НӨАТ бүртгэлийн дугаар">
-                <TextInput
-                  value={vatRegNum}
-                  onChange={setVatRegNum}
-                  placeholder="0000000000"
-                />
-              </Field>
-            </div>
-          )}
-        </Card>
-
-        {/* ── Footer ── */}
-        <div className="flex items-center justify-between pb-2">
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-1 pb-4">
           <button type="button" onClick={() => navigate("/account")}
             className="h-9 px-4 rounded-xl text-sm font-semibold border border-border bg-card text-foreground/70 hover:bg-muted/40 transition-colors">
             Болих

@@ -8,8 +8,8 @@ export const formatMonthFull = (key: string) => { const [y,m] = key.split("-"); 
 export const formatMonthShort = (key: string) => { const [y,m] = key.split("-"); return `${parseInt(m)} сар, ${y.slice(2)}`; };
 export const fmtYAxis = (v: number) => { if(v===0) return "0"; if(v>=1000000) return `${(v/1000000)%1===0?(v/1000000).toFixed(0):(v/1000000).toFixed(1)}сая`; if(v>=1000) return `${(v/1000).toFixed(0)}м`; return String(v); };
 
-export const thCls  = "text-left text-[11px] font-bold text-zinc-400 uppercase px-5 py-3";
-export const thRCls = "text-right text-[11px] font-bold text-zinc-400 uppercase px-5 py-3";
-export const tdCls  = "px-5 py-3.5 text-sm text-zinc-500";
-export const tdRCls = "px-5 py-3.5 text-right text-sm tabular-nums text-zinc-500";
-export const tdBoldR = "px-5 py-3.5 text-right text-sm tabular-nums font-bold text-zinc-900";
+export const thCls  = "text-left text-[11px] font-bold text-zinc-400 uppercase px-3 sm:px-5 py-3";
+export const thRCls = "text-right text-[11px] font-bold text-zinc-400 uppercase px-3 sm:px-5 py-3";
+export const tdCls  = "px-3 sm:px-5 py-3.5 text-sm text-zinc-500";
+export const tdRCls = "px-3 sm:px-5 py-3.5 text-right text-sm tabular-nums text-zinc-500";
+export const tdBoldR = "px-3 sm:px-5 py-3.5 text-right text-[13px] sm:text-sm tabular-nums font-bold whitespace-nowrap text-zinc-900";
